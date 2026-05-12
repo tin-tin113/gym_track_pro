@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Fitness Progress Report - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Fitness Progress Report</h1>
+        <a href="{{ url_for('reports.fitness_export', member_id=member.id) }}" class="btn btn-outline-success">
+            <i class="fas fa-download"></i> Export CSV
+        </a>
+    </div>
+
+    <!-- Member Info -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ member.user.full_name }}</h5>
+                    <p class="text-muted mb-1"><strong>Email:</strong> {{ member.user.email }}</p>
+                    <p class="text-muted"><strong>Membership:</strong>
+                        {% if member.is_membership_active() %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger">Expired</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6 text-right">
+                    <p class="text-muted"><strong>Created:</strong> {{ member.user.created_at.strftime('%Y-%m-%d') }}</p>
+                    <p class="text-muted"><strong>Metrics Available:</strong> {{ metrics|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Latest Metrics Card -->
+    {% if metrics %}
+    {% set latest = metrics[0] %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Weight</h6>
+                    <h3 class="text-primary">{{ latest.weight|default('-') }} <small>kg</small></h3>
+                    {% if weight_trend and latest.weight %}
+                    <small class="{% if weight_trend['weight_change'] > 0 %}text-danger{% else %}text-success{% endif %}">
+                        {% if weight_trend['weight_change'] > 0 %}↑{% else %}↓{% endif %}
+                        {{ weight_trend['weight_change'] }} kg
+                        ({{ weight_trend['percent_change'] }}%)
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">BMI</h6>
+                    <h3 class="text-info">{{ latest.bmi|default('-') }}</h3>
+                    <small class="text-muted">
+                        {{ latest.get_bmi_classification()|default('-') }}
+                        {% if bmi_trend and bmi_trend.start_bmi %}
+                        <br>(Change: {% if bmi_trend['change'] > 0 %}+{% endif %}{{ bmi_trend['change'] }})
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Height</h6>
+                    <h3 class="text-warning">{{ latest.height|default('-') }} <small>cm</small></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Last Updated</h6>
+                    <h5 class="text-muted">{{ latest.metric_date.strftime('%Y-%m-%d') }}</h5>
+                    <small class="text-muted">{{ (now - latest.metric_date).days }} days ago</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Body Measurements -->
+    {% if latest.chest or latest.waist or latest.hips %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Body Measurements</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% if latest.chest %}
+                <div class="col-md-3">
+                    <p class="text-muted mb-2">Chest</p>
+                    <h5>{{ latest.chest }} cm</h5>
+                </div>
+                {% endif %}
+                {% if latest.waist %}
+                <div class="col-md-3">
+                    <p class="text-muted mb-2">Waist</p>
+                    <h5>{{ latest.waist }} cm</h5>
+                </div>
+                {% endif %}
+                {% if latest.hips %}
+                <div class="col-md-3">
+                    <p class="text-muted mb-2">Hips</p>
+                    <h5>{{ latest.hips }} cm</h5>
+                </div>
+                {% endif %}
+                {% if latest.bicep %}
+                <div class="col-md-3">
+                    <p class="text-muted mb-2">Bicep</p>
+                    <h5>{{ latest.bicep }} cm</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metrics History Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Metrics History</h5>
+        </div>
+        <div class="card-body">
+            {% if metrics %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Date</th>
+                            <th>Weight (kg)</th>
+                            <th>Height (cm)</th>
+                            <th>BMI</th>
+                            <th>Classification</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for metric in metrics %}
+                        <tr>
+                            <td><strong>{{ metric.metric_date.strftime('%Y-%m-%d') }}</strong></td>
+                            <td>{{ metric.weight|default('-') }}</td>
+                            <td>{{ metric.height|default('-') }}</td>
+                            <td>{{ metric.bmi|default('-') }}</td>
+                            <td>
+                                {% if metric.bmi %}
+                                    {% set classification = metric.get_bmi_classification() %}
+                                    {% if classification == 'Underweight' %}
+                                    <span class="badge bg-info">{{ classification }}</span>
+                                    {% elif classification == 'Normal weight' %}
+                                    <span class="badge bg-success">{{ classification }}</span>
+                                    {% elif classification == 'Overweight' %}
+                                    <span class="badge bg-warning">{{ classification }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">{{ classification }}</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ metric.notes|default('-') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No fitness metrics recorded yet</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% set now = now() %}
+{% endblock %}

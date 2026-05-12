@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Import Members - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3>📥 Bulk Import Members from CSV</h3>
+            </div>
+            <div class="card-body">
+                {% if import_result %}
+                    <!-- Import Results -->
+                    <div class="alert alert-{% if import_result.imported > 0 %}success{% else %}warning{% endif %} alert-dismissible fade show" role="alert">
+                        <h4>✅ Import Complete</h4>
+                        <p>
+                            <strong>Imported:</strong> {{ import_result.imported }} members<br>
+                            <strong>Skipped:</strong> {{ import_result.skipped }} records
+                        </p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- Error Details -->
+                    {% if import_result.errors %}
+                    <div class="alert alert-warning">
+                        <h5>⚠️ Import Errors ({{ import_result.errors|length }})</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Row</th>
+                                        <th>Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for error in import_result.errors %}
+                                    <tr>
+                                        <td>{{ error.row }}</td>
+                                        <td><small>{{ error.error }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('member.list_members') }}" class="btn btn-primary">👥 View All Members</a>
+                        <a href="{{ url_for('member.import_csv') }}" class="btn btn-outline-primary">Import Another File</a>
+                    </div>
+                {% else %}
+                    <!-- Upload Form -->
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="csv_file" class="form-label">Select CSV File</label>
+                            <input type="file" class="form-control form-control-lg" id="csv_file" name="csv_file" accept=".csv" required>
+                            <small class="form-text text-muted">
+                                Maximum 16MB. Required columns: <code>full_name</code>, <code>email</code>,
+                                <code>membership_start_date</code>, <code>membership_expiry_date</code>
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">📤 Upload & Import</button>
+                    </form>
+
+                    <!-- Instructions -->
+                    <hr class="my-4">
+
+                    <div class="alert alert-info" role="alert">
+                        <h5>📋 CSV Format Instructions</h5>
+                        <p>Your CSV file should have the following columns:</p>
+                        <ul class="mb-0">
+                            <li><code>full_name</code> (required) - Member's full name</li>
+                            <li><code>email</code> (required) - Member's email address (must be unique)</li>
+                            <li><code>phone_number</code> (optional) - Phone number</li>
+                            <li><code>gender</code> (optional) - M, F, or Other</li>
+                            <li><code>date_of_birth</code> (optional) - Format YYYY-MM-DD</li>
+                            <li><code>membership_type</code> (optional) - daily, monthly, quarterly, annual (default: monthly)</li>
+                            <li><code>membership_start_date</code> (required) - Format YYYY-MM-DD</li>
+                            <li><code>membership_expiry_date</code> (required) - Format YYYY-MM-DD
+                                <br><small class="text-muted">💡 Tip: Calculate based on membership type and start date:<br>
+                                Daily = start_date + 1 day | Monthly = start_date + 30 days |<br>
+                                Quarterly = start_date + 90 days | Annual = start_date + 365 days</small>
+                            </li>
+                        </ul>
+                        <p class="mb-0 mt-2"><strong>Note:</strong> When creating members individually, dates auto-fill based on membership type!</p>
+                    </div>
+
+                    <!-- Sample CSV -->
+                    <div class="alert alert-secondary" role="alert">
+                        <h5>📝 Sample CSV Format</h5>
+                        <pre><code>full_name,email,phone_number,gender,membership_type,membership_start_date,membership_expiry_date
+John Doe,john@example.com,555-1234,M,monthly,2026-05-12,2026-06-12
+Jane Smith,jane@example.com,555-5678,F,annual,2026-01-01,2027-01-01
+Bob Johnson,bob@example.com,555-9999,M,quarterly,2026-04-01,2026-07-01</code></pre>
+                    </div>
+
+                    <!-- Download Template -->
+                    <a href="javascript:downloadTemplate()" class="btn btn-outline-secondary btn-sm">
+                        📥 Download CSV Template
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{{ url_for('member.list_members') }}" class="btn btn-secondary">← Back to Members</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadTemplate() {
+    const csv = 'full_name,email,phone_number,gender,membership_type,membership_start_date,membership_expiry_date\n' +
+        'John Doe,john@example.com,555-1234,M,monthly,2026-05-12,2026-06-12\n' +
+        'Jane Smith,jane@example.com,555-5678,F,annual,2026-01-01,2027-01-01\n' +
+        'Bob Johnson,bob@example.com,555-9999,M,quarterly,2026-04-01,2026-07-01';
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'member_import_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+</script>
+{% endblock %}

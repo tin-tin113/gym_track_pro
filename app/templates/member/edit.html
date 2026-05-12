@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{% if member %}Edit{% else %}Create{% endif %} Member - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3>{% if member %}✏️ Edit{% else %}➕ Create{% endif %} Member</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <!-- Personal Information -->
+                    <h5 class="mb-3">👤 Personal Information</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="full_name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="full_name" name="full_name"
+                                value="{{ member.user.full_name if member else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                value="{{ member.user.email if member else '' }}"
+                                {% if member %}disabled{% else %}required{% endif %}>
+                            <small class="text-muted">{% if not member %}Cannot be changed after creation{% endif %}</small>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="phone_number" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                value="{{ member.phone_number if member else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="date_of_birth" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                                value="{% if member and member.date_of_birth %}{{ member.date_of_birth.isoformat() }}{% endif %}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select class="form-select" id="gender" name="gender">
+                            <option value="">-- Select --</option>
+                            <option value="M" {% if member and member.gender == 'M' %}selected{% endif %}>Male</option>
+                            <option value="F" {% if member and member.gender == 'F' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if member and member.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Membership Information -->
+                    <hr class="my-4">
+                    <h5 class="mb-3">📅 Membership Information</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="membership_type" class="form-label">Membership Type *</label>
+                            <select class="form-select" id="membership_type" name="membership_type" required>
+                                <option value="daily" {% if member and member.membership_type == 'daily' %}selected{% endif %}>Daily</option>
+                                <option value="monthly" {% if not member or member.membership_type == 'monthly' %}selected{% endif %}>Monthly</option>
+                                <option value="quarterly" {% if member and member.membership_type == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                                <option value="annual" {% if member and member.membership_type == 'annual' %}selected{% endif %}>Annual</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"></div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="membership_start_date" class="form-label">Start Date *</label>
+                            <input type="date" class="form-control" id="membership_start_date" name="membership_start_date"
+                                value="{% if member %}{{ member.membership_start_date.isoformat() }}{% else %}{{ now.date().isoformat() if now else '' }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="membership_expiry_date" class="form-label">Expiry Date *</label>
+                            <input type="date" class="form-control" id="membership_expiry_date" name="membership_expiry_date"
+                                value="{% if member %}{{ member.membership_expiry_date.isoformat() }}{% endif %}" required>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ member.notes if member else '' }}</textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% if member %}{{ url_for('member.view_member', member_id=member.id) }}{% else %}{{ url_for('member.list_members') }}{% endif %}"
+                            class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if member %}💾 Update Member{% else %}✅ Create Member{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="alert alert-info mt-4" role="alert">
+            <strong>💡 Info:</strong>
+            <ul class="mb-0 mt-2">
+                <li>Default password for new members: <code>GymTrack2026!</code></li>
+                <li>Members can change their password after login</li>
+                <li>Fields marked with * are required</li>
+                <li>Membership dates auto-fill based on selected membership type</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * Auto-fill membership dates based on membership type
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        const membershipTypeSelect = document.getElementById('membership_type');
+        const startDateInput = document.getElementById('membership_start_date');
+        const expiryDateInput = document.getElementById('membership_expiry_date');
+
+        // Membership duration mapping (in days)
+        const durationMap = {
+            'daily': 1,
+            'monthly': 30,
+            'quarterly': 90,
+            'annual': 365
+        };
+
+        function calculateExpiryDate() {
+            const membershipType = membershipTypeSelect.value;
+            const startDate = new Date(startDateInput.value);
+
+            if (!startDateInput.value || !membershipType) {
+                return;
+            }
+
+            // Calculate expiry date
+            const duration = durationMap[membershipType];
+            const expiryDate = new Date(startDate);
+            expiryDate.setDate(expiryDate.getDate() + duration);
+
+            // Set the expiry date input
+            expiryDateInput.value = expiryDate.toISOString().split('T')[0];
+        }
+
+        // Event listener for membership type change
+        membershipTypeSelect.addEventListener('change', function() {
+            // If start date is not set, set it to today
+            if (!startDateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                startDateInput.value = today;
+            }
+
+            calculateExpiryDate();
+        });
+
+        // Event listener for start date change
+        startDateInput.addEventListener('change', calculateExpiryDate);
+
+        // Auto-fill on page load if creating new member and dates are empty
+        if (!startDateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            startDateInput.value = today;
+            calculateExpiryDate();
+        }
+    });
+</script>
+{% endblock %}

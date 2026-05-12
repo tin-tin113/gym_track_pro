@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.user.full_name }} - Fitness Progress{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>💪 {{ member.user.full_name }}'s Fitness Progress</h2>
+    <div>
+        <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-success">➕ Add Metrics</a>
+        <a href="{{ url_for('fitness.fitness_report', member_id=member.id) }}" class="btn btn-primary">📄 Print Report</a>
+    </div>
+</div>
+
+<!-- Latest Metrics Summary -->
+{% if latest_metric %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📊 Latest Measurements</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Date:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</dd>
+
+                    <dt class="col-sm-6">Weight:</dt>
+                    <dd class="col-sm-6"><strong>{{ latest_metric.weight }} kg</strong></dd>
+
+                    <dt class="col-sm-6">Height:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.height }} cm</dd>
+
+                    <dt class="col-sm-6">BMI:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-{% if latest_metric.bmi < 18.5 %}info{% elif latest_metric.bmi < 25 %}success{% elif latest_metric.bmi < 30 %}warning{% else %}danger{% endif %}">
+                            {{ latest_metric.bmi }} - {{ latest_metric.get_bmi_classification() }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weight Trend -->
+    {% if weight_trend %}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📈 30-Day Weight Trend</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Start Weight:</dt>
+                    <dd class="col-sm-6">{{ weight_trend.start_weight }} kg</dd>
+
+                    <dt class="col-sm-6">Current Weight:</dt>
+                    <dd class="col-sm-6">{{ weight_trend.current_weight }} kg</dd>
+
+                    <dt class="col-sm-6">Change:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-{% if weight_trend.weight_change < 0 %}success{% elif weight_trend.weight_change > 0 %}warning{% else %}secondary{% endif %}">
+                            {% if weight_trend.weight_change < 0 %}↓{% elif weight_trend.weight_change > 0 %}↑{% else %}→{% endif %}
+                            {{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-6">Trend:</dt>
+                    <dd class="col-sm-6">{{ weight_trend.trend|title }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📊 Weight Trend (90 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">📈 BMI Progression (90 Days)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="bmiChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Body Measurements -->
+{% if latest_metric %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">📐 Body Measurements (Latest)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <dl class="row">
+                            <dt class="col-sm-6">Chest:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.chest or 'N/A' }} cm</dd>
+
+                            <dt class="col-sm-6">Waist:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.waist or 'N/A' }} cm</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-3">
+                        <dl class="row">
+                            <dt class="col-sm-6">Hips:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.hips or 'N/A' }} cm</dd>
+
+                            <dt class="col-sm-6">Bicep:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.bicep or 'N/A' }} cm</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-3">
+                        <dl class="row">
+                            <dt class="col-sm-6">Thigh:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.thigh or 'N/A' }} cm</dd>
+
+                            <dt class="col-sm-6">Body Fat:</dt>
+                            <dd class="col-sm-6">{{ latest_metric.body_fat_percentage or 'N/A' }}%</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Metrics History Table -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📋 Measurement History</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Weight (kg)</th>
+                    <th>Height (cm)</th>
+                    <th>BMI</th>
+                    <th>Classification</th>
+                    <th>Recorded By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if metrics %}
+                    {% for metric in metrics %}
+                    <tr>
+                        <td>{{ metric.metric_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ metric.weight }}</td>
+                        <td>{{ metric.height }}</td>
+                        <td>{{ metric.bmi }}</td>
+                        <td>
+                            <span class="badge bg-{% if metric.bmi < 18.5 %}info{% elif metric.bmi < 25 %}success{% elif metric.bmi < 30 %}warning{% else %}danger{% endif %}">
+                                {{ metric.get_bmi_classification() }}
+                            </span>
+                        </td>
+                        <td><small>{{ metric.created_by.full_name if metric.created_by else 'N/A' }}</small></td>
+                        <td>
+                            <a href="{{ url_for('fitness.edit_metric', metric_id=metric.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                            <form method="POST" action="{{ url_for('fitness.delete_metric', metric_id=metric.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this metric?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No metrics recorded yet</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+// Fetch trend data
+fetch('{{ url_for("fitness.api_trends", member_id=member.id) }}')
+    .then(response => response.json())
+    .then(data => {
+        // Weight Chart
+        if (data.weight && data.weight.length > 0) {
+            const weightCtx = document.getElementById('weightChart').getContext('2d');
+            new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: data.weight.map(d => d.date),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: data.weight.map(d => d.value),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(75, 192, 192)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            type: 'linear',
+                            position: 'left'
+                        }
+                    }
+                }
+            });
+        }
+
+        // BMI Chart
+        if (data.bmi && data.bmi.length > 0) {
+            const bmiCtx = document.getElementById('bmiChart').getContext('2d');
+            new Chart(bmiCtx, {
+                type: 'line',
+                data: {
+                    labels: data.bmi.map(d => d.date),
+                    datasets: [{
+                        label: 'BMI',
+                        data: data.bmi.map(d => d.value),
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgb(255, 159, 64)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            type: 'linear',
+                            position: 'left'
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

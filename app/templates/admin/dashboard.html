@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - GymTrack Pro{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📊 Admin Dashboard</h2>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-center text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">👥 Total Members</h5>
+                <h2 class="card-text">{{ stats.total_members }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-center text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">✓ Active Members</h5>
+                <h2 class="card-text">{{ stats.active_members }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-center text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">🏋️ Trainers</h5>
+                <h2 class="card-text">{{ stats.total_trainers }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3">
+        <div class="card text-center text-white bg-secondary">
+            <div class="card-body">
+                <h5 class="card-title">👤 Total Users</h5>
+                <h2 class="card-text">{{ stats.total_users }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">⚡ Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('member.create_member') }}" class="btn btn-outline-primary w-100 mb-2">➕ Create New Member</a>
+                <a href="{{ url_for('member.import_csv') }}" class="btn btn-outline-success w-100 mb-2">📥 Import Members CSV</a>
+                <a href="{{ url_for('member.list_members') }}" class="btn btn-outline-info w-100">👥 Manage Members</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">📈 System Statistics</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <span class="badge bg-primary">{{ stats.total_members }}</span>
+                        Total gym members registered
+                    </li>
+                    <li class="mb-2">
+                        <span class="badge bg-success">{{ stats.active_members }}</span>
+                        Active memberships
+                    </li>
+                    <li class="mb-2">
+                        <span class="badge bg-info">{{ stats.total_trainers }}</span>
+                        Certified trainers on staff
+                    </li>
+                    <li class="mb-2">
+                        <span class="badge bg-secondary">{{ stats.total_users }}</span>
+                        Total system users
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Information Cards -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">ℹ️ System Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Application:</dt>
+                    <dd class="col-sm-6"><strong>GymTrack Pro</strong></dd>
+
+                    <dt class="col-sm-6">Version:</dt>
+                    <dd class="col-sm-6">1.0.0</dd>
+
+                    <dt class="col-sm-6">Role:</dt>
+                    <dd class="col-sm-6">Admin</dd>
+
+                    <dt class="col-sm-6">Status:</dt>
+                    <dd class="col-sm-6"><span class="badge bg-success">Online</span></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">⚠️ Reminders</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Check for expiring memberships regularly</li>
+                    <li>Ensure trainers are assigned to members</li>
+                    <li>Review member attendance patterns</li>
+                    <li>Update member fitness metrics periodically</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

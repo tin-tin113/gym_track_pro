@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Fitness Metric - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h3>✏️ Edit Fitness Metric</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('fitness.edit_metric', metric_id=metric.id) }}" novalidate>
+                    <!-- Member Info -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <strong>Member:</strong> {{ metric.member.user.full_name }}<br>
+                        <strong>Date:</strong> {{ metric.metric_date.strftime('%Y-%m-%d') }}<br>
+                        <strong>Last Updated:</strong> {{ metric.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+
+                    <!-- Core Measurements -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📏 Core Measurements</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label">Weight (kg) *</label>
+                                <input type="number" class="form-control" id="weight" name="weight"
+                                    step="0.1" required value="{{ metric.weight }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="height" class="form-label">Height (cm) *</label>
+                                <input type="number" class="form-control" id="height" name="height"
+                                    step="0.1" required value="{{ metric.height }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Body Measurements -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📐 Body Measurements</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="chest" class="form-label">Chest (cm)</label>
+                                <input type="number" class="form-control" id="chest" name="chest"
+                                    step="0.1" value="{{ metric.chest or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="waist" class="form-label">Waist (cm)</label>
+                                <input type="number" class="form-control" id="waist" name="waist"
+                                    step="0.1" value="{{ metric.waist or '' }}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="hips" class="form-label">Hips (cm)</label>
+                                <input type="number" class="form-control" id="hips" name="hips"
+                                    step="0.1" value="{{ metric.hips or '' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="bicep" class="form-label">Bicep (cm)</label>
+                                <input type="number" class="form-control" id="bicep" name="bicep"
+                                    step="0.1" value="{{ metric.bicep or '' }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="thigh" class="form-label">Thigh (cm)</label>
+                            <input type="number" class="form-control" id="thigh" name="thigh"
+                                step="0.1" value="{{ metric.thigh or '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Body Composition -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📊 Body Composition</h5>
+                        <div class="mb-3">
+                            <label for="body_fat_percentage" class="form-label">Body Fat (%)</label>
+                            <input type="number" class="form-control" id="body_fat_percentage" name="body_fat_percentage"
+                                step="0.1" value="{{ metric.body_fat_percentage or '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📝 Notes</h5>
+                        <textarea class="form-control" name="notes" rows="3">{{ metric.notes or '' }}</textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('fitness.member_progress', member_id=metric.member_id) }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            💾 Update Metric
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

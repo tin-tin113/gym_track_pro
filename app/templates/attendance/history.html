@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance History - GymTrack Pro{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">📋 Attendance History</h2>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('attendance_routes.history') }}" class="row g-3">
+            <div class="col-md-6">
+                <label for="member_id" class="form-label">Filter by Member</label>
+                <select class="form-select" id="member_id" name="member_id" onchange="this.form.submit()">
+                    <option value="">-- All Members --</option>
+                    {% for member in members %}
+                    <option value="{{ member.id }}" {% if selected_member_id == member.id %}selected{% endif %}>
+                        {{ member.user.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="date" class="form-label">Filter by Date</label>
+                <div class="input-group">
+                    <input type="date" class="form-control" id="date" name="date"
+                        value="{{ selected_date }}" onchange="this.form.submit()">
+                    {% if selected_date %}
+                    <a href="{{ url_for('attendance_routes.history') }}" class="btn btn-outline-secondary">Clear</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Member Name</th>
+                    <th>Email</th>
+                    <th>Check-In Time</th>
+                    <th>Check-Out Time</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if attendance_records %}
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td class="fw-bold">{{ record.member.user.full_name }}</td>
+                        <td>{{ record.member.user.email }}</td>
+                        <td>{{ record.check_in_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>
+                            {% if record.check_out_time %}
+                                {{ record.check_out_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% else %}
+                                <span class="badge bg-warning">Still Present</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.duration_minutes %}
+                                {{ record.duration_minutes }} min
+                            {% elif record.check_in_time %}
+                                {% set now = now() %}
+                                {% set delta = (now - record.check_in_time).total_seconds() / 60 %}
+                                ~{{ "%.0f" | format(delta) }} min
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.check_out_time %}
+                                <span class="badge bg-success">✓ Checked Out</span>
+                            {% else %}
+                                <span class="badge bg-info">🔵 Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not record.check_out_time %}
+                            <form method="POST" action="{{ url_for('attendance_routes.check_out', attendance_id=record.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-warning">Check Out</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No attendance records found</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="mt-4" aria-label="Pagination">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.prev_num, member_id=selected_member_id, date=selected_date) }}">Previous</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        </li>
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.next_num, member_id=selected_member_id, date=selected_date) }}">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

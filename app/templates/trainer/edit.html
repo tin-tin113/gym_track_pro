@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{% if trainer %}Edit{% else %}Create{% endif %} Trainer - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3>{% if trainer %}✏️ Edit{% else %}➕ Create{% endif %} Trainer</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <!-- Personal Information -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">👤 Personal Information</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="full_name" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="full_name" name="full_name"
+                                    value="{{ trainer.user.full_name if trainer else '' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="{{ trainer.user.email if trainer else '' }}"
+                                    {% if trainer %}disabled{% else %}required{% endif %}>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone_number" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number"
+                                    value="{{ trainer.phone_number if trainer else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_clients" class="form-label">Max Clients *</label>
+                                <input type="number" class="form-control" id="max_clients" name="max_clients"
+                                    value="{{ trainer.max_clients if trainer else 10 }}" min="1" max="50" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Information -->
+                    <hr class="my-4">
+                    <div class="mb-4">
+                        <h5 class="text-muted">🏋️ Professional Information</h5>
+
+                        <div class="mb-3">
+                            <label for="specialization" class="form-label">Specialization(s)</label>
+                            <input type="text" class="form-control" id="specialization" name="specialization"
+                                placeholder="e.g., Strength Training, CrossFit, Yoga"
+                                value="{{ trainer.specialization if trainer else '' }}">
+                            <small class="text-muted">Comma-separated list</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="certifications" class="form-label">Certifications</label>
+                            <input type="text" class="form-control" id="certifications" name="certifications"
+                                placeholder="e.g., NASM-CPT, ACE, ISSA"
+                                value="{{ trainer.certifications if trainer else '' }}">
+                            <small class="text-muted">Comma-separated list</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4"
+                                placeholder="Write a brief bio about the trainer...">{{ trainer.bio if trainer else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('trainer.list_trainers') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if trainer %}💾 Update Trainer{% else %}✅ Create Trainer{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="alert alert-info mt-4" role="alert">
+            <strong>💡 Info:</strong>
+            <ul class="mb-0 mt-2">
+                {% if not trainer %}
+                    <li>Default password for new trainers: <code>GymTrack2026!</code></li>
+                {% endif %}
+                <li>Trainers can view and manage their assigned members</li>
+                <li>Max clients limit prevents over-scheduling</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

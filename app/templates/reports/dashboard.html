@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Analytics - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Analytics Dashboard</h1>
+        <form method="GET" class="form-inline">
+            <select name="days" class="form-control mr-2" onchange="this.form.submit()">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Key Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Members</h5>
+                    <h2 class="text-primary">{{ total_members }}</h2>
+                    <small class="text-muted">Active memberships</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Active Today</h5>
+                    <h2 class="text-info">{{ active_today }}</h2>
+                    <small class="text-muted">Checked in</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Visits</h5>
+                    <h2 class="text-success">{{ total_visits }}</h2>
+                    <small class="text-muted">Last {{ days }} days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Avg Daily</h5>
+                    <h2 class="text-warning">{{ avg_daily_visits }}</h2>
+                    <small class="text-muted">visits/day</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Membership Status -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">Expiring Soon</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ expiring_soon }}</h3>
+                    <small class="text-muted">Within 7 days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">Expired</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ expired }}</h3>
+                    <small class="text-muted">Needs renewal</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">Fitness Tracking</h6>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="mb-0">{{ fitness_participants }}</h3>
+                    <small class="text-muted">Members tracked</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Attending Members -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top 10 Attending Members</h5>
+                </div>
+                <div class="card-body">
+                    {% if member_visits %}
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Rank</th>
+                                <th>Member Name</th>
+                                <th>Visits ({{ days }} days)</th>
+                                <th>Avg per Week</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i, (member_id, name, visits) in member_visits %}
+                            <tr>
+                                <td><strong>#{{ loop.index }}</strong></td>
+                                <td><a href="{{ url_for('member.view_member', member_id=member_id) }}">{{ name }}</a></td>
+                                <td>
+                                    <span class="badge bg-info">{{ visits }}</span>
+                                </td>
+                                <td>{{ (visits / (days / 7)) | round(1) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted">No attendance data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Links -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h5 class="mb-3">Generate Reports</h5>
+            <a href="{{ url_for('reports.attendance_report') }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-file-csv"></i> Attendance Report
+            </a>
+            <a href="{{ url_for('member.list_members') }}" class="btn btn-outline-success">
+                <i class="fas fa-download"></i> Export Members
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh dashboard every 5 minutes
+    // setInterval(function() {
+    //     location.reload();
+    // }, 300000);
+</script>
+{% endblock %}

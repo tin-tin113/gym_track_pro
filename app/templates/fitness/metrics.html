@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Add Fitness Metrics - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h3>💪 Record Fitness Metrics</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('fitness.add_metrics') }}" novalidate>
+                    <!-- Member Selection -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">Select Member</h5>
+                        <div class="form-group">
+                            <label for="member_id" class="form-label">Member *</label>
+                            <select class="form-select form-select-lg" id="member_id" name="member_id" required autofocus>
+                                <option value="">-- Choose a member --</option>
+                                {% for member in members %}
+                                <option value="{{ member.id }}">
+                                    {{ member.user.full_name }} ({{ member.user.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">Measurement Date</h5>
+                        <div class="mb-3">
+                            <label for="metric_date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="metric_date" name="metric_date"
+                                required value="{{ now().date().isoformat() if now else '' }}">
+                        </div>
+                    </div>
+
+                    <!-- Core Measurements -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📏 Core Measurements</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="weight" class="form-label">Weight (kg) *</label>
+                                <input type="number" class="form-control" id="weight" name="weight"
+                                    step="0.1" required placeholder="e.g., 75.5">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="height" class="form-label">Height (cm) *</label>
+                                <input type="number" class="form-control" id="height" name="height"
+                                    step="0.1" required placeholder="e.g., 175.0">
+                                <small class="text-muted">Leave unchanged if measuring same member</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Body Measurements -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📐 Body Measurements (Optional)</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="chest" class="form-label">Chest (cm)</label>
+                                <input type="number" class="form-control" id="chest" name="chest"
+                                    step="0.1" placeholder="e.g., 100.0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="waist" class="form-label">Waist (cm)</label>
+                                <input type="number" class="form-control" id="waist" name="waist"
+                                    step="0.1" placeholder="e.g., 85.0">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="hips" class="form-label">Hips (cm)</label>
+                                <input type="number" class="form-control" id="hips" name="hips"
+                                    step="0.1" placeholder="e.g., 95.0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="bicep" class="form-label">Bicep (cm)</label>
+                                <input type="number" class="form-control" id="bicep" name="bicep"
+                                    step="0.1" placeholder="e.g., 32.0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="thigh" class="form-label">Thigh (cm)</label>
+                            <input type="number" class="form-control" id="thigh" name="thigh"
+                                step="0.1" placeholder="e.g., 55.0">
+                        </div>
+                    </div>
+
+                    <!-- Body Composition -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📊 Body Composition (Optional)</h5>
+                        <div class="mb-3">
+                            <label for="body_fat_percentage" class="form-label">Body Fat (%)</label>
+                            <input type="number" class="form-control" id="body_fat_percentage" name="body_fat_percentage"
+                                step="0.1" placeholder="e.g., 20.5">
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        <h5 class="text-muted">📝 Notes</h5>
+                        <textarea class="form-control" name="notes" rows="3"
+                            placeholder="Any observations about this measurement..."></textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            ✓ Record Metrics
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Box -->
+        <div class="alert alert-info mt-4" role="alert">
+            <strong>💡 Tips:</strong>
+            <ul class="mb-0 mt-2">
+                <li>Take measurements in consistent conditions (morning, same clothing)</li>
+                <li>Record measurements monthly for best trend tracking</li>
+                <li>BMI is automatically calculated</li>
+                <li>All measurements in metric units (kg, cm)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-calculate BMI display (informational only)
+document.getElementById('weight').addEventListener('change', calculateBMI);
+document.getElementById('height').addEventListener('change', calculateBMI);
+
+function calculateBMI() {
+    const weight = parseFloat(document.getElementById('weight').value);
+    const height = parseFloat(document.getElementById('height').value);
+
+    if (weight && height) {
+        const heightM = height / 100;
+        const bmi = (weight / (heightM * heightM)).toFixed(1);
+        console.log('Calculated BMI: ' + bmi);
+    }
+}
+</script>
+{% endblock %}

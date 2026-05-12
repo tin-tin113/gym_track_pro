@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Fitness Progress Report - {{ member.user.full_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📄 Fitness Progress Report</h2>
+    <button onclick="window.print();" class="btn btn-primary">🖨️ Print</button>
+</div>
+
+<div class="card" style="background: white;">
+    <div class="card-body" style="padding: 40px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 40px; border-bottom: 2px solid #1E90FF; padding-bottom: 20px;">
+            <h1 style="color: #2C3E50; margin-bottom: 5px;">💪 GymTrack Pro</h1>
+            <h3 style="color: #20B2AA;">Fitness Progress Report</h3>
+        </div>
+
+        <!-- Member Info -->
+        <div style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h4 style="color: #1E90FF; margin-bottom: 15px;">Member Information</h4>
+            <dl style="margin: 0;">
+                <dt style="font-weight: bold; color: #2C3E50;">Name:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">{{ member.user.full_name }}</dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Email:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">{{ member.user.email }}</dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Date of Birth:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">
+                    {% if member.date_of_birth %}
+                        {{ member.date_of_birth.strftime('%Y-%m-%d') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Report Generated:</dt>
+                <dd style="margin-left: 20px;">{{ report_date.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+            </dl>
+        </div>
+
+        <!-- Weight Trend Summary -->
+        {% if weight_trend %}
+        <div style="margin-bottom: 30px; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h4 style="color: #1E90FF; margin-bottom: 15px;">📈 Weight Progress (90 Days)</h4>
+            <dl style="margin: 0;">
+                <dt style="font-weight: bold; color: #2C3E50;">Starting Weight:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">{{ weight_trend.start_weight }} kg</dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Current Weight:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">{{ weight_trend.current_weight }} kg</dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Total Change:</dt>
+                <dd style="margin-left: 20px; margin-bottom: 10px;">
+                    <strong>{{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)</strong>
+                </dd>
+
+                <dt style="font-weight: bold; color: #2C3E50;">Trend:</dt>
+                <dd style="margin-left: 20px;">{{ weight_trend.trend|title }}</dd>
+            </dl>
+        </div>
+        {% endif %}
+
+        <!-- Measurements Table -->
+        <div style="margin-bottom: 30px;">
+            <h4 style="color: #1E90FF; margin-bottom: 15px;">📋 Measurement History</h4>
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #ddd;">
+                <thead>
+                    <tr style="background-color: #2C3E50; color: white;">
+                        <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Date</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Weight (kg)</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Height (cm)</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">BMI</th>
+                        <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Classification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if metrics %}
+                        {% for metric in metrics %}
+                        <tr style="background-color: {% if loop.first %}#f0f8ff{% endif %}">
+                            <td style="padding: 10px; border: 1px solid #ddd;">{{ metric.metric_date.strftime('%Y-%m-%d') }}</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ metric.weight }}</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ metric.height }}</td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;"><strong>{{ metric.bmi }}</strong></td>
+                            <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ metric.get_bmi_classification() }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="padding: 20px; text-align: center; color: #999; border: 1px solid #ddd;">
+                                No measurements recorded
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 60px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #ddd; padding-top: 20px;">
+            <p>
+                This report was generated by GymTrack Pro on {{ report_date.strftime('%B %d, %Y at %H:%M:%S') }}<br>
+                For fitness tracking and member management
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+    @media print {
+        .btn, nav, .table-hover, .pagination, .d-flex, footer {
+            display: none !important;
+        }
+        body {
+            background: white !important;
+        }
+        .card {
+            box-shadow: none !important;
+            border: none !important;
+        }
+    }
+</style>
+{% endblock %}

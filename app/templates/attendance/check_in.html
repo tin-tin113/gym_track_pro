@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Check-In - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- QR Code Column -->
+    <div class="col-md-6">
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">📱 QR Code Check-In</h4>
+            </div>
+            <div class="card-body text-center">
+                <p class="text-muted mb-3">Display this QR code to members</p>
+
+                <!-- QR Code Image -->
+                <div class="mb-4 p-4 bg-light rounded">
+                    <img src="{{ qr_image }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                </div>
+
+                <!-- Expiry Countdown -->
+                <div class="alert alert-warning" role="alert">
+                    <strong>⏱️ Expires in:</strong>
+                    <div id="countdown" style="font-size: 2rem; font-weight: bold;">
+                        <span id="minutes">{{ countdown.minutes }}</span>:<span id="seconds">{{ "%.02d"|format(countdown.seconds) }}</span>
+                    </div>
+                    <small class="d-block mt-2">QR codes refresh every 24 hours</small>
+                </div>
+
+                <!-- Refresh Button -->
+                <form method="GET" action="{{ url_for('attendance_routes.check_in') }}" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary">🔄 Refresh QR Code</button>
+                </form>
+
+                <!-- Info Box -->
+                <div class="alert alert-info mt-3" role="alert">
+                    <strong>💡 How it works:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Member scans QR code with phone camera</li>
+                        <li>Automatic check-in recorded</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Entry Column -->
+    <div class="col-md-6">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">✓ Manual Check-In</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">For members without QR code access</p>
+
+                <form method="POST" action="{{ url_for('attendance_routes.check_in') }}">
+                    <div class="mb-3">
+                        <label for="member_id" class="form-label">Select Member *</label>
+                        <select class="form-select form-select-lg" id="member_id" name="member_id" required autofocus>
+                            <option value="">-- Choose a member --</option>
+                            {% for member in members %}
+                            <option value="{{ member.id }}">
+                                {{ member.user.full_name }} ({{ member.user.email }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">✓ Check In Member</button>
+                </form>
+
+                <!-- Quick Member Buttons -->
+                <hr class="my-4">
+                <h6 class="mb-3">⚡ Quick Check-In</h6>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    {% if members %}
+                        {% for member in members[:8] %}
+                        <form method="POST" action="{{ url_for('attendance_routes.check_in') }}" class="d-inline mb-2">
+                            <input type="hidden" name="member_id" value="{{ member.id }}">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                ✓ {{ member.user.full_name|truncate(20) }}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No active members</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Countdown timer
+function updateCountdown() {
+    let minutes = parseInt(document.getElementById('minutes').textContent);
+    let seconds = parseInt(document.getElementById('seconds').textContent);
+
+    if (minutes === 0 && seconds === 0) {
+        document.getElementById('countdown').innerHTML = '<span class="text-danger">Expired - Refresh</span>';
+        return;
+    }
+
+    seconds--;
+    if (seconds < 0) {
+        minutes--;
+        seconds = 59;
+    }
+
+    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+}
+
+setInterval(updateCountdown, 1000);
+</script>
+{% endblock %}

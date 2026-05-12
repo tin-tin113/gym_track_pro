@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.user.full_name }} - Progress{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 {{ member.user.full_name }}'s Progress</h2>
+    <div>
+        <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-success">➕ Add Metrics</a>
+        <a href="{{ url_for('trainer.members') }}" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<!-- Member Info Card -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">👤 Member Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Email:</dt>
+                    <dd class="col-sm-7">{{ member.user.email }}</dd>
+
+                    <dt class="col-sm-5">Phone:</dt>
+                    <dd class="col-sm-7">{{ member.phone_number or 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">Membership:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-info">{{ member.membership_type|title }}</span>
+                        {% if member.is_membership_active() %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Expired</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Stats -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">📈 Attendance (30 Days)</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Total Visits:</dt>
+                    <dd class="col-sm-6"><strong>{{ attendance_stats.total_visits }}</strong></dd>
+
+                    <dt class="col-sm-6">Avg Duration:</dt>
+                    <dd class="col-sm-6"><strong>{{ attendance_stats.avg_duration }} min</strong></dd>
+
+                    <dt class="col-sm-6">Total Time:</dt>
+                    <dd class="col-sm-6"><strong>{{ attendance_stats.total_duration }} min</strong></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fitness Metrics -->
+{% if latest_metric %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">💪 Latest Metrics</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Date:</dt>
+                    <dd class="col-sm-7">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</dd>
+
+                    <dt class="col-sm-5">Weight:</dt>
+                    <dd class="col-sm-7"><strong>{{ latest_metric.weight }} kg</strong></dd>
+
+                    <dt class="col-sm-5">Height:</dt>
+                    <dd class="col-sm-7">{{ latest_metric.height }} cm</dd>
+
+                    <dt class="col-sm-5">BMI:</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-{% if latest_metric.bmi < 18.5 %}info{% elif latest_metric.bmi < 25 %}success{% elif latest_metric.bmi < 30 %}warning{% else %}danger{% endif %}">
+                            {{ latest_metric.bmi }} - {{ latest_metric.get_bmi_classification() }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weight Trend -->
+    {% if weight_trend %}
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 90-Day Trend</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">Start:</dt>
+                    <dd class="col-sm-6">{{ weight_trend.start_weight }} kg</dd>
+
+                    <dt class="col-sm-6">Current:</dt>
+                    <dd class="col-sm-6">{{ weight_trend.current_weight }} kg</dd>
+
+                    <dt class="col-sm-6">Change:</dt>
+                    <dd class="col-sm-6">
+                        <strong>{{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)</strong>
+                    </dd>
+
+                    <dt class="col-sm-6">Direction:</dt>
+                    <dd class="col-sm-6">
+                        <span class="badge bg-{% if weight_trend.trend == 'down' %}success{% elif weight_trend.trend == 'up' %}warning{% else %}secondary{% endif %}">
+                            {{ weight_trend.trend|title }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Body Measurements -->
+{% if latest_metric %}
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">📐 Latest Body Measurements</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-6">Chest:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.chest or 'N/A' }} cm</dd>
+
+                    <dt class="col-sm-6">Waist:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.waist or 'N/A' }} cm</dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-6">Hips:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.hips or 'N/A' }} cm</dd>
+
+                    <dt class="col-sm-6">Bicep:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.bicep or 'N/A' }} cm</dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <dl class="row">
+                    <dt class="col-sm-6">Thigh:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.thigh or 'N/A' }} cm</dd>
+
+                    <dt class="col-sm-6">Body Fat:</dt>
+                    <dd class="col-sm-6">{{ latest_metric.body_fat_percentage or 'N/A' }}%</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Metric History Table -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">📋 Measurement History</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Weight (kg)</th>
+                    <th>BMI</th>
+                    <th>Classification</th>
+                    <th>Waist (cm)</th>
+                    <th>Body Fat %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if metrics %}
+                    {% for metric in metrics %}
+                    <tr>
+                        <td>{{ metric.metric_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ metric.weight }}</td>
+                        <td>{{ metric.bmi }}</td>
+                        <td>
+                            <span class="badge bg-{% if metric.bmi < 18.5 %}info{% elif metric.bmi < 25 %}success{% elif metric.bmi < 30 %}warning{% else %}danger{% endif %}">
+                                {{ metric.get_bmi_classification() }}
+                            </span>
+                        </td>
+                        <td>{{ metric.waist or 'N/A' }}</td>
+                        <td>{{ metric.body_fat_percentage or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No metrics recorded</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

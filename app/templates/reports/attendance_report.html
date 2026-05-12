@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Report - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">Attendance Report</h1>
+
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Report Filters</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Member (optional)</label>
+                        <select name="member_id" class="form-control">
+                            <option value="">All Members</option>
+                            {% for member in members %}
+                            <option value="{{ member.id }}" {% if member and member.id == request.form.get('member_id')|int %}selected{% endif %}>
+                                {{ member.user.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Start Date</label>
+                        <input type="date" name="start_date" class="form-control" required value="{{ request.form.get('start_date', (now - timedelta(days=30))|strftime('%Y-%m-%d')) }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label>End Date</label>
+                        <input type="date" name="end_date" class="form-control" required value="{{ request.form.get('end_date', now|strftime('%Y-%m-%d')) }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary btn-block">Generate</button>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <select name="format" class="form-control mr-2" style="width: 150px; display: inline-block;">
+                            <option value="html">View HTML</option>
+                            <option value="csv">Export CSV</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if records %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Attendance Records ({{ records|length }} entries)</h5>
+            {% if member %}
+            <span class="badge badge-info">{{ member.user.full_name }}</span>
+            {% endif %}
+            {% if start_date %}
+            <span class="badge badge-secondary">{{ start_date }} to {{ end_date }}</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if records %}
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Member</th>
+                        <th>Email</th>
+                        <th>Date</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Duration (min)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('member.view_member', member_id=record.member.id) }}">
+                                {{ record.member.user.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ record.member.user.email }}</td>
+                        <td>{{ record.check_in_time.date() }}</td>
+                        <td>{{ record.check_in_time.strftime('%H:%M') if record.check_in_time else '-' }}</td>
+                        <td>{{ record.check_out_time.strftime('%H:%M') if record.check_out_time else '-' }}</td>
+                        <td>
+                            {% if record.duration_minutes %}
+                            <span class="badge bg-info">{{ record.duration_minutes }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No attendance records found</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% import 'macros.html' as macros %}
+{% set now = now() %}
+{% from 'utilities.html' import timedelta %}
+{% endblock %}
