@@ -42,7 +42,7 @@ def pending_approvals():
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '', type=str)
 
-    query = Member.query.filter_by(is_approved=False).join(User).filter(User.is_active == True)
+    query = Member.query.filter_by(is_approved=False).join(User, Member.user_id == User.id).filter(User.is_active == True)
 
     if search:
         query = query.filter(
