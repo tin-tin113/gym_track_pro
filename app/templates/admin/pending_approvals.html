@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% from "components.html" import badge %}
 
 {% block title %}Pending Member Approvals - GymTrack Pro{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>⏳ Pending Member Approvals</h2>
+    <h2><i class="fas fa-hourglass-end"></i> Pending Member Approvals</h2>
     {% if pagination and pagination.total %}
-    <span class="badge bg-warning text-dark fs-6">{{ pagination.total }} pending</span>
+    <span class="badge badge-warning">{{ pagination.total }} pending</span>
     {% endif %}
 </div>
 
@@ -16,7 +17,7 @@
         <form method="GET" action="{{ url_for('admin.pending_approvals') }}" class="d-flex gap-2">
             <input type="text" name="search" class="form-control" placeholder="Search by name or email..."
                 value="{{ search }}" autofocus>
-            <button type="submit" class="btn btn-primary">🔍 Search</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
         </form>
     </div>
 </div>
@@ -24,8 +25,8 @@
 <!-- Pending Members Table -->
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-dark">
+        <table class="data-table">
+            <thead>
                 <tr>
                     <th>Full Name</th>
                     <th>Email</th>
@@ -48,17 +49,17 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-warning text-dark">⏳ Pending</span>
+                            <span class="badge badge-warning"><i class="fas fa-hourglass-end"></i> Pending</span>
                         </td>
                         <td>
                             <form method="POST" action="{{ url_for('admin.approve_member', member_id=member.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this member?');">
-                                    ✓ Approve
+                                <button type="submit" class="btn btn-small btn-success" onclick="return confirm('Approve this member?');">
+                                    <i class="fas fa-check-circle"></i> Approve
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('admin.reject_member', member_id=member.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject and remove this member?');">
-                                    ✗ Reject
+                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Reject and remove this member?');">
+                                    <i class="fas fa-times-circle"></i> Reject
                                 </button>
                             </form>
                         </td>
@@ -66,7 +67,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
+                        <td colspan="5" class="text-center text-muted p-lg">
                             <i class="fas fa-check-circle fa-2x mb-2"></i>
                             <p>No pending approvals</p>
                         </td>
@@ -79,36 +80,38 @@
 
 <!-- Pagination -->
 {% if pagination and pagination.pages > 1 %}
-<nav class="mt-4" aria-label="Pagination">
-    <ul class="pagination justify-content-center">
-        {% if pagination.has_prev %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.pending_approvals', page=1, search=search) }}">First</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.pending_approvals', page=pagination.prev_num, search=search) }}">Previous</a>
-        </li>
-        {% endif %}
+<div class="pagination">
+    {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.pending_approvals', page=1, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-left"></i> First
+        </a>
+        <a href="{{ url_for('admin.pending_approvals', page=pagination.prev_num, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+    {% else %}
+        <span class="pagination-item disabled"><i class="fas fa-chevron-left"></i> First</span>
+        <span class="pagination-item disabled"><i class="fas fa-chevron-left"></i></span>
+    {% endif %}
 
-        <li class="page-item active">
-            <span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        </li>
+    <span class="pagination-item active">Page {{ pagination.page }} of {{ pagination.pages }}</span>
 
-        {% if pagination.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.pending_approvals', page=pagination.next_num, search=search) }}">Next</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin.pending_approvals', page=pagination.pages, search=search) }}">Last</a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
+    {% if pagination.has_next %}
+        <a href="{{ url_for('admin.pending_approvals', page=pagination.next_num, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="{{ url_for('admin.pending_approvals', page=pagination.pages, search=search) }}" class="pagination-item">
+            Last <i class="fas fa-chevron-right"></i>
+        </a>
+    {% else %}
+        <span class="pagination-item disabled"><i class="fas fa-chevron-right"></i></span>
+        <span class="pagination-item disabled">Last <i class="fas fa-chevron-right"></i></span>
+    {% endif %}
+</div>
 {% endif %}
 
 <!-- Back Link -->
 <div class="mt-4">
-    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
 </div>
 
 {% endblock %}
