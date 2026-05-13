@@ -28,14 +28,14 @@ def list_members():
     status = request.args.get('status', 'all', type=str)
     per_page = 20
 
-    # Build query
-    query = Member.query
+    # Build query - use explicit join to avoid ambiguous foreign keys
+    query = Member.query.join(User, Member.user_id == User.id)
 
     # Apply search filter
     if search:
         query = query.filter(
-            (Member.user.has(User.full_name.ilike(f'%{search}%'))) |
-            (Member.user.has(User.email.ilike(f'%{search}%')))
+            (User.full_name.ilike(f'%{search}%')) |
+            (User.email.ilike(f'%{search}%'))
         )
 
     # Apply status filter
