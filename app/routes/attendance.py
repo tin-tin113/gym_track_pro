@@ -104,6 +104,11 @@ def check_in():
             flash('Member not found.', 'danger')
             return redirect(url_for('attendance_routes.check_in'))
 
+        # Check if member is approved
+        if not member.is_approved:
+            flash(f'{member.user.full_name} has not been approved yet.', 'warning')
+            return redirect(url_for('attendance_routes.check_in'))
+
         # Check for duplicate check-in
         if Attendance.is_duplicate_checkin(member_id):
             flash(f'{member.user.full_name} is already checked in today.', 'warning')
@@ -128,7 +133,8 @@ def check_in():
 
     # Generate new QR code
     qr_result = generate_qr_code(0)  # 0 = portal generic, not member-specific
-    members = Member.query.filter_by(is_active=True).all()
+    # Only show approved members
+    members = Member.query.filter_by(is_active=True, is_approved=True).all()
 
     return render_template(
         'attendance/check_in.html',
@@ -171,6 +177,13 @@ def api_check_in():
     member = Member.query.get(member_id)
     if not member:
         return jsonify({'success': False, 'error': 'Member not found'}), 404
+
+    # Check if member is approved
+    if not member.is_approved:
+        return jsonify({
+            'success': False,
+            'error': f'{member.user.full_name} has not been approved yet'
+        }), 403
 
     # Check for duplicate check-in
     if Attendance.is_duplicate_checkin(member_id):
