@@ -72,15 +72,6 @@
                 </a>
             </li>
 
-            {% if current_user.is_staff or current_user.is_admin %}
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('admin.pending_approvals') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
-                    <span>Pending Approvals</span>
-                </a>
-            </li>
-            {% endif %}
-
             <!-- Trainer Management (Admin only) -->
             {% if current_user.is_admin %}
             <li class="sidebar-nav-item">
