@@ -89,10 +89,20 @@ def api_check_out(attendance_id):
 
 @bp.route('/check-in', methods=['GET', 'POST'])
 @login_required
-@staff_or_admin_required
 def check_in():
-    """Display QR code and manual entry for check-in."""
+    """Display QR code and manual entry for check-in.
+
+    Staff/Admin: Can manually check in any approved member via dropdown
+    Members: Can check in themselves via QR code
+    """
+    is_staff_or_admin = current_user.has_any_role('staff', 'admin')
+
     if request.method == 'POST':
+        # Only staff/admin can use the manual check-in form
+        if not is_staff_or_admin:
+            flash('Only staff can use the manual check-in form.', 'danger')
+            return redirect(url_for('attendance_routes.check_in'))
+
         member_id = request.form.get('member_id', type=int)
 
         if not member_id:
@@ -133,8 +143,9 @@ def check_in():
 
     # Generate new QR code
     qr_result = generate_qr_code(0)  # 0 = portal generic, not member-specific
-    # Only show approved members
-    members = Member.query.filter_by(is_active=True, is_approved=True).all()
+
+    # Only show approved members in dropdown for staff/admin
+    members = [] if not is_staff_or_admin else Member.query.filter_by(is_active=True, is_approved=True).all()
 
     return render_template(
         'attendance/check_in.html',
@@ -142,7 +153,9 @@ def check_in():
         qr_token=qr_result['session_token'],
         expiry_time=qr_result['expiry_time'],
         countdown=get_qr_expiry_countdown(qr_result['expiry_time']),
-        members=members
+        members=members,
+        is_staff_or_admin=is_staff_or_admin,
+        user_member=current_user.member if current_user.role == 'member' else None
     )
 
 
