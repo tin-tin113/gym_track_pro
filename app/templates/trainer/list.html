@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from "components.html" import badge %}
 
 {% block title %}Trainer Management - GymTrack Pro{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>🏋️ Trainer Management</h2>
-    <a href="{{ url_for('trainer.create_trainer') }}" class="btn btn-success">➕ Add New Trainer</a>
+    <h2><i class="fas fa-heart-pulse"></i> Trainer Management</h2>
+    <a href="{{ url_for('trainer.create_trainer') }}" class="btn btn-success"><i class="fas fa-plus"></i> Add New Trainer</a>
 </div>
 
 <!-- Search -->
@@ -14,7 +15,7 @@
         <form method="GET" action="{{ url_for('trainer.list_trainers') }}" class="d-flex gap-2">
             <input type="text" name="search" class="form-control" placeholder="Search by name or email..."
                 value="{{ search }}" autofocus>
-            <button type="submit" class="btn btn-primary">🔍 Search</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
         </form>
     </div>
 </div>
@@ -22,8 +23,8 @@
 <!-- Trainers Table -->
 <div class="card">
     <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-dark">
+        <table class="data-table">
+            <thead>
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
@@ -50,33 +51,33 @@
                             {% endif %}
                         </td>
                         <td>
-                            <span class="badge bg-info">
+                            <span class="badge badge-info">
                                 {{ trainer_data.member_count }}/{{ trainer_data.trainer.max_clients }}
                             </span>
                             {% if trainer_data.at_capacity %}
-                                <span class="badge bg-warning">⚠️ At Capacity</span>
+                                <span class="badge badge-warning"><i class="fas fa-exclamation-triangle"></i> At Capacity</span>
                             {% endif %}
                         </td>
                         <td>{{ trainer_data.trainer.max_clients }}</td>
                         <td>
                             {% if trainer_data.trainer.user.is_active %}
-                                <span class="badge bg-success">✓ Active</span>
+                                <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
                             {% else %}
-                                <span class="badge bg-danger">✗ Inactive</span>
+                                <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Inactive</span>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('trainer.edit_trainer', trainer_id=trainer_data.trainer.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                            <a href="{{ url_for('trainer.manage_assignments', trainer_id=trainer_data.trainer.id) }}" class="btn btn-sm btn-info">Assign</a>
+                            <a href="{{ url_for('trainer.edit_trainer', trainer_id=trainer_data.trainer.id) }}" class="btn btn-small btn-primary"><i class="fas fa-pen-to-square"></i> Edit</a>
+                            <a href="{{ url_for('trainer.manage_assignments', trainer_id=trainer_data.trainer.id) }}" class="btn btn-small btn-secondary"><i class="fas fa-users"></i> Assign</a>
                             <form method="POST" action="{{ url_for('trainer.delete_trainer', trainer_id=trainer_data.trainer.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deactivate this trainer?');">Deactivate</button>
+                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this trainer?');"><i class="fas fa-trash"></i> Deactivate</button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="8" class="text-center text-muted py-4">No trainers found</td>
+                        <td colspan="8" class="text-center text-muted p-lg">No trainers found</td>
                     </tr>
                 {% endif %}
             </tbody>
@@ -86,31 +87,33 @@
 
 <!-- Pagination -->
 {% if pagination.pages > 1 %}
-<nav class="mt-4" aria-label="Pagination">
-    <ul class="pagination justify-content-center">
-        {% if pagination.has_prev %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('trainer.list_trainers', page=1, search=search) }}">First</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('trainer.list_trainers', page=pagination.prev_num, search=search) }}">Previous</a>
-        </li>
-        {% endif %}
+<div class="pagination">
+    {% if pagination.has_prev %}
+        <a href="{{ url_for('trainer.list_trainers', page=1, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-left"></i> First
+        </a>
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.prev_num, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+    {% else %}
+        <span class="pagination-item disabled"><i class="fas fa-chevron-left"></i> First</span>
+        <span class="pagination-item disabled"><i class="fas fa-chevron-left"></i></span>
+    {% endif %}
 
-        <li class="page-item active">
-            <span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        </li>
+    <span class="pagination-item active">Page {{ pagination.page }} of {{ pagination.pages }}</span>
 
-        {% if pagination.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('trainer.list_trainers', page=pagination.next_num, search=search) }}">Next</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('trainer.list_trainers', page=pagination.pages, search=search) }}">Last</a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
+    {% if pagination.has_next %}
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.next_num, search=search) }}" class="pagination-item">
+            <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.pages, search=search) }}" class="pagination-item">
+            Last <i class="fas fa-chevron-right"></i>
+        </a>
+    {% else %}
+        <span class="pagination-item disabled"><i class="fas fa-chevron-right"></i></span>
+        <span class="pagination-item disabled">Last <i class="fas fa-chevron-right"></i></span>
+    {% endif %}
+</div>
 {% endif %}
 
 {% endblock %}
