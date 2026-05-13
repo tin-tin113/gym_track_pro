@@ -1,46 +1,27 @@
 {% extends "base.html" %}
+{% from "components.html" import stat_card, badge, button %}
 
 {% block title %}Admin Dashboard - GymTrack Pro{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">📊 Admin Dashboard</h2>
+<h2 class="mb-4"><i class="fas fa-chart-line"></i> Admin Dashboard</h2>
 
 <!-- Stats Cards -->
 <div class="row mb-4">
     <div class="col-md-6 col-lg-3">
-        <div class="card text-center text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">👥 Total Members</h5>
-                <h2 class="card-text">{{ stats.total_members }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Total Members", stats.total_members, icon="users", color="primary") }}
     </div>
 
     <div class="col-md-6 col-lg-3">
-        <div class="card text-center text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">✓ Active Members</h5>
-                <h2 class="card-text">{{ stats.active_members }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Active Members", stats.active_members, icon="check-circle", color="secondary") }}
     </div>
 
     <div class="col-md-6 col-lg-3">
-        <div class="card text-center text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">🏋️ Trainers</h5>
-                <h2 class="card-text">{{ stats.total_trainers }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Trainers", stats.total_trainers, icon="heart-pulse", color="tertiary") }}
     </div>
 
     <div class="col-md-6 col-lg-3">
-        <div class="card text-center text-white bg-secondary">
-            <div class="card-body">
-                <h5 class="card-title">👤 Total Users</h5>
-                <h2 class="card-text">{{ stats.total_users }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Total Users", stats.total_users, icon="users-cog", color="accent") }}
     </div>
 </div>
 
@@ -48,38 +29,39 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">⚡ Quick Actions</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-lightning-bolt"></i> Quick Actions</h3>
             </div>
             <div class="card-body">
-                <a href="{{ url_for('member.create_member') }}" class="btn btn-outline-primary w-100 mb-2">➕ Create New Member</a>
-                <a href="{{ url_for('member.import_csv') }}" class="btn btn-outline-success w-100 mb-2">📥 Import Members CSV</a>
-                <a href="{{ url_for('member.list_members') }}" class="btn btn-outline-info w-100">👥 Manage Members</a>
+                <a href="{{ url_for('member.create_member') }}" class="btn btn-primary w-100 mb-2"><i class="fas fa-plus"></i> Create New Member</a>
+                <a href="{{ url_for('member.import_csv') }}" class="btn btn-secondary w-100 mb-2"><i class="fas fa-download"></i> Import Members CSV</a>
+                <a href="{{ url_for('admin.pending_approvals') }}" class="btn btn-warning w-100 mb-2"><i class="fas fa-check-circle"></i> Pending Approvals</a>
+                <a href="{{ url_for('member.list_members') }}" class="btn btn-primary w-100"><i class="fas fa-users"></i> Manage Members</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">📈 System Statistics</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar"></i> System Statistics</h3>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled">
                     <li class="mb-2">
-                        <span class="badge bg-primary">{{ stats.total_members }}</span>
+                        <span class="badge badge-primary">{{ stats.total_members }}</span>
                         Total gym members registered
                     </li>
                     <li class="mb-2">
-                        <span class="badge bg-success">{{ stats.active_members }}</span>
+                        <span class="badge badge-secondary">{{ stats.active_members }}</span>
                         Active memberships
                     </li>
                     <li class="mb-2">
-                        <span class="badge bg-info">{{ stats.total_trainers }}</span>
+                        <span class="badge badge-success">{{ stats.total_trainers }}</span>
                         Certified trainers on staff
                     </li>
                     <li class="mb-2">
-                        <span class="badge bg-secondary">{{ stats.total_users }}</span>
+                        <span class="badge badge-info">{{ stats.total_users }}</span>
                         Total system users
                     </li>
                 </ul>
@@ -92,8 +74,8 @@
 <div class="row">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">ℹ️ System Information</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> System Information</h3>
             </div>
             <div class="card-body">
                 <dl class="row">
@@ -107,7 +89,7 @@
                     <dd class="col-sm-6">Admin</dd>
 
                     <dt class="col-sm-6">Status:</dt>
-                    <dd class="col-sm-6"><span class="badge bg-success">Online</span></dd>
+                    <dd class="col-sm-6"><span class="badge badge-success">Online</span></dd>
                 </dl>
             </div>
         </div>
@@ -115,8 +97,8 @@
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">⚠️ Reminders</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Reminders</h3>
             </div>
             <div class="card-body">
                 <ul class="mb-0">
