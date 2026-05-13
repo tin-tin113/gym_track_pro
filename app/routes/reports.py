@@ -322,7 +322,8 @@ def daily_attendance():
         records=records,
         today=today,
         total_visits=total_visits,
-        still_checked_in=still_checked_in)
+        still_checked_in=still_checked_in,
+        now=datetime.utcnow())
 
 
 def _generate_daily_attendance_csv(records, date):
