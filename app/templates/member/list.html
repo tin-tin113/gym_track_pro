@@ -25,10 +25,11 @@
             <div class="col-md-6">
                 <form method="GET" action="{{ url_for('member.list_members') }}" class="d-flex gap-2">
                     <select name="status" class="form-select" onchange="this.form.submit()">
-                        <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
+                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>⏳ Pending Approval</option>
                         <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-                        <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring Soon (7 days)</option>
-                        <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+                        <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>⚠️ Expiring Soon (7 days)</option>
+                        <option value="expired" {% if status == 'expired' %}selected{% endif %}>❌ Expired</option>
                     </select>
                 </form>
             </div>
@@ -63,7 +64,9 @@
                         </td>
                         <td>{{ member.membership_expiry_date.strftime('%Y-%m-%d') }}</td>
                         <td>
-                            {% if member.is_membership_active() %}
+                            {% if not member.is_approved %}
+                                <span class="badge bg-warning">⏳ Pending</span>
+                            {% elif member.is_membership_active() %}
                                 {% if member.is_membership_expiring_soon() %}
                                     <span class="badge bg-warning">⚠️ Expiring Soon</span>
                                 {% else %}
@@ -74,8 +77,19 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('member.view_member', member_id=member.id) }}" class="btn btn-sm btn-info">View</a>
-                            <a href="{{ url_for('member.edit_member', member_id=member.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                            {% if not member.is_approved %}
+                                <!-- Pending member actions -->
+                                <form method="POST" action="{{ url_for('admin.approve_member', member_id=member.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this member?')">✓ Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.reject_member', member_id=member.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject and remove this member?')">✗ Reject</button>
+                                </form>
+                            {% else %}
+                                <!-- Approved member actions -->
+                                <a href="{{ url_for('member.view_member', member_id=member.id) }}" class="btn btn-sm btn-info">View</a>
+                                <a href="{{ url_for('member.edit_member', member_id=member.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
