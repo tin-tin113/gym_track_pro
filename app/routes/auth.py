@@ -72,7 +72,7 @@ def login():
     return render_template('auth/login.html')
 
 
-@bp.route('/logout')
+@bp.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     """Handle user logout."""
@@ -287,3 +287,28 @@ def setup_password(token):
             return redirect(url_for('auth.setup_password', token=token))
 
     return render_template('auth/setup_password.html', token=token)
+
+
+@bp.route('/profile')
+@login_required
+def profile():
+    """View current user's profile (works for all roles)."""
+    user = current_user
+
+    # Get role-specific additional info if available
+    member = None
+    trainer = None
+
+    if user.role == 'member':
+        from app.models.member import Member
+        member = Member.query.filter_by(user_id=user.id).first()
+    elif user.role == 'trainer':
+        from app.models.trainer import Trainer
+        trainer = Trainer.query.filter_by(user_id=user.id).first()
+
+    return render_template(
+        'auth/profile.html',
+        user=user,
+        member=member,
+        trainer=trainer
+    )

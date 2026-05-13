@@ -51,11 +51,21 @@ def create_app(config_name='development'):
     # Error handlers
     register_error_handlers(app)
 
+    # Root route redirect
+    @app.route('/')
+    def index():
+        """Redirect root to login or dashboard based on authentication."""
+        from flask_login import current_user
+        from flask import redirect, url_for
+        if current_user.is_authenticated:
+            return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('auth.login'))
+
     # Create tables and seed data if needed
     with app.app_context():
         try:
             # Import models
-            from app.models import user, member, attendance, fitness, trainer, assignment
+            from app.models import user, member, attendance, fitness, trainer, assignment, workout
 
             # Create all tables
             db.create_all()
@@ -180,7 +190,7 @@ def upgrade_database_schema(db):
             with db.engine.connect() as connection:
                 if 'setup_token' not in existing_users_columns:
                     try:
-                        connection.execute(text('ALTER TABLE users ADD COLUMN setup_token VARCHAR(255) UNIQUE'))
+                        connection.execute(text('ALTER TABLE users ADD COLUMN setup_token VARCHAR(255)'))
                         connection.commit()
                         print("  - Added setup_token column to users table")
                     except OperationalError as e:
@@ -195,6 +205,31 @@ def upgrade_database_schema(db):
                     except OperationalError as e:
                         if 'duplicate column' not in str(e).lower():
                             pass
+
+        # Refresh inspector after schema changes
+        inspector = inspect(db.engine)
+
+        # Upgrade workouts table
+        if 'workouts' in table_names:
+            existing_workouts_columns = [col['name'] for col in inspector.get_columns('workouts')]
+            with db.engine.connect() as connection:
+                if 'trainer_id' not in existing_workouts_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE workouts ADD COLUMN trainer_id INTEGER'))
+                        connection.commit()
+                        print("  - Added trainer_id column to workouts table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
+
+                if 'assigned_date' not in existing_workouts_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE workouts ADD COLUMN assigned_date DATETIME'))
+                        connection.commit()
+                        print("  - Added assigned_date column to workouts table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
     except Exception as e:
         print(f"  Schema upgrade note: {e}")
 

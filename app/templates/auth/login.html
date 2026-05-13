@@ -5,29 +5,31 @@
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-5">
-        <div class="card shadow-lg">
+        <div class="card">
             <div class="card-body p-5">
-                <h2 class="card-title text-center mb-4">💪 GymTrack Pro</h2>
+                <h2 class="card-title text-center mb-4"><i class="fas fa-dumbbell"></i> GymTrack Pro</h2>
                 <p class="text-center text-muted mb-4">Gym Management System</p>
 
                 <form method="POST" action="{{ url_for('auth.login') }}">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" required autofocus>
                         <small class="form-text text-muted">Demo: admin@gym.local</small>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                         <small class="form-text text-muted">Demo: password123</small>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">
-                            Remember me
-                        </label>
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="remember" name="remember">
+                            <label for="remember" style="margin: 0;">
+                                Remember me
+                            </label>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>

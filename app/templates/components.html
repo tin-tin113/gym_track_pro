@@ -1,0 +1,276 @@
+{% macro stat_card(title, value, subtitle="", color="primary", icon="") -%}
+<div class="stat-card stat-card-{{ color }}">
+  {% if icon %}
+    <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.9;">
+      <i class="fas fa-{{ icon }}"></i>
+    </div>
+  {% endif %}
+  <div class="stat-card-title">{{ title }}</div>
+  <div class="stat-card-value">{{ value }}</div>
+  {% if subtitle %}
+    <div class="stat-card-subtitle">{{ subtitle }}</div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro data_table(headers, rows, row_actions=[], striped=True, hover=True) -%}
+<div class="table-responsive">
+  <table class="data-table{% if striped %} table-striped{% endif %}{% if hover %} table-hover{% endif %}">
+    <thead>
+      <tr>
+        {% for header in headers %}
+          <th>{{ header }}</th>
+        {% endfor %}
+        {% if row_actions %}
+          <th>Actions</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          {% for cell in row %}
+            <td>{{ cell }}</td>
+          {% endfor %}
+          {% if row_actions %}
+            <td>
+              <div style="display: flex; gap: 8px;">
+                {% for action in row_actions %}
+                  <a href="{{ action.url }}" class="btn btn-small{% if action.class %} {{ action.class }}{% else %} btn-primary{% endif %}" {% if action.onclick %}onclick="{{ action.onclick }}"{% endif %}>
+                    {% if action.icon %}<i class="fas fa-{{ action.icon }}"></i>{% endif %}
+                    {{ action.label }}
+                  </a>
+                {% endfor %}
+              </div>
+            </td>
+          {% endif %}
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="{{ headers|length + (1 if row_actions else 0) }}" class="text-center text-muted p-lg">
+            No data available
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endmacro %}
+
+{% macro form_section(title, icon="", subtitle="", type="primary") -%}
+<div class="form-section{% if type != 'primary' %} {{ type }}{% endif %}">
+  <h5>
+    {% if icon %}
+      <i class="fas fa-{{ icon }}"></i>
+    {% endif %}
+    {{ title }}
+  </h5>
+  {% if subtitle %}
+    <p class="text-muted" style="margin-bottom: 16px; font-size: 14px;">{{ subtitle }}</p>
+  {% endif %}
+  {{ caller() }}
+</div>
+{%- endmacro %}
+
+{% macro empty_state(message, icon="inbox", action_text="", action_url="") -%}
+<div class="empty-state">
+  <div class="empty-state-icon">
+    <i class="fas fa-{{ icon }}"></i>
+  </div>
+  <h3>{{ message }}</h3>
+  {% if action_text and action_url %}
+    <a href="{{ action_url }}" class="btn btn-primary">
+      <i class="fas fa-plus"></i>
+      {{ action_text }}
+    </a>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro badge(text, type="primary", icon="") -%}
+<span class="badge badge-{{ type }}">
+  {% if icon %}
+    <i class="fas fa-{{ icon }}"></i>
+  {% endif %}
+  {{ text }}
+</span>
+{%- endmacro %}
+
+{% macro page_header(title, subtitle="", actions=[]) -%}
+<div class="page-header">
+  <div>
+    <h1>{{ title }}</h1>
+    {% if subtitle %}
+      <p class="text-muted" style="margin-bottom: 0;">{{ subtitle }}</p>
+    {% endif %}
+  </div>
+  {% if actions %}
+    <div class="page-header-actions">
+      {% for action in actions %}
+        <a href="{{ action.url }}" class="btn{% if action.class %} {{ action.class }}{% else %} btn-primary{% endif %}">
+          {% if action.icon %}<i class="fas fa-{{ action.icon }}"></i>{% endif %}
+          {{ action.label }}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro alert(message, type="primary", dismissible=False, icon="") -%}
+<div class="alert alert-{{ type }}" role="alert">
+  {% if icon %}
+    <div class="alert-icon">
+      <i class="fas fa-{{ icon }}"></i>
+    </div>
+  {% endif %}
+  <div>{{ message }}</div>
+  {% if dismissible %}
+    <button type="button" class="btn btn-small" onclick="this.parentElement.style.display='none';" style="margin-left: auto;">
+      <i class="fas fa-times"></i>
+    </button>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro button(label, url, type="primary", icon="", size="normal", onclick="", block=False) -%}
+<a href="{{ url }}"{% if onclick %} onclick="{{ onclick }}"{% endif %} class="btn btn-{{ type }}{% if size == 'small' %} btn-small{% elif size == 'large' %} btn-large{% endif %}{% if block %} btn-block{% endif %}">
+  {% if icon %}<i class="fas fa-{{ icon }}"></i>{% endif %}
+  {{ label }}
+</a>
+{%- endmacro %}
+
+{% macro pagination(current_page, total_pages, base_url) -%}
+<div class="pagination">
+  {% if current_page > 1 %}
+    <a href="{{ base_url }}?page=1" class="pagination-item">
+      <i class="fas fa-chevron-left"></i> First
+    </a>
+    <a href="{{ base_url }}?page={{ current_page - 1 }}" class="pagination-item">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+  {% else %}
+    <span class="pagination-item disabled">
+      <i class="fas fa-chevron-left"></i> First
+    </span>
+    <span class="pagination-item disabled">
+      <i class="fas fa-chevron-left"></i>
+    </span>
+  {% endif %}
+
+  {% for page_num in range(max(1, current_page - 2), min(total_pages + 1, current_page + 3)) %}
+    {% if page_num == current_page %}
+      <span class="pagination-item active">{{ page_num }}</span>
+    {% else %}
+      <a href="{{ base_url }}?page={{ page_num }}" class="pagination-item">{{ page_num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if current_page < total_pages %}
+    <a href="{{ base_url }}?page={{ current_page + 1 }}" class="pagination-item">
+      <i class="fas fa-chevron-right"></i>
+    </a>
+    <a href="{{ base_url }}?page={{ total_pages }}" class="pagination-item">
+      Last <i class="fas fa-chevron-right"></i>
+    </a>
+  {% else %}
+    <span class="pagination-item disabled">
+      <i class="fas fa-chevron-right"></i>
+    </span>
+    <span class="pagination-item disabled">
+      Last <i class="fas fa-chevron-right"></i>
+    </span>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro card(title, icon="", body_content="", footer_actions=[], header_class="") -%}
+<div class="card">
+  {% if title or icon %}
+    <div class="card-header{% if header_class %} {{ header_class }}{% endif %}">
+      <h3 style="margin: 0;">
+        {% if icon %}
+          <i class="fas fa-{{ icon }}" style="margin-right: 8px;"></i>
+        {% endif %}
+        {{ title }}
+      </h3>
+    </div>
+  {% endif %}
+  <div class="card-body">
+    {{ body_content or caller() }}
+  </div>
+  {% if footer_actions %}
+    <div class="card-footer">
+      {% for action in footer_actions %}
+        <button class="btn btn-{{ action.type or 'primary' }}" onclick="{{ action.onclick }}">
+          {% if action.icon %}<i class="fas fa-{{ action.icon }}"></i>{% endif %}
+          {{ action.label }}
+        </button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro sidebar_nav(active_section="", items=[]) -%}
+<div class="sidebar">
+  <nav>
+    <ul class="sidebar-nav">
+      {% for item in items %}
+        <li class="sidebar-nav-item">
+          <a href="{{ item.url }}" class="sidebar-nav-link{% if item.id == active_section %} active{% endif %}">
+            {% if item.icon %}
+              <span class="sidebar-nav-icon">
+                <i class="fas fa-{{ item.icon }}"></i>
+              </span>
+            {% endif %}
+            <span>{{ item.label }}</span>
+            {% if item.badge %}
+              <span class="badge badge-danger" style="margin-left: auto; font-size: 11px;">{{ item.badge }}</span>
+            {% endif %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</div>
+{%- endmacro %}
+
+{% macro navbar(brand_name="GymTrack Pro", brand_icon="dumbbell", nav_items=[], user_menu=[]) -%}
+<nav class="navbar">
+  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+    <a href="/" class="navbar-brand">
+      <i class="fas fa-{{ brand_icon }}"></i>
+      {{ brand_name }}
+    </a>
+    <ul class="navbar-nav">
+      {% for item in nav_items %}
+        <li>
+          <a href="{{ item.url }}" class="nav-link{% if item.active %} active{% endif %}">
+            {% if item.icon %}
+              <i class="fas fa-{{ item.icon }}"></i>
+            {% endif %}
+            {{ item.label }}
+          </a>
+        </li>
+      {% endfor %}
+      {% if user_menu %}
+        <li style="position: relative;">
+          <a href="#" class="nav-link" onclick="document.getElementById('user-menu-{{ loop.index }}').hidden = !document.getElementById('user-menu-{{ loop.index }}').hidden">
+            <i class="fas fa-user-circle"></i>
+            <span id="user-menu-{{ loop.index }}-label">Menu</span>
+          </a>
+          <div id="user-menu-{{ loop.index }}" hidden style="position: absolute; right: 0; top: 100%; background: white; border: 1px solid #e8eaed; border-radius: 6px; min-width: 180px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+            {% for menu_item in user_menu %}
+              <a href="{{ menu_item.url }}" style="display: block; padding: 12px 16px; color: #1f2937; text-decoration: none; font-size: 14px; border-bottom: 1px solid #e8eaed;">
+                {% if menu_item.icon %}<i class="fas fa-{{ menu_item.icon }}" style="margin-right: 8px;"></i>{% endif %}
+                {{ menu_item.label }}
+              </a>
+            {% endfor %}
+          </div>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+{%- endmacro %}

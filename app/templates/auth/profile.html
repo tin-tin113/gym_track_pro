@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}My Profile - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4"><i class="fas fa-user-circle"></i> My Profile</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- Basic User Information -->
+            <h5 class="card-title mb-3">User Information</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> {{ user.full_name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Role:</strong>
+                        <span class="badge bg-{% if user.role == 'admin' %}danger{% elif user.role == 'trainer' %}info{% elif user.role == 'staff' %}warning{% else %}success{% endif %}">
+                            {{ user.role.capitalize() }}
+                        </span>
+                    </p>
+                    <p><strong>Status:</strong>
+                        <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Member-Specific Information -->
+            {% if user.role == 'member' and member %}
+            <h5 class="card-title mb-3">Membership Details</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Phone:</strong> {{ member.phone_number or 'N/A' }}</p>
+                    <p><strong>Gender:</strong> {{ member.gender or 'N/A' }}</p>
+                    <p><strong>Date of Birth:</strong> {{ member.date_of_birth or 'N/A' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Membership Type:</strong> {{ member.membership_type }}</p>
+                    <p><strong>Started:</strong> {{ member.membership_start_date }}</p>
+                    <p><strong>Expires:</strong> {{ member.membership_expiry_date }}</p>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Membership Status:</strong>
+                        {% if member.is_membership_active() %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Active</span>
+                        {% else %}
+                        <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Expired</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Approval Status:</strong>
+                        {% if member.is_approved %}
+                        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Approved</span>
+                        {% else %}
+                        <span class="badge bg-warning"><i class="fas fa-clock"></i> Pending</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <hr>
+            <div class="mt-4">
+                <a href="{{ url_for('member.edit_member_profile') }}" class="btn btn-primary"><i class="fas fa-pen-to-square"></i> Edit Profile</a>
+            </div>
+            {% elif user.role == 'trainer' and trainer %}
+            <!-- Trainer-Specific Information -->
+            <h5 class="card-title mb-3">Trainer Information</h5>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Specialization:</strong> {{ trainer.specialization or 'N/A' }}</p>
+                    <p><strong>Certification:</strong> {{ trainer.certification or 'N/A' }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Experience:</strong> {{ trainer.years_experience or 'N/A' }} years</p>
+                    <p><strong>Phone:</strong> {{ trainer.phone_number or 'N/A' }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Edit option for non-members -->
+            {% if user.role != 'member' %}
+            <div class="mt-4">
+                <button class="btn btn-secondary" disabled><i class="fas fa-pen-to-square"></i> Profile Edit Coming Soon</button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

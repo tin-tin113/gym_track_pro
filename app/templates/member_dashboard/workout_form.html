@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Log Workout - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">{% if workout %}Edit{% else %}Log{% endif %} Workout</h1>
+    
+    <form method="POST" class="card p-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="workout_date" class="form-label">Workout Date</label>
+                <input type="date" class="form-control" id="workout_date" name="workout_date" 
+                       value="{% if workout %}{{ workout.workout_date }}{% else %}{{ now().strftime('%Y-%m-%d') }}{% endif %}" required>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="exercise_category" class="form-label">Exercise Category</label>
+                <select class="form-control" id="exercise_category" name="exercise_category" required>
+                    <option value="">Select category</option>
+                    <option value="Strength" {% if workout and workout.exercise_category == 'Strength' %}selected{% endif %}>Strength</option>
+                    <option value="Cardio" {% if workout and workout.exercise_category == 'Cardio' %}selected{% endif %}>Cardio</option>
+                    <option value="Flexibility" {% if workout and workout.exercise_category == 'Flexibility' %}selected{% endif %}>Flexibility</option>
+                    <option value="Sports" {% if workout and workout.exercise_category == 'Sports' %}selected{% endif %}>Sports</option>
+                    <option value="Other" {% if workout and workout.exercise_category == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="exercise_name" class="form-label">Exercise Name</label>
+            <input type="text" class="form-control" id="exercise_name" name="exercise_name" 
+                   placeholder="e.g., Bench Press, Running, Stretching" 
+                   value="{% if workout %}{{ workout.exercise_name }}{% endif %}" required>
+        </div>
+        
+        <div id="strength_fields" style="display:none;">
+            <h5 class="mt-4 mb-3">Strength Training Details</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="sets" class="form-label">Sets</label>
+                    <input type="number" class="form-control" id="sets" name="sets" 
+                           value="{% if workout %}{{ workout.sets or '' }}{% endif %}" min="1">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="reps" class="form-label">Reps</label>
+                    <input type="number" class="form-control" id="reps" name="reps" 
+                           value="{% if workout %}{{ workout.reps or '' }}{% endif %}" min="1">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="weight" class="form-label">Weight (kg)</label>
+                    <input type="number" class="form-control" id="weight" name="weight" step="0.5"
+                           value="{% if workout %}{{ workout.weight or '' }}{% endif %}" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <div id="cardio_fields" style="display:none;">
+            <h5 class="mt-4 mb-3">Cardio Details</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                    <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" 
+                           value="{% if workout %}{{ workout.duration_minutes or '' }}{% endif %}" min="1">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="distance_km" class="form-label">Distance (km)</label>
+                    <input type="number" class="form-control" id="distance_km" name="distance_km" step="0.1"
+                           value="{% if workout %}{{ workout.distance_km or '' }}{% endif %}" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="intensity" class="form-label">Intensity</label>
+                <select class="form-control" id="intensity" name="intensity">
+                    <option value="light" {% if workout and workout.intensity == 'light' %}selected{% endif %}>Light</option>
+                    <option value="moderate" {% if not workout or workout.intensity == 'moderate' %}selected{% endif %}>Moderate</option>
+                    <option value="intense" {% if workout and workout.intensity == 'intense' %}selected{% endif %}>Intense</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="notes" class="form-label">Notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3">{% if workout %}{{ workout.notes or '' }}{% endif %}</textarea>
+        </div>
+        
+        <div class="btn-group mt-4" role="group">
+            <button type="submit" class="btn btn-primary">Save Workout</button>
+            <a href="{{ url_for('member.list_workouts') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('exercise_category').addEventListener('change', function() {
+        const category = this.value;
+        document.getElementById('strength_fields').style.display = category === 'Strength' ? 'block' : 'none';
+        document.getElementById('cardio_fields').style.display = category === 'Cardio' ? 'block' : 'none';
+    });
+    
+    // Initialize on page load
+    document.getElementById('exercise_category').dispatchEvent(new Event('change'));
+</script>
+{% endblock %}

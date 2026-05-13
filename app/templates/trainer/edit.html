@@ -71,6 +71,54 @@
                         </div>
                     </div>
 
+                    <!-- Account Setup Status (only show for existing trainers) -->
+                    {% if trainer %}
+                    <hr class="my-4">
+                    <div class="mb-4">
+                        <h5 class="text-muted">🔐 Account Setup Status</h5>
+
+                        {% if has_setup_token %}
+                            {% if is_setup_valid %}
+                            <div class="alert alert-warning">
+                                <strong><i class="fas fa-hourglass-end"></i> Pending Setup</strong>
+                                <p class="mb-2">This trainer has not yet set their password. Share the setup link below:
+                                </p>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="setup_link_input"
+                                        value="{{ setup_link }}" readonly>
+                                    <button class="btn btn-outline-primary" type="button"
+                                        onclick="copyToClipboard('{{ setup_link }}', this)">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                                <small class="text-muted">Link expires: {{ setup_token_expiry.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                <br>
+                                <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-secondary mt-2">
+                                        <i class="fas fa-redo"></i> Regenerate Link
+                                    </button>
+                                </form>
+                            </div>
+                            {% elif is_setup_expired %}
+                            <div class="alert alert-danger">
+                                <strong><i class="fas fa-exclamation-circle"></i> Setup Link Expired</strong>
+                                <p class="mb-2">The previous setup link has expired. Generate a new one:</p>
+                                <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="fas fa-redo"></i> Generate New Link
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="alert alert-success">
+                            <strong><i class="fas fa-check-circle"></i> Account Active</strong>
+                            <p class="mb-0">This trainer has completed setup and can log in.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
                     <!-- Form Actions -->
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('trainer.list_trainers') }}" class="btn btn-secondary">Cancel</a>

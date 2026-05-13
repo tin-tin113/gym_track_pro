@@ -6,9 +6,9 @@
 <div class="row">
     <!-- QR Code Column -->
     <div class="col-md-6">
-        <div class="card shadow-lg mb-4">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">📱 QR Code Check-In</h4>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-qrcode"></i> QR Code Check-In</h4>
             </div>
             <div class="card-body text-center">
                 <p class="text-muted mb-3">Display this QR code to members</p>
@@ -20,7 +20,7 @@
 
                 <!-- Expiry Countdown -->
                 <div class="alert alert-warning" role="alert">
-                    <strong>⏱️ Expires in:</strong>
+                    <strong><i class="fas fa-hourglass-end"></i> Expires in:</strong>
                     <div id="countdown" style="font-size: 2rem; font-weight: bold;">
                         <span id="minutes">{{ countdown.minutes }}</span>:<span id="seconds">{{ "%.02d"|format(countdown.seconds) }}</span>
                     </div>
@@ -29,12 +29,12 @@
 
                 <!-- Refresh Button -->
                 <form method="GET" action="{{ url_for('attendance_routes.check_in') }}" class="d-inline">
-                    <button type="submit" class="btn btn-outline-primary">🔄 Refresh QR Code</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-sync-alt"></i> Refresh QR Code</button>
                 </form>
 
                 <!-- Info Box -->
                 <div class="alert alert-info mt-3" role="alert">
-                    <strong>💡 How it works:</strong>
+                    <strong><i class="fas fa-lightbulb"></i> How it works:</strong>
                     <ul class="mb-0 mt-2">
                         <li>Member scans QR code with phone camera</li>
                         <li>Automatic check-in recorded</li>
@@ -46,17 +46,17 @@
 
     <!-- Manual Entry Column -->
     <div class="col-md-6">
-        <div class="card shadow-lg">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">✓ Manual Check-In</h4>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-check"></i> Manual Check-In</h4>
             </div>
             <div class="card-body">
                 <p class="text-muted mb-4">For members without QR code access</p>
 
                 <form method="POST" action="{{ url_for('attendance_routes.check_in') }}">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="member_id" class="form-label">Select Member *</label>
-                        <select class="form-select form-select-lg" id="member_id" name="member_id" required autofocus>
+                        <select class="form-control" id="member_id" name="member_id" required autofocus style="padding: 12px; font-size: 16px;">
                             <option value="">-- Choose a member --</option>
                             {% for member in members %}
                             <option value="{{ member.id }}">
@@ -66,19 +66,19 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg w-100">✓ Check In Member</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-3" style="padding: 12px; font-size: 16px;"><i class="fas fa-check"></i> Check In Member</button>
                 </form>
 
                 <!-- Quick Member Buttons -->
                 <hr class="my-4">
-                <h6 class="mb-3">⚡ Quick Check-In</h6>
+                <h6 class="mb-3"><i class="fas fa-lightning-bolt"></i> Quick Check-In</h6>
                 <div style="max-height: 300px; overflow-y: auto;">
                     {% if members %}
                         {% for member in members[:8] %}
                         <form method="POST" action="{{ url_for('attendance_routes.check_in') }}" class="d-inline mb-2">
                             <input type="hidden" name="member_id" value="{{ member.id }}">
-                            <button type="submit" class="btn btn-sm btn-outline-success">
-                                ✓ {{ member.user.full_name|truncate(20) }}
+                            <button type="submit" class="btn btn-small btn-secondary">
+                                <i class="fas fa-check"></i> {{ member.user.full_name|truncate(20) }}
                             </button>
                         </form>
                         {% endfor %}

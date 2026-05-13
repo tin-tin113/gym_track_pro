@@ -20,3 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
 function confirmDelete(message = 'Are you sure?') {
     return confirm(message);
 }
+
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-primary', 'btn-outline-secondary', 'btn-outline-danger');
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+    }).catch(() => {
+        alert('Failed to copy to clipboard');
+    });
+}

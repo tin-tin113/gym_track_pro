@@ -1,46 +1,27 @@
 {% extends "base.html" %}
+{% from "components.html" import stat_card %}
 
 {% block title %}Trainer Dashboard - GymTrack Pro{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">🏋️ Trainer Dashboard</h2>
+<h2 class="mb-4"><i class="fas fa-chart-line"></i> Trainer Dashboard</h2>
 
 <!-- Stats Cards -->
 <div class="row mb-4">
     <div class="col-md-3">
-        <div class="card text-center text-white bg-primary">
-            <div class="card-body">
-                <h5 class="card-title">Assigned Members</h5>
-                <h2 class="card-text">{{ stats.assigned_members }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Assigned Members", stats.assigned_members, icon="users", color="primary") }}
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center text-white bg-success">
-            <div class="card-body">
-                <h5 class="card-title">Active Today</h5>
-                <h2 class="card-text">{{ stats.active_today }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Active Today", stats.active_today, icon="check-circle", color="secondary") }}
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center text-white bg-info">
-            <div class="card-body">
-                <h5 class="card-title">Recent Check-Ins</h5>
-                <h2 class="card-text">{{ stats.recent_checkins }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Recent Check-Ins", stats.recent_checkins, icon="sign-in-alt", color="tertiary") }}
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center text-white bg-warning">
-            <div class="card-body">
-                <h5 class="card-title">Inactive (30+ days)</h5>
-                <h2 class="card-text">{{ stats.inactive_30plus }}</h2>
-            </div>
-        </div>
+        {{ stat_card("Inactive (30+ days)", stats.inactive_30plus, icon="clock", color="accent") }}
     </div>
 </div>
 
@@ -48,20 +29,20 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">⚡ Quick Actions</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-lightning-bolt"></i> Quick Actions</h3>
             </div>
             <div class="card-body">
-                <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-primary btn-block w-100 mb-2">➕ Record Metrics</a>
-                <a href="{{ url_for('trainer.members') }}" class="btn btn-info btn-block w-100">👥 View Members</a>
+                <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-primary w-100 mb-2"><i class="fas fa-plus"></i> Record Metrics</a>
+                <a href="{{ url_for('trainer.members') }}" class="btn btn-secondary w-100"><i class="fas fa-users"></i> View Members</a>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">ℹ️ Trainer Info</h5>
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Trainer Info</h3>
             </div>
             <div class="card-body">
                 {% if trainer %}
@@ -85,12 +66,12 @@
 
 <!-- Recent Members Activity -->
 <div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">📋 Assigned Members (First 10)</h5>
+    <div class="card-header">
+        <h3><i class="fas fa-list"></i> Assigned Members (First 10)</h3>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
+        <table class="data-table">
+            <thead>
                 <tr>
                     <th>Member Name</th>
                     <th>Email</th>
@@ -108,12 +89,12 @@
                         <td>
                             {% if member.is_membership_active() %}
                                 {% if member.is_membership_expiring_soon() %}
-                                    <span class="badge bg-warning">⚠️ Expiring Soon</span>
+                                    <span class="badge badge-warning"><i class="fas fa-exclamation-triangle"></i> Expiring Soon</span>
                                 {% else %}
-                                    <span class="badge bg-success">✓ Active</span>
+                                    <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
                                 {% endif %}
                             {% else %}
-                                <span class="badge bg-danger">✗ Expired</span>
+                                <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Expired</span>
                             {% endif %}
                         </td>
                         <td>
@@ -125,13 +106,13 @@
                             {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-sm btn-info">View Progress</a>
+                            <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-small btn-primary"><i class="fas fa-eye"></i> View Progress</a>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-4">No assigned members yet</td>
+                        <td colspan="5" class="text-center text-muted p-lg">No assigned members yet</td>
                     </tr>
                 {% endif %}
             </tbody>
@@ -142,7 +123,7 @@
 <!-- Admin View Notice -->
 {% if not current_user_is_trainer %}
 <div class="alert alert-info mt-4" role="alert">
-    <strong>ℹ️ Admin View</strong> - You are viewing the trainer dashboard as an administrator. To manage trainers, visit the <a href="{{ url_for('trainer.list_trainers') }}">trainer management page</a>.
+    <i class="fas fa-info-circle"></i> <strong>Admin View</strong> - You are viewing the trainer dashboard as an administrator. To manage trainers, visit the <a href="{{ url_for('trainer.list_trainers') }}">trainer management page</a>.
 </div>
 {% endif %}
 

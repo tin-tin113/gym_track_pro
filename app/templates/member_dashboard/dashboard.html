@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from "components.html" import stat_card %}
+{% block title %}My Progress - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1 class="mb-4"><i class="fas fa-chart-line"></i> My Progress</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            {{ stat_card("Gym Visits (30d)", attendance_count, icon="calendar-check", color="primary") }}
+        </div>
+        <div class="col-md-3">
+            {{ stat_card("Workouts Logged", recent_workouts|length, icon="dumbbell", color="secondary") }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><h3 class="mb-0"><i class="fas fa-list"></i> Recent Workouts</h3></div>
+        <div class="card-body">
+            {% if recent_workouts %}
+            <table class="data-table">
+                <thead>
+                    <tr><th>Date</th><th>Exercise</th><th>Category</th></tr>
+                </thead>
+                <tbody>
+                    {% for w in recent_workouts %}
+                    <tr>
+                        <td>{{ w.workout_date }}</td>
+                        <td>{{ w.exercise_name }}</td>
+                        <td>{{ w.exercise_category }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{{ url_for('member.list_workouts') }}" class="btn btn-small btn-primary mt-3"><i class="fas fa-eye"></i> View All</a>
+            {% else %}
+            <p>No workouts yet. <a href="{{ url_for('member.create_workout') }}">Log one now!</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

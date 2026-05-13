@@ -5,30 +5,30 @@
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
-        <div class="card shadow-lg">
+        <div class="card">
             <div class="card-body p-5">
-                <h2 class="card-title text-center mb-4">💪 Create Member Account</h2>
+                <h2 class="card-title text-center mb-4"><i class="fas fa-user-plus"></i> Create Member Account</h2>
                 <p class="text-center text-muted mb-4">Join GymTrack Pro</p>
 
                 <form method="POST" action="{{ url_for('auth.signup') }}">
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="full_name" class="form-label">Full Name</label>
                         <input type="text" class="form-control" id="full_name" name="full_name" required autofocus>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="email" class="form-label">Email Address</label>
                         <input type="email" class="form-control" id="email" name="email" required>
                         <small class="form-text text-muted">We'll use this to login</small>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
                         <small class="form-text text-muted">Minimum 6 characters</small>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="confirm_password" class="form-label">Confirm Password</label>
                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                     </div>

@@ -87,6 +87,26 @@ class User(UserMixin, db.Model):
         """Get human-readable role name."""
         return self.ROLES.get(self.role, self.role)
 
+    @property
+    def is_admin(self):
+        """Check if user is an admin."""
+        return self.role == 'admin'
+
+    @property
+    def is_staff(self):
+        """Check if user is staff."""
+        return self.role == 'staff'
+
+    @property
+    def is_trainer(self):
+        """Check if user is a trainer."""
+        return self.role == 'trainer'
+
+    @property
+    def is_member(self):
+        """Check if user is a member."""
+        return self.role == 'member'
+
 
 @login_manager.user_loader
 def load_user(user_id):

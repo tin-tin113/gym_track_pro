@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
+{% from "components.html" import stat_card, badge %}
 
 {% block title %}Today's Attendance - GymTrack Pro{% endblock %}
 
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>📅 Today's Gym Attendance</h1>
+        <h1><i class="fas fa-calendar-check"></i> Today's Gym Attendance</h1>
         <div>
-            <span class="badge bg-primary" style="font-size: 1.1em;">
+            <span class="badge badge-primary" style="font-size: 1.1em;">
                 {{ today.strftime('%A, %B %d, %Y') }}
             </span>
         </div>
@@ -16,49 +17,34 @@
     <!-- Summary Stats -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Total Check-ins</h5>
-                    <h2 class="text-primary">{{ total_visits }}</h2>
-                </div>
-            </div>
+            {{ stat_card("Total Check-ins", total_visits, icon="users", color="primary") }}
         </div>
         <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Currently in Gym</h5>
-                    <h2 class="text-success">{{ still_checked_in }}</h2>
-                </div>
-            </div>
+            {{ stat_card("Currently in Gym", still_checked_in, icon="check-circle", color="secondary") }}
         </div>
         <div class="col-md-4">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-muted">Already Left</h5>
-                    <h2 class="text-info">{{ total_visits - still_checked_in }}</h2>
-                </div>
-            </div>
+            {{ stat_card("Already Left", total_visits - still_checked_in, icon="sign-out-alt", color="tertiary") }}
         </div>
     </div>
 
     <!-- Attendance Records -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Attendance Records</h5>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0"><i class="fas fa-list"></i> Attendance Records</h3>
             <div>
-                <a href="{{ url_for('reports.daily_attendance', format='csv') }}" class="btn btn-sm btn-success me-2">
-                    📥 Export CSV
+                <a href="{{ url_for('reports.daily_attendance', format='csv') }}" class="btn btn-small btn-secondary me-2">
+                    <i class="fas fa-download"></i> Export CSV
                 </a>
-                <button onclick="window.print()" class="btn btn-sm btn-secondary">
-                    🖨️ Print
+                <button onclick="window.print()" class="btn btn-small btn-secondary">
+                    <i class="fas fa-print"></i> Print
                 </button>
             </div>
         </div>
         <div class="card-body p-0">
             {% if records %}
             <div class="table-responsive">
-                <table class="table table-hover table-sm mb-0">
-                    <thead class="table-light">
+                <table class="data-table">
+                    <thead>
                         <tr>
                             <th style="width: 30%">Member Name</th>
                             <th style="width: 30%">Email</th>
@@ -84,19 +70,19 @@
                             <td>
                                 {% if record.check_out_time and record.check_in_time %}
                                     {% set duration_mins = ((record.check_out_time - record.check_in_time).total_seconds() / 60)|int %}
-                                    <span class="badge bg-info">{{ duration_mins }} min</span>
+                                    <span class="badge badge-info">{{ duration_mins }} min</span>
                                 {% elif record.check_in_time and not record.check_out_time %}
                                     {% set current_duration = ((now - record.check_in_time).total_seconds() / 60)|int %}
-                                    <span class="badge bg-warning">{{ current_duration }} min</span>
+                                    <span class="badge badge-warning">{{ current_duration }} min</span>
                                 {% else %}
                                     <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if record.check_out_time %}
-                                    <span class="badge bg-success">Completed</span>
+                                    <span class="badge badge-success"><i class="fas fa-check-circle"></i> Completed</span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">In Gym</span>
+                                    <span class="badge badge-warning"><i class="fas fa-user"></i> In Gym</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -106,7 +92,7 @@
             </div>
             {% else %}
             <div class="p-4 text-center text-muted">
-                <p class="mb-0">📭 No attendance records for today yet</p>
+                <p class="mb-0"><i class="fas fa-inbox"></i> No attendance records for today yet</p>
             </div>
             {% endif %}
         </div>
@@ -149,7 +135,7 @@
         .btn, button, .navbar, .container-fluid > .d-flex, [onclick] {
             display: none !important;
         }
-        .table {
+        .data-table {
             font-size: 0.85rem;
         }
         .card {
