@@ -2,8 +2,10 @@
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
+from datetime import datetime
 from app import db
 from app.models.user import User
+from app.models.member import Member
 from app.utils.decorators import admin_required
 from werkzeug.security import generate_password_hash
 
@@ -33,6 +35,15 @@ def login():
         if not user.is_active:
             flash('This account has been deactivated.', 'warning')
             return redirect(url_for('auth.login'))
+
+        # Check if member is approved (if member role)
+        if user.role == 'member':
+            from app.models.member import Member
+            member = Member.query.filter_by(user_id=user.id).first()
+            if member and not member.is_approved:
+                # Allow login so they can see pending status page
+                login_user(user, remember=request.form.get('remember', False))
+                return redirect(url_for('auth.pending_status'))
 
         login_user(user, remember=request.form.get('remember', False))
         flash(f'Welcome back, {user.full_name}!', 'success')
@@ -68,6 +79,108 @@ def logout():
     logout_user()
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('auth.login'))
+
+
+@bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    """Handle public member self-registration (no login required)."""
+    if current_user.is_authenticated:
+        return redirect(url_for('admin.dashboard'))
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        full_name = request.form.get('full_name', '').strip()
+        password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        # Validation
+        if not all([email, full_name, password, confirm_password]):
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        # Check if email already exists
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered. Please login instead.', 'danger')
+            return redirect(url_for('auth.signup'))
+
+        try:
+            # Create new member user
+            username = email.split('@')[0]
+
+            # Ensure unique username
+            base_username = username
+            counter = 1
+            while User.query.filter_by(username=username).first():
+                username = f"{base_username}{counter}"
+                counter += 1
+
+            user = User(
+                username=username,
+                email=email,
+                full_name=full_name,
+                role='member',
+                is_active=True
+            )
+            user.set_password(password)
+            db.session.add(user)
+            db.session.flush()  # Get the user ID without committing
+
+            # Create member profile (pending approval)
+            from app.models.member import Member
+            from datetime import datetime, timedelta
+
+            member = Member(
+                user_id=user.id,
+                membership_type='monthly',
+                membership_start_date=datetime.utcnow().date(),
+                membership_expiry_date=datetime.utcnow().date() + timedelta(days=30),
+                is_approved=False,  # Require admin approval
+                is_active=True
+            )
+            db.session.add(member)
+            db.session.commit()
+
+            flash('Account created successfully! An admin will review and approve your membership shortly. You will receive a confirmation email once approved.', 'info')
+            return redirect(url_for('auth.pending_status'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating account: {str(e)}', 'danger')
+            return redirect(url_for('auth.signup'))
+
+    return render_template('auth/signup.html')
+
+
+@bp.route('/pending-status', methods=['GET'])
+def pending_status():
+    """Show pending approval status for unapproved member accounts."""
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+
+    # Only members can view pending status
+    from app.models.member import Member
+    member = Member.query.filter_by(user_id=current_user.id).first()
+
+    if not member or member.is_approved:
+        # If approved or no member record, redirect to appropriate dashboard
+        if current_user.role == 'admin':
+            return redirect(url_for('admin.dashboard'))
+        elif current_user.role == 'staff':
+            return redirect(url_for('reports.dashboard'))
+        elif current_user.role == 'trainer':
+            return redirect(url_for('trainer.dashboard'))
+        else:
+            return redirect(url_for('auth.login'))
+
+    return render_template('auth/pending_status.html', member=member)
 
 
 @bp.route('/register', methods=['GET', 'POST'])
@@ -126,3 +239,51 @@ def register():
             return redirect(url_for('auth.register'))
 
     return render_template('auth/register.html')
+
+
+@bp.route('/setup-password/<token>', methods=['GET', 'POST'])
+def setup_password(token):
+    """Handle one-time password setup for new trainers/staff."""
+    user = User.query.filter_by(setup_token=token).first()
+
+    if not user:
+        flash('Invalid setup link.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    # Check if token has expired
+    if user.setup_token_expiry < datetime.utcnow():
+        flash('Setup link has expired. Please contact admin for a new link.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+
+        if not all([password, confirm_password]):
+            flash('Password fields are required.', 'danger')
+            return redirect(url_for('auth.setup_password', token=token))
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return redirect(url_for('auth.setup_password', token=token))
+
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'danger')
+            return redirect(url_for('auth.setup_password', token=token))
+
+        try:
+            # Set password and clear setup token
+            user.set_password(password)
+            user.setup_token = None
+            user.setup_token_expiry = None
+            db.session.commit()
+
+            flash('Password set successfully! You can now login.', 'success')
+            return redirect(url_for('auth.login'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error setting password: {str(e)}', 'danger')
+            return redirect(url_for('auth.setup_password', token=token))
+
+    return render_template('auth/setup_password.html', token=token)

@@ -60,8 +60,13 @@ def create_app(config_name='development'):
             # Create all tables
             db.create_all()
 
+            # Upgrade database schema if needed (add missing columns to existing tables)
+            upgrade_database_schema(db)
+
             # Seed admin user if it doesn't exist
             seed_admin_user(db)
+            # Seed default staff user if it doesn't exist
+            seed_default_staff(db)
         except Exception as e:
             print(f"Warning: Could not initialize database: {e}")
 
@@ -134,6 +139,66 @@ def register_cli_commands(app):
             print("Cancelled.")
 
 
+def upgrade_database_schema(db):
+    """Upgrade existing database schema by adding missing columns."""
+    from sqlalchemy import inspect, text
+    from sqlalchemy.exc import OperationalError
+
+    try:
+        # Get the database inspector
+        inspector = inspect(db.engine)
+        table_names = inspector.get_table_names()
+
+        # Upgrade members table
+        if 'members' in table_names:
+            existing_columns = [col['name'] for col in inspector.get_columns('members')]
+            with db.engine.connect() as connection:
+                if 'is_approved' not in existing_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE members ADD COLUMN is_approved BOOLEAN DEFAULT 0'))
+                        connection.commit()
+                        print("  - Added is_approved column to members table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
+
+                if 'approval_date' not in existing_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE members ADD COLUMN approval_date DATETIME'))
+                        connection.commit()
+                        print("  - Added approval_date column to members table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
+
+        # Refresh inspector after potential schema changes
+        inspector = inspect(db.engine)
+
+        # Upgrade users table
+        if 'users' in table_names:
+            existing_users_columns = [col['name'] for col in inspector.get_columns('users')]
+            with db.engine.connect() as connection:
+                if 'setup_token' not in existing_users_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE users ADD COLUMN setup_token VARCHAR(255) UNIQUE'))
+                        connection.commit()
+                        print("  - Added setup_token column to users table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            pass
+
+                if 'setup_token_expiry' not in existing_users_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE users ADD COLUMN setup_token_expiry DATETIME'))
+                        connection.commit()
+                        print("  - Added setup_token_expiry column to users table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            pass
+    except Exception as e:
+        print(f"  Schema upgrade note: {e}")
+
+
 def seed_admin_user(db):
     """Seed the database with a default admin user if it doesn't exist."""
     from app.models.user import User
@@ -160,3 +225,31 @@ def seed_admin_user(db):
     except Exception as e:
         db.session.rollback()
         print(f"Error creating admin user: {e}")
+
+
+def seed_default_staff(db):
+    """Seed the database with a default staff user if it doesn't exist."""
+    from app.models.user import User
+
+    # Check if staff user already exists
+    staff = User.query.filter_by(email='staff@gymtrack.local').first()
+    if staff:
+        return
+
+    # Create default staff user
+    staff = User(
+        username='staff',
+        email='staff@gymtrack.local',
+        full_name='Default Staff',
+        role='staff',
+        is_active=True
+    )
+    staff.set_password('GymTrack2026!')  # Default password
+
+    db.session.add(staff)
+    try:
+        db.session.commit()
+        print("Default staff user created: staff@gymtrack.local")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating default staff user: {e}")

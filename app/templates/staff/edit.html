@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{% if staff_user %}Edit{% else %}Create{% endif %} Staff - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3>{% if staff_user %}✏️ Edit{% else %}➕ Create{% endif %} Staff Member</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" novalidate>
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name"
+                            value="{{ staff_user.full_name if staff_user else '' }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                            value="{{ staff_user.email if staff_user else '' }}"
+                            {% if staff_user %}disabled{% else %}required{% endif %}>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('staff.list_staff') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if staff_user %}💾 Update Staff{% else %}✅ Create Staff{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="alert alert-info mt-4" role="alert">
+            <strong>💡 How It Works:</strong>
+            <ul class="mb-0 mt-2">
+                {% if not staff_user %}
+                    <li>A secure one-time setup link will be generated after creation</li>
+                    <li>Share the link with the staff member (copy from success message)</li>
+                    <li>Staff clicks link and creates their own password</li>
+                    <li>Link expires in 24 hours for security</li>
+                    <li>Staff member's password is never visible to admin</li>
+                {% endif %}
+                <li>Staff members can manage members, fitness tracking, and attendance</li>
+                <li>Staff should change their password regularly</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

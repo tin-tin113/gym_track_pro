@@ -26,6 +26,8 @@ class User(UserMixin, db.Model):
     full_name = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='member')
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    setup_token = db.Column(db.String(255), nullable=True)  # One-time setup token
+    setup_token_expiry = db.Column(db.DateTime, nullable=True)  # When token expires
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

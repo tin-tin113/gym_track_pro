@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Dashboard - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>👥 Staff Dashboard</h2>
+        <p class="text-muted">Welcome to your staff dashboard. Use the navigation menu to manage members, attendance, fitness tracking, and reports.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">👤 Members</h5>
+                <p class="text-muted">Manage gym members</p>
+                <a href="{{ url_for('member.list_members') }}" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">📋 Attendance</h5>
+                <p class="text-muted">Track member attendance</p>
+                <a href="{{ url_for('attendance.check_in') }}" class="btn btn-sm btn-primary">Check In</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">💪 Fitness</h5>
+                <p class="text-muted">Track member fitness progress</p>
+                <a href="{{ url_for('fitness.metrics') }}" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">📊 Reports</h5>
+                <p class="text-muted">View reports and analytics</p>
+                <a href="{{ url_for('reports.dashboard') }}" class="btn btn-sm btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

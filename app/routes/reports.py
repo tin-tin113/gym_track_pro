@@ -293,34 +293,61 @@ def api_stats():
     return jsonify(chart_data)
 
 
-def _generate_attendance_csv(records):
-    """Helper to generate CSV from attendance records."""
+
+
+@bp.route('/daily-attendance', methods=['GET'])
+@login_required
+@staff_or_admin_required
+def daily_attendance():
+    """Display and export daily gym attendance for today."""
+    today = datetime.utcnow().date()
+    start_time = datetime.combine(today, datetime.min.time())
+    end_time = datetime.combine(today, datetime.max.time())
+
+    # Get all attendance records for today
+    records = Attendance.query.filter(
+        Attendance.check_in_time >= start_time,
+        Attendance.check_in_time <= end_time
+    ).order_by(Attendance.check_in_time.desc()).all()
+
+    # Calculate summary stats
+    total_visits = len(records)
+    still_checked_in = sum(1 for r in records if r.check_out_time is None)
+
+    # Handle CSV export
+    if request.args.get('format') == 'csv':
+        return _generate_daily_attendance_csv(records, today)
+
+    return render_template('reports/daily_attendance.html',
+        records=records,
+        today=today,
+        total_visits=total_visits,
+        still_checked_in=still_checked_in)
+
+
+def _generate_daily_attendance_csv(records, date):
+    """Generate CSV export for daily attendance."""
     output = BytesIO()
     writer = csv.writer(output.getbuffer())
 
-    # Header
-    writer.writerow([
-        'Member Name', 'Email', 'Check-in Time', 'Check-out Time',
-        'Duration (minutes)', 'Date'
-    ])
+    writer.writerow(['Daily Attendance Report', date.strftime('%Y-%m-%d')])
+    writer.writerow([])
+    writer.writerow(['Member Name', 'Email', 'Check-in Time', 'Check-out Time', 'Duration (minutes)'])
 
-    # Data rows
     for record in records:
+        duration = ''
+        if record.check_out_time and record.check_in_time:
+            duration = int((record.check_out_time - record.check_in_time).total_seconds() / 60)
+
         writer.writerow([
             record.member.user.full_name,
             record.member.user.email,
             record.check_in_time.strftime('%H:%M:%S') if record.check_in_time else '',
-            record.check_out_time.strftime('%H:%M:%S') if record.check_out_time else '',
-            record.duration_minutes or '',
-            record.check_in_time.date() if record.check_in_time else ''
+            record.check_out_time.strftime('%H:%M:%S') if record.check_out_time else 'Still here',
+            duration
         ])
 
     output.seek(0)
-    filename = f"attendance_{datetime.now().strftime('%Y%m%d')}.csv"
+    filename = f"daily_attendance_{date.strftime('%Y%m%d')}.csv"
+    return send_file(output, mimetype='text/csv', as_attachment=True, download_name=filename)
 
-    return send_file(
-        output,
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )

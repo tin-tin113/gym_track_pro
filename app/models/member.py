@@ -21,6 +21,8 @@ class Member(db.Model):
     profile_image_url = db.Column(db.String(255))
     notes = db.Column(db.Text)
     is_active = db.Column(db.Boolean, default=True)
+    is_approved = db.Column(db.Boolean, default=False, nullable=False)  # For self-registered members needing admin approval
+    approval_date = db.Column(db.DateTime)  # When admin approved the member
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -84,13 +84,18 @@
 
         <!-- Info Box -->
         <div class="alert alert-info mt-4" role="alert">
-            <strong>💡 Info:</strong>
+            <strong>💡 How It Works:</strong>
             <ul class="mb-0 mt-2">
                 {% if not trainer %}
-                    <li>Default password for new trainers: <code>GymTrack2026!</code></li>
+                    <li>A secure one-time setup link will be generated after creation</li>
+                    <li>Share the link with the trainer (copy from success message)</li>
+                    <li>Trainer clicks link and creates their own password</li>
+                    <li>Link expires in 24 hours for security</li>
+                    <li>Trainer's password is never visible to admin</li>
                 {% endif %}
                 <li>Trainers can view and manage their assigned members</li>
                 <li>Max clients limit prevents over-scheduling</li>
+                <li>Trainers should change their password regularly</li>
             </ul>
         </div>
     </div>

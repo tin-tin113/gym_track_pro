@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}Today's Attendance - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📅 Today's Gym Attendance</h1>
+        <div>
+            <span class="badge bg-primary" style="font-size: 1.1em;">
+                {{ today.strftime('%A, %B %d, %Y') }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Total Check-ins</h5>
+                    <h2 class="text-primary">{{ total_visits }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Currently in Gym</h5>
+                    <h2 class="text-success">{{ still_checked_in }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-muted">Already Left</h5>
+                    <h2 class="text-info">{{ total_visits - still_checked_in }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Attendance Records</h5>
+            <div>
+                <a href="{{ url_for('reports.daily_attendance', format='csv') }}" class="btn btn-sm btn-success me-2">
+                    📥 Export CSV
+                </a>
+                <button onclick="window.print()" class="btn btn-sm btn-secondary">
+                    🖨️ Print
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if records %}
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 30%">Member Name</th>
+                            <th style="width: 30%">Email</th>
+                            <th style="width: 15%">Check-in</th>
+                            <th style="width: 15%">Duration</th>
+                            <th style="width: 10%">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('member.view_member', member_id=record.member.id) }}" class="text-decoration-none">
+                                    {{ record.member.user.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ record.member.user.email }}</td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ record.check_in_time.strftime('%H:%M:%S') if record.check_in_time else '-' }}
+                                </small>
+                            </td>
+                            <td>
+                                {% if record.check_out_time and record.check_in_time %}
+                                    {% set duration_mins = ((record.check_out_time - record.check_in_time).total_seconds() / 60)|int %}
+                                    <span class="badge bg-info">{{ duration_mins }} min</span>
+                                {% elif record.check_in_time and not record.check_out_time %}
+                                    {% set current_duration = ((now - record.check_in_time).total_seconds() / 60)|int %}
+                                    <span class="badge bg-warning">{{ current_duration }} min</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.check_out_time %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">In Gym</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center text-muted">
+                <p class="mb-0">📭 No attendance records for today yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Footer Summary -->
+    {% if records %}
+    <div class="card mt-4 bg-light border-0">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Total Visits:</strong> {{ total_visits }}</p>
+                    <p class="mb-0"><strong>Report Generated:</strong> {{ now.strftime('%H:%M:%S') }}</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-1"><strong>Members Completed:</strong> {{ total_visits - still_checked_in }}</p>
+                    <p class="mb-0"><strong>Average Duration:</strong>
+                        {% set total_duration = 0 %}
+                        {% for record in records %}
+                            {% if record.check_out_time and record.check_in_time %}
+                                {% set total_duration = total_duration + ((record.check_out_time - record.check_in_time).total_seconds() / 60)|int %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if total_visits - still_checked_in > 0 %}
+                            {{ (total_duration / (total_visits - still_checked_in))|int }} min
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Print Styling -->
+<style>
+    @media print {
+        .btn, button, .navbar, .container-fluid > .d-flex, [onclick] {
+            display: none !important;
+        }
+        .table {
+            font-size: 0.85rem;
+        }
+        .card {
+            border: 1px solid #ddd !important;
+            page-break-inside: avoid;
+        }
+        body {
+            background: white;
+        }
+        .badge {
+            border: 1px solid #999;
+        }
+    }
+</style>
+
+{% set now = now() %}
+{% endblock %}

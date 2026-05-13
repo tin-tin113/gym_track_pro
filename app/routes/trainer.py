@@ -3,6 +3,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
+import secrets
+import string
 from app import db
 from app.models.user import User
 from app.models.trainer import Trainer
@@ -13,6 +15,15 @@ from app.models.fitness import FitnessMetric
 from app.utils.decorators import admin_required, trainer_or_admin_required
 
 bp = Blueprint('trainer', __name__, url_prefix='/trainer')
+
+
+def generate_secure_password(length=12):
+    """Generate a secure random password."""
+    characters = string.ascii_letters + string.digits + string.punctuation
+    # Avoid confusing characters
+    characters = characters.replace("'", "").replace('"', "").replace("\\", "").replace("`", "")
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    return password
 
 
 @bp.route('/dashboard')
@@ -214,7 +225,10 @@ def create_trainer():
                 role='trainer',
                 is_active=True
             )
-            user.set_password('GymTrack2026!')
+            # Generate one-time setup token (valid for 24 hours)
+            setup_token = secrets.token_urlsafe(32)
+            user.setup_token = setup_token
+            user.setup_token_expiry = datetime.utcnow() + timedelta(hours=24)
 
             # Create trainer
             trainer_obj = Trainer(
@@ -230,7 +244,9 @@ def create_trainer():
             db.session.add(trainer_obj)
             db.session.commit()
 
-            flash(f'Trainer {full_name} created successfully!', 'success')
+            # Generate setup link
+            setup_link = url_for('auth.setup_password', token=setup_token, _external=True)
+            flash(f'Trainer {full_name} created! <a href="{setup_link}" target="_blank" class="alert-link">Click here for setup link</a>', 'success')
             return redirect(url_for('trainer.list_trainers'))
 
         except Exception as e:

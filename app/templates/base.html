@@ -64,6 +64,9 @@
                             <a class="nav-link" href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin.pending_approvals') }}">⏳ Pending Approvals</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('member.list_members') }}">👥 Members</a>
                         </li>
                         <li class="nav-item">
@@ -85,6 +88,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('attendance_routes.history') }}">📋 Full History</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('reports.daily_attendance') }}">📅 Today's Check-ins</a>
+                        </li>
                         {% endif %}
 
                         <!-- Trainer Menu -->
@@ -101,6 +107,9 @@
                         {% if current_user.role == 'admin' %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('trainer.list_trainers') }}">🏋️ Manage Trainers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('staff.list_staff') }}">👥 Manage Staff</a>
                         </li>
                         {% endif %}
                         {% endif %}
