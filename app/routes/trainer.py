@@ -474,6 +474,9 @@ def create_trainer():
                 role='trainer',
                 is_active=True
             )
+            # Set a placeholder password (will be replaced by trainer during setup)
+            user.set_password(secrets.token_urlsafe(32))
+
             # Generate one-time setup token (valid for 24 hours)
             setup_token = secrets.token_urlsafe(32)
             user.setup_token = setup_token

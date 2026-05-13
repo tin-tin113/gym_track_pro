@@ -79,6 +79,9 @@ def create_staff():
                 role='staff',
                 is_active=True
             )
+            # Set a placeholder password (will be replaced by staff during setup)
+            user.set_password(secrets.token_urlsafe(32))
+
             # Generate one-time setup token (valid for 24 hours)
             from datetime import timedelta
             setup_token = secrets.token_urlsafe(32)
