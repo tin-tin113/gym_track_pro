@@ -75,7 +75,7 @@
             <!-- Trainer Management (Admin only) -->
             {% if current_user.is_admin %}
             <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.create_trainer') }}" class="sidebar-nav-link">
+                <a href="{{ url_for('trainer.list_trainers') }}" class="sidebar-nav-link">
                     <span class="sidebar-nav-icon"><i class="fas fa-heart-pulse"></i></span>
                     <span>Manage Trainers</span>
                 </a>
