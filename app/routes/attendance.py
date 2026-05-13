@@ -97,6 +97,11 @@ def check_in():
     """
     is_staff_or_admin = current_user.has_any_role('staff', 'admin')
 
+    # Block unapproved members from accessing this page
+    if current_user.role == 'member' and not current_user.member.is_approved:
+        flash('Your membership is pending approval. Please wait for admin confirmation.', 'warning')
+        return redirect(url_for('auth.pending_status'))
+
     if request.method == 'POST':
         # Only staff/admin can use the manual check-in form
         if not is_staff_or_admin:
