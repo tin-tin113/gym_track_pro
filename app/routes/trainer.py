@@ -427,6 +427,7 @@ def list_trainers():
             'is_setup_valid': is_setup_valid,
             'is_setup_expired': is_setup_expired,
             'setup_link': setup_link,
+            'setup_token_expiry': trainer.user.setup_token_expiry,
             'setup_status': (
                 'active' if not has_setup_token else (
                     'pending' if is_setup_valid else 'expired'

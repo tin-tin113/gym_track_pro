@@ -73,7 +73,9 @@
                             {% elif trainer_data.setup_status == 'pending' %}
                                 <span class="badge badge-warning"><i class="fas fa-hourglass-end"></i> Pending Setup</span>
                                 <br>
+                                {% if trainer_data.setup_token_expiry %}
                                 <small class="text-muted">Link expires in {{ ((trainer_data.setup_token_expiry - now).total_seconds() / 3600) | int }} hours</small>
+                                {% endif %}
                                 <br>
                                 <button type="button" class="btn btn-small btn-outline-primary mt-2" onclick="copyToClipboard('{{ trainer_data.setup_link }}', this)">
                                     <i class="fas fa-copy"></i> Copy Link
