@@ -16,7 +16,7 @@ if __name__ == '__main__':
         os.makedirs(instance_path, exist_ok=True)
 
         # Import all models to ensure they are registered with SQLAlchemy
-        from app.models import user, member, attendance, fitness, trainer, assignment
+        from app.models import user, member, attendance, fitness, trainer, assignment, workout
         from app.models.user import User
 
         try:

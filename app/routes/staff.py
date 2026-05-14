@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 from app import db
 from app.models.user import User
-from app.utils.decorators import admin_required
+from app.utils.decorators import admin_required, staff_or_admin_required
 import secrets
 import string
 
@@ -23,6 +23,7 @@ def generate_secure_password(length=12):
 
 @bp.route('/dashboard')
 @login_required
+@staff_or_admin_required
 def dashboard():
     """Staff dashboard placeholder."""
     return render_template('staff/dashboard.html')
