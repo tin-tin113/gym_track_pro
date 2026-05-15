@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ plan.name }} - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">🥗 {{ plan.name }}</h1>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 style="color: var(--neon-orange);">{{ plan.name }}</h5>
+            <p>{{ plan.description }}</p>
+            <div class="calorie-tracker mt-3">
+                <div class="calorie-label">Daily Calories</div>
+                <div class="calorie-value">{{ plan.daily_calories }}</div>
+            </div>
+            <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-md);">
+                <div><strong>Protein:</strong> {{ (plan.macro_ratio_protein * 100)|int }}%</div>
+                <div><strong>Carbs:</strong> {{ (plan.macro_ratio_carbs * 100)|int }}%</div>
+                <div><strong>Fats:</strong> {{ (plan.macro_ratio_fats * 100)|int }}%</div>
+            </div>
+        </div>
+    </div>
+    {% if meals %}
+    <div class="card">
+        <div class="card-header">Meal Plan</div>
+        <div class="card-body">
+            {% for meal in meals[:10] %}
+            <div class="mb-2"><strong>{{ meal.meal_name }}</strong> - {{ meal.calories }} cal</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

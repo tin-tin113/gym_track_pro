@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Guide Library - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">📚 Browse Workout Guides</h1>
+        <p class="page-subtitle">Explore programs available for assignment by your trainer</p>
+    </div>
+    <div class="row">
+        {% for guide in guides.items %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="program-card">
+                <h5 style="color: var(--neon-purple);">{{ guide.name }}</h5>
+                <span class="badge program-card-difficulty {{ guide.difficulty_level|lower }}">{{ guide.difficulty_level }}</span>
+                <p class="text-muted mt-2">{{ guide.description[:80] }}</p>
+                <form action="{{ url_for('member.request_guide_assignment', guide_id=guide.id) }}" method="POST">
+                    <button type="submit" class="btn btn-gym-action btn-sm w-100">Request</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

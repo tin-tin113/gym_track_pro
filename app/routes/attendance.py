@@ -33,7 +33,8 @@ def dashboard():
         qr_token=qr_result['session_token'],
         expiry_time=qr_result['expiry_time'],
         countdown=get_qr_expiry_countdown(qr_result['expiry_time']),
-        members=members
+        members=members,
+        now=datetime.utcnow
     )
 
 

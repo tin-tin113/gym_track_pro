@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Member Diet - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">🥗 {{ member.user.full_name }}'s Diet</h1>
+        </div>
+        {% if diet_assignment %}
+        <form action="{{ url_for('trainer.remove_member_diet', member_id=member.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Remove diet?')">Remove Diet</button>
+        </form>
+        {% endif %}
+    </div>
+    {% if diet_assignment %}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 style="color: var(--neon-orange);">{{ diet_assignment.diet.name }}</h5>
+            <p>{{ diet_assignment.diet.description }}</p>
+            <div class="calorie-tracker mt-3">
+                <div class="calorie-label">Daily Calories</div>
+                <div class="calorie-value">{{ diet_assignment.diet.daily_calories }}</div>
+            </div>
+            <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-md);">
+                <div><strong>Protein:</strong> {{ (diet_assignment.diet.macro_ratio_protein * 100)|int }}%</div>
+                <div><strong>Carbs:</strong> {{ (diet_assignment.diet.macro_ratio_carbs * 100)|int }}%</div>
+                <div><strong>Fats:</strong> {{ (diet_assignment.diet.macro_ratio_fats * 100)|int }}%</div>
+            </div>
+        </div>
+    </div>
+    <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-primary">Change Diet</a>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: var(--spacing-2xl);">
+            <p class="text-muted">No diet plan assigned yet</p>
+            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-gym-action mt-3">Assign Diet</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

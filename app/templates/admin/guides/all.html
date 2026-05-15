@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}All Guides - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">📚 All Guides</h1>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('admin.all_guides') }}" class="btn btn-sm btn-outline-secondary">All</a>
+                <a href="{{ url_for('admin.all_guides', status='approved') }}" class="btn btn-sm btn-success">Approved</a>
+                <a href="{{ url_for('admin.all_guides', status='pending') }}" class="btn btn-sm btn-outline-warning">Pending</a>
+                <a href="{{ url_for('admin.all_guides', status='rejected') }}" class="btn btn-sm btn-outline-danger">Rejected</a>
+            </div>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Difficulty</th>
+                    <th>Created</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for guide in guides.items %}
+                <tr>
+                    <td>{{ guide.name }}</td>
+                    <td><span class="badge badge-status-{{ guide.status }}">{{ guide.status|title }}</span></td>
+                    <td><span class="badge program-card-difficulty {{ guide.difficulty_level|lower }}">{{ guide.difficulty_level }}</span></td>
+                    <td>{{ guide.created_at.strftime('%b %d') }}</td>
+                    <td><a href="{{ url_for('admin.review_guide', guide_id=guide.id) }}" class="btn btn-primary btn-sm">Review</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

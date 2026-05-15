@@ -11,6 +11,11 @@ from app.models.assignment import TrainerAssignment
 from app.models.workout import Workout
 from app.models.fitness import FitnessMetric
 from app.models.attendance import Attendance
+from app.models.workout_guide import WorkoutGuide
+from app.models.guide_assignment import GuideAssignment
+from app.models.workout_tip import WorkoutTip
+from app.models.diet_plan import DietPlan, MealPlan
+from app.models.diet_assignment import DietAssignment, MealLog
 from app.utils.decorators import staff_or_admin_required, admin_required
 import csv
 from io import StringIO
@@ -752,3 +757,320 @@ def delete_workout(workout_id):
         flash(f'Error deleting workout: {str(e)}', 'danger')
 
     return redirect(url_for('member.list_workouts'))
+
+
+# ==================== MEMBER WORKOUT PROGRAMS ====================
+
+@bp.route('/programs')
+@login_required
+def member_programs():
+    """View assigned workout guides and current diet plan (unified programs dashboard)."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    # Get active guide assignments
+    active_guides = GuideAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True,
+        is_completed=False
+    ).all()
+
+    # Get completed guides
+    completed_guides = GuideAssignment.query.filter_by(
+        member_id=member.id,
+        is_completed=True
+    ).all()
+
+    # Get current diet assignment
+    current_diet = DietAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    # Get recent workouts
+    recent_workouts = Workout.query.filter_by(member_id=member.id).order_by(
+        Workout.workout_date.desc()
+    ).limit(5).all()
+
+    # Calculate stats
+    stats = {
+        'active_guides': len(active_guides),
+        'completed_guides': len(completed_guides),
+        'current_diet': current_diet is not None,
+        'recent_workouts': len(recent_workouts)
+    }
+
+    return render_template(
+        'member_dashboard/programs.html',
+        member=member,
+        active_guides=active_guides,
+        completed_guides=completed_guides,
+        current_diet=current_diet,
+        recent_workouts=recent_workouts,
+        stats=stats
+    )
+
+
+@bp.route('/guides/<int:guide_id>')
+@login_required
+def view_assigned_guide(guide_id):
+    """View details of an assigned workout guide with tips."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    # Check if member has this guide assigned
+    assignment = GuideAssignment.query.filter_by(
+        guide_id=guide_id,
+        member_id=member.id,
+        is_active=True
+    ).first_or_404()
+
+    guide = assignment.guide
+    tips = WorkoutTip.query.filter_by(guide_id=guide_id).order_by(
+        WorkoutTip.exercise_name.asc()
+    ).all()
+
+    # Get workouts logged from this guide
+    logged_workouts = Workout.query.filter_by(
+        guide_assignment_id=assignment.id,
+        member_id=member.id
+    ).order_by(Workout.workout_date.desc()).all()
+
+    # Calculate progress
+    progress = assignment.calculate_progress()
+
+    return render_template(
+        'member_dashboard/guide_detail.html',
+        guide=guide,
+        assignment=assignment,
+        tips=tips,
+        logged_workouts=logged_workouts,
+        progress=progress
+    )
+
+
+@bp.route('/guides/library')
+@login_required
+def browse_guides_library():
+    """Browse all approved workout guides (read-only, for inspiration)."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+    page = request.args.get('page', 1, type=int)
+    difficulty = request.args.get('difficulty', None)
+
+    query = WorkoutGuide.query.filter_by(status='approved')
+
+    if difficulty:
+        query = query.filter_by(difficulty_level=difficulty)
+
+    guides = query.order_by(WorkoutGuide.created_at.desc()).paginate(page=page, per_page=12)
+
+    # Get member's assigned guides for display
+    assigned_guide_ids = [a.guide_id for a in GuideAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).all()]
+
+    return render_template(
+        'member_dashboard/guides_library.html',
+        guides=guides,
+        difficulty_filter=difficulty,
+        assigned_guide_ids=assigned_guide_ids
+    )
+
+
+@bp.route('/guides/<int:guide_id>/request', methods=['POST'])
+@login_required
+def request_guide_assignment(guide_id):
+    """Member can request trainer to assign a guide."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+    guide = WorkoutGuide.query.filter_by(id=guide_id, status='approved').first_or_404()
+
+    # Get member's primary trainer
+    trainer_assignment = TrainerAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    if not trainer_assignment:
+        flash('You do not have an assigned trainer. Contact admin to request program.', 'warning')
+        return redirect(url_for('member.browse_guides_library'))
+
+    # Check if already assigned
+    existing = GuideAssignment.query.filter_by(
+        guide_id=guide_id,
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    if existing:
+        flash('This guide is already assigned to you.', 'info')
+        return redirect(url_for('member.view_assigned_guide', guide_id=guide_id))
+
+    flash(f'Request sent to your trainer to assign "{guide.name}".', 'success')
+    # In a real system, this might create a notification for the trainer
+    # For now, just redirect back
+
+    return redirect(url_for('member.browse_guides_library'))
+
+
+# ==================== MEMBER DIET TRACKING ====================
+
+@bp.route('/diet/current')
+@login_required
+def current_diet():
+    """View current assigned diet plan and today's meals."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    diet_assignment = DietAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    if not diet_assignment:
+        flash('No diet plan currently assigned. Contact your trainer.', 'info')
+        return render_template(
+            'member_dashboard/diet/current.html',
+            diet_assignment=None,
+            meals_today=[],
+            daily_totals={}
+        )
+
+    # Get meals for diet plan
+    diet_plan = diet_assignment.diet
+    meals_all = MealPlan.query.filter_by(diet_plan_id=diet_plan.id).all()
+
+    # Get today's meal logs
+    today = datetime.utcnow().date()
+    meal_logs_today = MealLog.get_daily_logs(member.id, today)
+    daily_totals = MealLog.calculate_daily_macros(member.id, today)
+    daily_totals['calories'] = MealLog.calculate_daily_calories(member.id, today)
+
+    # Calculate estimated calorie burn (from workout frequency)
+    estimated_burn = diet_assignment.get_calorie_burn_recommendation()
+
+    return render_template(
+        'member_dashboard/diet/current.html',
+        member=member,
+        diet_assignment=diet_assignment,
+        diet_plan=diet_plan,
+        meals_all=meals_all,
+        meal_logs_today=meal_logs_today,
+        daily_totals=daily_totals,
+        estimated_burn=estimated_burn
+    )
+
+
+@bp.route('/diet/log-meal', methods=['GET', 'POST'])
+@login_required
+def log_meal():
+    """Log a meal consumed."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    # Check if member has active diet
+    diet_assignment = DietAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    if not diet_assignment:
+        flash('No active diet plan. Contact your trainer.', 'warning')
+        return redirect(url_for('member.current_diet'))
+
+    if request.method == 'POST':
+        try:
+            meal_log = MealLog(
+                member_id=member.id,
+                diet_assignment_id=diet_assignment.id,
+                meal_date=datetime.strptime(request.form.get('meal_date', ''), '%Y-%m-%d').date() if request.form.get('meal_date') else datetime.utcnow().date(),
+                meal_type=request.form.get('meal_type'),
+                meal_name=request.form.get('meal_name'),
+                calories_actual=request.form.get('calories_actual', type=int),
+                protein_g=request.form.get('protein_g', type=float),
+                carbs_g=request.form.get('carbs_g', type=float),
+                fats_g=request.form.get('fats_g', type=float),
+                notes=request.form.get('notes')
+            )
+            db.session.add(meal_log)
+            db.session.commit()
+            flash(f'Meal "{meal_log.meal_name}" logged successfully!', 'success')
+            return redirect(url_for('member.current_diet'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error logging meal: {str(e)}', 'danger')
+
+    diet_plan = diet_assignment.diet
+    meals_suggested = MealPlan.query.filter_by(diet_plan_id=diet_plan.id).all()
+
+    return render_template(
+        'member_dashboard/diet/log_meal.html',
+        member=member,
+        diet_assignment=diet_assignment,
+        suggested_meals=meals_suggested
+    )
+
+
+@bp.route('/diet/progress')
+@login_required
+def diet_progress():
+    """View nutrition progress (calorie tracking, adherence)."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    diet_assignment = DietAssignment.query.filter_by(
+        member_id=member.id,
+        is_active=True
+    ).first()
+
+    if not diet_assignment:
+        flash('No active diet plan.', 'info')
+        return render_template(
+            'member_dashboard/diet/progress.html',
+            diet_assignment=None,
+            daily_data=[],
+            adherence_score=0
+        )
+
+    # Get meal logs for last 30 days
+    start_date = (datetime.utcnow() - timedelta(days=30)).date()
+    meal_logs = MealLog.get_date_range_logs(member.id, start_date, datetime.utcnow().date())
+
+    # Organize by date
+    from collections import defaultdict
+    daily_data = defaultdict(lambda: {'calories': 0, 'protein_g': 0, 'carbs_g': 0, 'fats_g': 0})
+
+    for log in meal_logs:
+        daily_data[log.meal_date]['calories'] += log.calories_actual or 0
+        daily_data[log.meal_date]['protein_g'] += log.protein_g or 0
+        daily_data[log.meal_date]['carbs_g'] += log.carbs_g or 0
+        daily_data[log.meal_date]['fats_g'] += log.fats_g or 0
+
+    daily_data = sorted(daily_data.items(), key=lambda x: x[0], reverse=True)
+
+    # Calculate adherence
+    adherence_score = MealLog.get_adherence_score(member.id, diet_assignment.id, days=30)
+
+    # Get average weekly calories
+    avg_calories = MealLog.get_weekly_average_calories(member.id, weeks_back=4)
+
+    return render_template(
+        'member_dashboard/diet/progress.html',
+        member=member,
+        diet_assignment=diet_assignment,
+        daily_data=daily_data,
+        adherence_score=adherence_score,
+        avg_weekly_calories=avg_calories
+    )
+
+
+@bp.route('/diet/history')
+@login_required
+def diet_history():
+    """View past diet assignments."""
+    member = Member.query.filter_by(user_id=current_user.id).first_or_404()
+
+    diet_assignments = DietAssignment.query.filter_by(member_id=member.id).order_by(
+        DietAssignment.start_date.desc()
+    ).all()
+
+    return render_template(
+        'member_dashboard/diet/history.html',
+        member=member,
+        assignments=diet_assignments
+    )

@@ -24,6 +24,18 @@
                 </a>
             </li>
             <li class="sidebar-nav-item">
+                <a href="{{ url_for('member.member_programs') }}" class="sidebar-nav-link">
+                    <span class="sidebar-nav-icon"><i class="fas fa-book"></i></span>
+                    <span>My Programs</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="{{ url_for('member.current_diet') }}" class="sidebar-nav-link">
+                    <span class="sidebar-nav-icon"><i class="fas fa-apple-alt"></i></span>
+                    <span>My Diet</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
                 <a href="{{ url_for('attendance_routes.check_in') }}" class="sidebar-nav-link">
                     <span class="sidebar-nav-icon"><i class="fas fa-sign-in-alt"></i></span>
                     <span>Check In</span>
@@ -44,6 +56,18 @@
                 <a href="{{ url_for('trainer.members') }}" class="sidebar-nav-link">
                     <span class="sidebar-nav-icon"><i class="fas fa-users"></i></span>
                     <span>My Members</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="{{ url_for('trainer.list_guides') }}" class="sidebar-nav-link">
+                    <span class="sidebar-nav-icon"><i class="fas fa-book"></i></span>
+                    <span>Workout Guides</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="{{ url_for('trainer.list_diet_plans') }}" class="sidebar-nav-link">
+                    <span class="sidebar-nav-icon"><i class="fas fa-apple-alt"></i></span>
+                    <span>Diets</span>
                 </a>
             </li>
             <li class="sidebar-nav-item">
@@ -86,6 +110,14 @@
                 <a href="{{ url_for('staff.list_staff') }}" class="sidebar-nav-link">
                     <span class="sidebar-nav-icon"><i class="fas fa-users-cog"></i></span>
                     <span>Manage Staff</span>
+                </a>
+            </li>
+
+            <!-- Guide Approvals (Admin only) -->
+            <li class="sidebar-nav-item">
+                <a href="{{ url_for('admin.pending_guides') }}" class="sidebar-nav-link">
+                    <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
+                    <span>Approve Guides</span>
                 </a>
             </li>
             {% endif %}

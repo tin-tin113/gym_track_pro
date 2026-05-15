@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Pending Guide Approvals - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">✅ Guide Approvals</h1>
+            <p class="page-subtitle">Review and approve workout guides submitted by trainers</p>
+        </div>
+    </div>
+
+    <!-- Approval Queue -->
+    <div class="card">
+        <div class="card-header">
+            Pending Guides ({{ guides.total }})
+        </div>
+
+        {% if guides.items %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Guide Name</th>
+                        <th>Trainer</th>
+                        <th>Category</th>
+                        <th>Difficulty</th>
+                        <th>Duration</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for guide in guides.items %}
+                    <tr>
+                        <td>
+                            <strong style="color: var(--neon-purple);">{{ guide.name }}</strong>
+                        </td>
+                        <td>
+                            {% if guide.trainer %}
+                                {{ guide.trainer.full_name }}
+                            {% else %}
+                                <span class="text-muted">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge badge-secondary">{{ guide.category }}</span>
+                        </td>
+                        <td>
+                            <span class="badge program-card-difficulty {{ guide.difficulty_level|lower }}">
+                                {{ guide.difficulty_level }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if guide.duration_weeks %}
+                                {{ guide.duration_weeks }} weeks
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td>{{ guide.created_at.strftime('%b %d, %Y %l:%M %p') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.review_guide', guide_id=guide.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if guides.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if guides.has_prev %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('admin.pending_guides', page=guides.prev_num) }}">Previous</a></li>
+                {% endif %}
+
+                {% for page_num in guides.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num == guides.page %}
+                        <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                        {% else %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('admin.pending_guides', page=page_num) }}">{{ page_num }}</a></li>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if guides.has_next %}
+                <li class="page-item"><a class="page-link" href="{{ url_for('admin.pending_guides', page=guides.next_num) }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div style="text-align: center; padding: var(--spacing-2xl);">
+            <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--neon-green); margin-bottom: var(--spacing-lg);"></i>
+            <h5 style="color: var(--primary-navy);">All guides are approved!</h5>
+            <p class="text-muted">No pending guides awaiting approval</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">All Guides</div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">View all guides by approval status</p>
+                    <a href="{{ url_for('admin.all_guides') }}" class="btn btn-primary w-100">
+                        <i class="fas fa-list"></i> View All Guides
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Approved Guides</div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">View guides ready for assignment</p>
+                    <a href="{{ url_for('admin.all_guides') }}?status=approved" class="btn btn-success w-100">
+                        <i class="fas fa-check"></i> View Approved
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

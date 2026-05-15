@@ -24,6 +24,12 @@
   --status-danger: #DC2626;     /* Red for critical */
   --status-info: #0891B2;       /* Cyan for information */
 
+  /* Gym Vibes - Neon Accents for Energy & Motivation */
+  --neon-green: #00FF00;        /* Bright lime green - primary gym accent */
+  --neon-orange: #FF6B35;       /* Energetic orange - secondary accent */
+  --neon-purple: #9D4EDD;       /* Vibrant purple - tertiary accent */
+  --dark-intensity: #0A0E27;    /* Dark background for intensity */
+
   /* Spacing Scale */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -149,7 +155,7 @@ a:hover {
 .stat-card {
   padding: var(--spacing-lg);
   border-radius: var(--radius-lg);
-  color: var(--white);
+  color: var(--dark-gray);
   text-align: center;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: var(--shadow-sm);
@@ -157,6 +163,8 @@ a:hover {
   flex-direction: column;
   justify-content: center;
   min-height: 110px;
+  background: linear-gradient(135deg, var(--white) 0%, rgba(0, 255, 0, 0.03) 100%);
+  border-left: 4px solid var(--neon-green);
 }
 
 .stat-card:hover {
@@ -185,21 +193,25 @@ a:hover {
   margin-top: var(--spacing-sm);
 }
 
-/* Stat Card Color Variants - Monochromatic */
+/* Stat Card Color Variants - Gym Vibes Enhanced */
 .stat-card-primary {
-  background-color: var(--primary-navy);
+  border-left-color: var(--neon-green);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(0, 255, 0, 0.05) 100%);
 }
 
 .stat-card-secondary {
-  background-color: var(--slate-dark);
+  border-left-color: var(--neon-orange);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(255, 107, 53, 0.05) 100%);
 }
 
 .stat-card-tertiary {
-  background-color: var(--slate-gray);
+  border-left-color: var(--slate-dark);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(100, 116, 139, 0.03) 100%);
 }
 
 .stat-card-accent {
-  background-color: var(--slate-medium);
+  border-left-color: var(--neon-purple);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(157, 78, 221, 0.05) 100%);
 }
 
 /* ============================================
@@ -972,5 +984,403 @@ textarea.form-control {
 
   .data-table {
     page-break-inside: avoid;
+  }
+}
+
+/* ============================================
+   GYM VIBES - Neon Accents & Energy Effects
+   Enhanced Visual Identity
+   ============================================ */
+
+/* Stat Cards - Enhanced with Gym Energy */
+.stat-card {
+  background: linear-gradient(135deg, var(--very-light-gray) 0%, var(--white) 100%);
+  border-left: 4px solid var(--neon-green);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px rgba(0, 255, 0, 0.15);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(0, 255, 0, 0.02) 100%);
+}
+
+.stat-card.stat-card-primary {
+  border-left-color: var(--neon-green);
+}
+
+.stat-card.stat-card-secondary {
+  border-left-color: var(--neon-orange);
+}
+
+.stat-card.stat-card-accent {
+  border-left-color: var(--neon-purple);
+}
+
+/* Stat Card Values - Typography Enhancement */
+.stat-card-value {
+  font-weight: 800;
+  font-size: 2.5rem;
+  color: var(--neon-purple);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Stat Card Title & Label - Readable Contrast */
+.stat-card-title,
+.stat-card h3,
+.stat-card h4 {
+  color: var(--primary-navy);
+  font-weight: 700;
+}
+
+.stat-card-label,
+.stat-card small,
+.stat-card p {
+  color: var(--slate-gray);
+}
+
+/* Exercise Names & Headers - Gym Typography */
+.exercise-name,
+.guide-title,
+.program-name {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--neon-purple);
+  font-size: 1.25rem;
+}
+
+.exercise-name:hover {
+  text-shadow: 0 0 12px rgba(157, 78, 221, 0.4);
+}
+
+/* Progress Bars - Gradient Energy */
+.progress {
+  background-color: var(--light-gray);
+  height: 8px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--neon-green) 0%, var(--neon-orange) 100%);
+  height: 100%;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.3);
+  transition: width 0.6s ease-out;
+}
+
+/* Action Buttons - Gym Themed */
+.btn-gym-action {
+  background: linear-gradient(135deg, var(--neon-green) 0%, var(--neon-orange) 100%);
+  color: var(--dark-intensity);
+  font-weight: 700;
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.btn-gym-action:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 12px 24px rgba(0, 255, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-gym-action:active {
+  transform: translateY(0);
+}
+
+/* Primary Button Enhancement */
+.btn-primary {
+  background-color: var(--primary-navy);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-navy);
+  box-shadow: 0 8px 16px rgba(30, 58, 138, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Success Button - Green Gym Vibe */
+.btn-success {
+  background-color: var(--neon-green);
+  color: var(--dark-intensity);
+  font-weight: 700;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #00DD00;
+  box-shadow: 0 8px 16px rgba(0, 255, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Tips/Guidance Boxes - Highlighted Content */
+.tip-box,
+.guidance-box {
+  border-left: 4px solid var(--neon-purple);
+  background: linear-gradient(90deg, rgba(157, 78, 221, 0.08) 0%, transparent 100%);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-md) 0;
+  transition: all 0.3s ease;
+}
+
+.tip-box:hover {
+  box-shadow: 0 0 16px rgba(157, 78, 221, 0.15);
+  transform: translateX(4px);
+}
+
+.tip-box.form-tip {
+  border-left-color: var(--neon-green);
+  background: linear-gradient(90deg, rgba(0, 255, 0, 0.08) 0%, transparent 100%);
+}
+
+.tip-box.nutrition-tip {
+  border-left-color: var(--neon-orange);
+  background: linear-gradient(90deg, rgba(255, 107, 53, 0.08) 0%, transparent 100%);
+}
+
+.tip-box.recovery-tip {
+  border-left-color: var(--neon-green);
+  background: linear-gradient(90deg, rgba(0, 255, 0, 0.08) 0%, transparent 100%);
+}
+
+.tip-box.mental-tip {
+  border-left-color: var(--neon-purple);
+  background: linear-gradient(90deg, rgba(157, 78, 221, 0.08) 0%, transparent 100%);
+}
+
+.tip-box-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* Card Enhancements - Unified Gym Styling */
+.card {
+  background-color: var(--white);
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: var(--neon-purple);
+}
+
+.card-header {
+  border-bottom: 2px solid var(--light-gray);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary-navy);
+}
+
+/* Form Focus States - Material Design 3 Inspired */
+.form-control:focus {
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.1);
+  border-bottom: 3px solid var(--neon-purple);
+}
+
+.form-control {
+  transition: all 0.3s ease;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--radius-md);
+}
+
+.form-control:hover {
+  border-color: var(--neon-purple);
+}
+
+/* Calorie Tracker - Gym Vibes */
+.calorie-tracker {
+  background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(255, 107, 53, 0.05) 100%);
+  border-left: 4px solid var(--neon-green);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+}
+
+.calorie-value {
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--neon-green);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+}
+
+.calorie-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--slate-gray);
+  font-weight: 700;
+}
+
+/* Sidebar Icon Colors - Gym Themed */
+.sidebar-link i {
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover i {
+  color: var(--neon-green);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+/* Badges - Colorful Status */
+.badge {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+}
+
+.badge-intensity-light {
+  background-color: #E0F7E4;
+  color: #047857;
+}
+
+.badge-intensity-moderate {
+  background-color: rgba(255, 107, 53, 0.15);
+  color: var(--neon-orange);
+}
+
+.badge-intensity-intense {
+  background: linear-gradient(135deg, rgba(157, 78, 221, 0.2) 0%, rgba(0, 255, 0, 0.1) 100%);
+  color: var(--neon-purple);
+}
+
+.badge-status-approved {
+  background-color: rgba(0, 255, 0, 0.15);
+  color: var(--neon-green);
+}
+
+.badge-status-pending {
+  background-color: rgba(255, 107, 53, 0.15);
+  color: var(--neon-orange);
+}
+
+.badge-status-rejected {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: var(--status-danger);
+}
+
+/* Table Enhancements */
+.data-table th {
+  background: linear-gradient(135deg, var(--primary-navy) 0%, rgba(157, 78, 221, 0.1) 100%);
+  color: var(--white);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--spacing-md);
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(0, 255, 0, 0.05);
+  box-shadow: inset 4px 0 0 var(--neon-green);
+}
+
+.data-table td {
+  padding: var(--spacing-md);
+  vertical-align: middle;
+}
+
+/* Workout/Diet Cards - Program Display */
+.program-card {
+  background: linear-gradient(135deg, var(--white) 0%, rgba(157, 78, 221, 0.02) 100%);
+  border: 1px solid rgba(157, 78, 221, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.program-card:hover {
+  box-shadow: 0 12px 32px rgba(157, 78, 221, 0.15);
+  transform: translateY(-4px);
+  border-color: var(--neon-purple);
+}
+
+.program-card-header {
+  border-bottom: 2px solid var(--neon-purple);
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.program-card-difficulty {
+  display: inline-block;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-top: var(--spacing-sm);
+}
+
+.program-card-difficulty.beginner {
+  background-color: rgba(0, 255, 0, 0.2);
+  color: var(--neon-green);
+}
+
+.program-card-difficulty.intermediate {
+  background-color: rgba(255, 107, 53, 0.2);
+  color: var(--neon-orange);
+}
+
+.program-card-difficulty.advanced {
+  background-color: rgba(157, 78, 221, 0.2);
+  color: var(--neon-purple);
+}
+
+/* Animated Loading/Pulse Effects */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(0, 255, 0, 0);
+  }
+}
+
+.btn-gym-action.loading {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Responsive Gym Vibes */
+@media (max-width: 768px) {
+  .stat-card-value {
+    font-size: 2rem;
+  }
+
+  .exercise-name {
+    font-size: 1.1rem;
+  }
+
+  .program-card {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Dark Mode Support (Optional Future Enhancement) */
+@media (prefers-color-scheme: dark) {
+  .stat-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 58, 138, 0.3) 100%);
+  }
+
+  .tip-box {
+    background: linear-gradient(90deg, rgba(157, 78, 221, 0.15) 0%, transparent 100%);
   }
 }

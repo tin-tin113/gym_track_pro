@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ guide.name }} - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📖 {{ guide.name }}</h1>
+            <span class="badge badge-status-{{ guide.status }}">{{ guide.status|title }}</span>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Difficulty:</strong> {{ guide.difficulty_level }}</p>
+            <p><strong>Category:</strong> {{ guide.category }}</p>
+            <p><strong>Duration:</strong> {{ guide.duration_weeks or '—' }} weeks</p>
+            <p>{{ guide.description }}</p>
+        </div>
+    </div>
+    {% if guide.status == 'approved' %}
+    <a href="{{ url_for('trainer.assign_guide_to_member', member_id=0) }}" class="btn btn-gym-action">Assign to Member</a>
+    {% endif %}
+</div>
+{% endblock %}

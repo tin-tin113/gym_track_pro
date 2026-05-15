@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Member Guides - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">📖 {{ member.user.full_name }}'s Guides</h1>
+        <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn btn-gym-action">Assign Guide</a>
+    </div>
+    {% if assignments %}
+    <div class="row">
+        {% for assignment in assignments %}
+        <div class="col-md-6 mb-4">
+            <div class="program-card">
+                <h5 style="color: var(--neon-purple);">{{ assignment.guide.name }}</h5>
+                <span class="badge program-card-difficulty {{ assignment.guide.difficulty_level|lower }}">{{ assignment.guide.difficulty_level }}</span>
+                <div style="margin-top: var(--spacing-md);">
+                    Progress: {{ assignment.calculate_progress() }}%
+                    <div class="progress"><div class="progress-bar" style="width: {{ assignment.calculate_progress() }}%"></div></div>
+                </div>
+                <form action="{{ url_for('trainer.unassign_guide', guide_id=assignment.guide_id, member_id=assignment.member_id) }}" method="POST" style="margin-top: var(--spacing-md);">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Unassign?')">Unassign</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: var(--spacing-2xl);">
+        <p class="text-muted">No guides assigned yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -32,6 +32,10 @@ class Workout(db.Model):
     trainer_id = db.Column(db.Integer, db.ForeignKey('users.id'))  # If assigned by trainer
     assigned_date = db.Column(db.DateTime)  # When trainer assigned the workout
 
+    # Workout guide fields
+    guide_id = db.Column(db.Integer, db.ForeignKey('workout_guides.id'))  # Guide this workout follows
+    guide_assignment_id = db.Column(db.Integer, db.ForeignKey('guide_assignments.id'))  # The guide assignment record
+
     # Relationships
     member = db.relationship('Member', backref='workouts')
     trainer = db.relationship('User', foreign_keys=[trainer_id])

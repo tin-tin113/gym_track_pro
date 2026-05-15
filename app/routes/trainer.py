@@ -13,6 +13,11 @@ from app.models.assignment import TrainerAssignment
 from app.models.attendance import Attendance
 from app.models.fitness import FitnessMetric
 from app.models.workout import Workout
+from app.models.workout_guide import WorkoutGuide
+from app.models.workout_tip import WorkoutTip
+from app.models.guide_assignment import GuideAssignment
+from app.models.diet_plan import DietPlan, MealPlan
+from app.models.diet_assignment import DietAssignment, MealLog
 from app.utils.decorators import admin_required, trainer_or_admin_required
 
 bp = Blueprint('trainer', __name__, url_prefix='/trainer')
@@ -725,3 +730,505 @@ def api_stats(trainer_id):
         'week_checkins': week_checkins,
         'avg_attendance': avg_attendance
     })
+
+
+# ==================== WORKOUT GUIDE MANAGEMENT ====================
+
+@bp.route('/guides')
+@login_required
+@trainer_or_admin_required
+def list_guides():
+    """List my created guides or all guides (admin)."""
+    page = request.args.get('page', 1, type=int)
+
+    if current_user.role == 'admin':
+        # Admin sees all guides
+        guides = WorkoutGuide.query.order_by(WorkoutGuide.created_at.desc()).paginate(page=page, per_page=15)
+    else:
+        # Trainers see only their own guides
+        guides = WorkoutGuide.query.filter_by(trainer_id=current_user.id).order_by(
+            WorkoutGuide.created_at.desc()
+        ).paginate(page=page, per_page=15)
+
+    return render_template(
+        'trainer/guides/list.html',
+        guides=guides,
+        page=page
+    )
+
+
+@bp.route('/guides/library')
+@login_required
+@trainer_or_admin_required
+def browse_guides():
+    """Browse all approved guides to assign to members."""
+    page = request.args.get('page', 1, type=int)
+    difficulty = request.args.get('difficulty', None)
+
+    query = WorkoutGuide.query.filter_by(status='approved')
+
+    if difficulty:
+        query = query.filter_by(difficulty_level=difficulty)
+
+    guides = query.order_by(WorkoutGuide.created_at.desc()).paginate(page=page, per_page=15)
+
+    return render_template(
+        'trainer/guides/library.html',
+        guides=guides,
+        page=page,
+        difficulty_filter=difficulty
+    )
+
+
+@bp.route('/guides/new', methods=['GET', 'POST'])
+@login_required
+@trainer_or_admin_required
+def create_guide():
+    """Create a new workout guide."""
+    if request.method == 'POST':
+        try:
+            guide = WorkoutGuide(
+                name=request.form.get('name'),
+                description=request.form.get('description'),
+                category=request.form.get('category'),
+                difficulty_level=request.form.get('difficulty_level', 'Intermediate'),
+                duration_weeks=request.form.get('duration_weeks', type=int),
+                target_goals=request.form.get('target_goals'),
+                equipment_needed=request.form.get('equipment_needed'),
+                trainer_id=current_user.id,
+                status='draft'
+            )
+            db.session.add(guide)
+            db.session.commit()
+            flash('Workout guide created! Now add tips for exercises.', 'success')
+            return redirect(url_for('trainer.edit_guide', guide_id=guide.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating guide: {str(e)}', 'danger')
+
+    return render_template('trainer/guides/form.html', guide=None)
+
+
+@bp.route('/guides/<int:guide_id>')
+@login_required
+@trainer_or_admin_required
+def view_guide(guide_id):
+    """View guide details with tips."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    tips = WorkoutTip.query.filter_by(guide_id=guide_id).order_by(WorkoutTip.exercise_name.asc()).all()
+    assignments = GuideAssignment.query.filter_by(guide_id=guide_id, is_active=True).all()
+
+    return render_template(
+        'trainer/guides/detail.html',
+        guide=guide,
+        tips=tips,
+        assignments=assignments
+    )
+
+
+@bp.route('/guides/<int:guide_id>/edit', methods=['GET', 'POST'])
+@login_required
+@trainer_or_admin_required
+def edit_guide(guide_id):
+    """Edit a workout guide."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to edit this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    if request.method == 'POST':
+        try:
+            guide.name = request.form.get('name')
+            guide.description = request.form.get('description')
+            guide.category = request.form.get('category')
+            guide.difficulty_level = request.form.get('difficulty_level')
+            guide.duration_weeks = request.form.get('duration_weeks', type=int)
+            guide.target_goals = request.form.get('target_goals')
+            guide.equipment_needed = request.form.get('equipment_needed')
+            guide.updated_at = datetime.utcnow()
+            db.session.commit()
+            flash('Guide updated successfully.', 'success')
+            return redirect(url_for('trainer.view_guide', guide_id=guide.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating guide: {str(e)}', 'danger')
+
+    return render_template('trainer/guides/form.html', guide=guide)
+
+
+@bp.route('/guides/<int:guide_id>/delete', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def delete_guide(guide_id):
+    """Delete a workout guide (soft delete)."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to delete this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    try:
+        # Soft delete by removing all assignments
+        GuideAssignment.query.filter_by(guide_id=guide_id).update({'is_active': False})
+        db.session.delete(guide)
+        db.session.commit()
+        flash('Guide deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting guide: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.list_guides'))
+
+
+@bp.route('/guides/<int:guide_id>/submit', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def submit_guide(guide_id):
+    """Submit guide for admin approval."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    try:
+        if guide.status != 'draft':
+            flash('Only draft guides can be submitted.', 'warning')
+        else:
+            guide.status = 'pending'
+            guide.updated_at = datetime.utcnow()
+            db.session.commit()
+            flash('Guide submitted for approval by admin.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error submitting guide: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.view_guide', guide_id=guide.id))
+
+
+# ==================== WORKOUT GUIDE TIPS ====================
+
+@bp.route('/guides/<int:guide_id>/tips/add', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def add_guide_tip(guide_id):
+    """Add a tip to a guide (exercise-specific guidance)."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    try:
+        tip = WorkoutTip(
+            guide_id=guide_id,
+            exercise_name=request.form.get('exercise_name'),
+            tip_category=request.form.get('tip_category'),
+            content=request.form.get('content'),
+            order=request.form.get('order', 0, type=int)
+        )
+        db.session.add(tip)
+        db.session.commit()
+        flash('Tip added successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding tip: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.view_guide', guide_id=guide.id))
+
+
+@bp.route('/guides/<int:guide_id>/tips/<int:tip_id>/delete', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def delete_guide_tip(guide_id, tip_id):
+    """Delete a tip from a guide."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+    tip = WorkoutTip.query.get_or_404(tip_id)
+
+    # Check permissions
+    if current_user.role == 'trainer' and guide.trainer_id != current_user.id:
+        flash('You do not have access to this guide.', 'danger')
+        return redirect(url_for('trainer.list_guides'))
+
+    try:
+        db.session.delete(tip)
+        db.session.commit()
+        flash('Tip deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting tip: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.view_guide', guide_id=guide.id))
+
+
+# ==================== GUIDE ASSIGNMENT TO MEMBERS ====================
+
+@bp.route('/members/<int:member_id>/assign-guide', methods=['GET', 'POST'])
+@login_required
+@trainer_or_admin_required
+def assign_guide_to_member(member_id):
+    """Assign a workout guide to a member."""
+    member = Member.query.get_or_404(member_id)
+
+    # Check access - trainer can only assign to their members
+    if current_user.role == 'trainer':
+        assignment = TrainerAssignment.query.filter_by(
+            trainer_id=current_user.id,
+            member_id=member_id,
+            is_active=True
+        ).first()
+        if not assignment:
+            flash('You do not have access to this member.', 'danger')
+            return redirect(url_for('trainer.members'))
+
+    if request.method == 'POST':
+        try:
+            guide_id = request.form.get('guide_id', type=int)
+            guide = WorkoutGuide.query.get_or_404(guide_id)
+
+            # Verify guide is approved
+            if guide.status != 'approved':
+                flash('Can only assign approved guides.', 'warning')
+                return redirect(url_for('trainer.assign_guide_to_member', member_id=member_id))
+
+            assignment = GuideAssignment(
+                guide_id=guide_id,
+                member_id=member_id,
+                trainer_id=current_user.id,
+                start_date=datetime.utcnow(),
+                notes=request.form.get('notes')
+            )
+            db.session.add(assignment)
+            db.session.commit()
+            flash(f'Guide "{guide.name}" assigned to {member.user.full_name}.', 'success')
+            return redirect(url_for('trainer.members'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error assigning guide: {str(e)}', 'danger')
+
+    # Get approved guides
+    guides = WorkoutGuide.query.filter_by(status='approved').order_by(WorkoutGuide.name.asc()).all()
+
+    return render_template(
+        'trainer/guides/assign_member.html',
+        member=member,
+        guides=guides
+    )
+
+
+@bp.route('/members/<int:member_id>/guides')
+@login_required
+@trainer_or_admin_required
+def member_guides(member_id):
+    """View all guides assigned to a member."""
+    member = Member.query.get_or_404(member_id)
+
+    # Check access
+    if current_user.role == 'trainer':
+        assignment = TrainerAssignment.query.filter_by(
+            trainer_id=current_user.id,
+            member_id=member_id,
+            is_active=True
+        ).first()
+        if not assignment:
+            flash('You do not have access to this member.', 'danger')
+            return redirect(url_for('trainer.members'))
+
+    assignments = GuideAssignment.query.filter_by(
+        member_id=member_id,
+        is_active=True
+    ).order_by(GuideAssignment.start_date.desc()).all()
+
+    return render_template(
+        'trainer/guides/member_guides.html',
+        member=member,
+        assignments=assignments
+    )
+
+
+@bp.route('/guides/<int:guide_id>/assign/<int:member_id>/delete', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def unassign_guide(guide_id, member_id):
+    """Remove a guide assignment from a member."""
+    assignment = GuideAssignment.query.filter_by(
+        guide_id=guide_id,
+        member_id=member_id
+    ).first_or_404()
+
+    # Check access
+    if current_user.role == 'trainer' and assignment.trainer_id != current_user.id:
+        flash('You do not have access to this assignment.', 'danger')
+        return redirect(url_for('trainer.members'))
+
+    try:
+        assignment.unassign()
+        flash('Guide unassigned from member.', 'success')
+    except Exception as e:
+        flash(f'Error unassigning guide: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.member_guides', member_id=member_id))
+
+
+# ==================== DIET PLAN MANAGEMENT ====================
+
+@bp.route('/diet-plans')
+@login_required
+@trainer_or_admin_required
+def list_diet_plans():
+    """List all available diet plans."""
+    page = request.args.get('page', 1, type=int)
+    diet_type = request.args.get('type', None)
+
+    query = DietPlan.query.filter_by(is_active=True)
+
+    if diet_type:
+        query = query.filter_by(diet_type=diet_type)
+
+    plans = query.order_by(DietPlan.name.asc()).paginate(page=page, per_page=15)
+
+    return render_template(
+        'trainer/diet/list.html',
+        plans=plans,
+        page=page,
+        diet_type_filter=diet_type
+    )
+
+
+@bp.route('/diet-plans/<int:plan_id>')
+@login_required
+@trainer_or_admin_required
+def view_diet_plan(plan_id):
+    """View a diet plan with all meals."""
+    plan = DietPlan.query.get_or_404(plan_id)
+    meals = MealPlan.query.filter_by(diet_plan_id=plan_id).order_by(
+        MealPlan.day_name.asc(),
+        MealPlan.meal_type.asc()
+    ).all()
+
+    return render_template(
+        'trainer/diet/detail.html',
+        plan=plan,
+        meals=meals
+    )
+
+
+@bp.route('/members/<int:member_id>/assign-diet', methods=['GET', 'POST'])
+@login_required
+@trainer_or_admin_required
+def assign_diet_to_member(member_id):
+    """Assign a diet plan to a member."""
+    member = Member.query.get_or_404(member_id)
+
+    # Check access
+    if current_user.role == 'trainer':
+        assignment = TrainerAssignment.query.filter_by(
+            trainer_id=current_user.id,
+            member_id=member_id,
+            is_active=True
+        ).first()
+        if not assignment:
+            flash('You do not have access to this member.', 'danger')
+            return redirect(url_for('trainer.members'))
+
+    if request.method == 'POST':
+        try:
+            # Deactivate existing diet if any
+            existing = DietAssignment.query.filter_by(member_id=member_id, is_active=True).first()
+            if existing:
+                existing.deactivate()
+
+            diet_plan_id = request.form.get('diet_plan_id', type=int)
+            diet_plan = DietPlan.query.get_or_404(diet_plan_id)
+
+            assignment = DietAssignment(
+                diet_plan_id=diet_plan_id,
+                member_id=member_id,
+                trainer_id=current_user.id,
+                start_date=datetime.utcnow(),
+                notes=request.form.get('notes')
+            )
+            db.session.add(assignment)
+            db.session.commit()
+            flash(f'Diet plan "{diet_plan.name}" assigned to {member.user.full_name}.', 'success')
+            return redirect(url_for('trainer.members'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error assigning diet: {str(e)}', 'danger')
+
+    # Get available diet plans
+    plans = DietPlan.query.filter_by(is_active=True).order_by(DietPlan.name.asc()).all()
+
+    return render_template(
+        'trainer/diet/assign_member.html',
+        member=member,
+        plans=plans
+    )
+
+
+@bp.route('/members/<int:member_id>/diet')
+@login_required
+@trainer_or_admin_required
+def member_diet(member_id):
+    """View current diet assignment for a member."""
+    member = Member.query.get_or_404(member_id)
+
+    # Check access
+    if current_user.role == 'trainer':
+        assignment = TrainerAssignment.query.filter_by(
+            trainer_id=current_user.id,
+            member_id=member_id,
+            is_active=True
+        ).first()
+        if not assignment:
+            flash('You do not have access to this member.', 'danger')
+            return redirect(url_for('trainer.members'))
+
+    diet_assignment = DietAssignment.query.filter_by(member_id=member_id, is_active=True).first()
+
+    if diet_assignment:
+        meals = MealPlan.query.filter_by(diet_plan_id=diet_assignment.diet_plan_id).all()
+    else:
+        meals = []
+
+    return render_template(
+        'trainer/diet/member_diet.html',
+        member=member,
+        diet_assignment=diet_assignment,
+        meals=meals
+    )
+
+
+@bp.route('/members/<int:member_id>/diet/remove', methods=['POST'])
+@login_required
+@trainer_or_admin_required
+def remove_member_diet(member_id):
+    """Remove diet assignment from member."""
+    member = Member.query.get_or_404(member_id)
+    diet_assignment = DietAssignment.query.filter_by(member_id=member_id, is_active=True).first()
+
+    # Check access
+    if current_user.role == 'trainer':
+        if not diet_assignment or diet_assignment.trainer_id != current_user.id:
+            flash('You do not have access to this assignment.', 'danger')
+            return redirect(url_for('trainer.members'))
+
+    if diet_assignment:
+        try:
+            diet_assignment.deactivate()
+            flash('Diet plan removed from member.', 'success')
+        except Exception as e:
+            flash(f'Error removing diet: {str(e)}', 'danger')
+
+    return redirect(url_for('trainer.member_diet', member_id=member_id))

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Review Guide - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">Review: {{ guide.name }}</h1>
+    </div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">Guide Details</div>
+                <div class="card-body">
+                    <p><strong>Category:</strong> {{ guide.category }}</p>
+                    <p><strong>Difficulty:</strong> {{ guide.difficulty_level }}</p>
+                    <p><strong>Duration:</strong> {{ guide.duration_weeks or '—' }} weeks</p>
+                    <p><strong>Description:</strong></p>
+                    <p>{{ guide.description }}</p>
+                    <p><strong>Tips Included:</strong> {{ guide.tips|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">Action</div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin.approve_guide', guide_id=guide.id) }}" method="POST" class="mb-3">
+                        <button type="submit" class="btn btn-success w-100 mb-2">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="rejectModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Reject Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{{ url_for('admin.reject_guide', guide_id=guide.id) }}" method="POST">
+                    <div class="modal-body">
+                        <textarea class="form-control" name="reason" placeholder="Reason for rejection..." required></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

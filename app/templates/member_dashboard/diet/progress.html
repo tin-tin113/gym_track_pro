@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Nutrition Progress - GymTrack Pro{% endblock %}
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">📊 Nutrition Progress</h1>
+    </div>
+    {% if diet_assignment %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="stat-card stat-card-secondary">
+                <div class="stat-card-label">Adherence Score</div>
+                <div class="stat-card-value">{{ adherence_score }}%</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-label">Weekly Average</div>
+                <div class="stat-card-value">{{ avg_weekly_calories }}</div>
+                <small style="color: var(--slate-gray);">calories</small>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">30-Day History</div>
+        <div class="card-body" style="text-align: center; padding: var(--spacing-2xl);">
+            <p class="text-muted">Detailed charts coming soon</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: var(--spacing-2xl);">
+            <p class="text-muted">No diet plan assigned</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

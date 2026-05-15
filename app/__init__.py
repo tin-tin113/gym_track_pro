@@ -66,6 +66,7 @@ def create_app(config_name='development'):
         try:
             # Import models
             from app.models import user, member, attendance, fitness, trainer, assignment, workout
+            from app.models import workout_guide, workout_tip, guide_assignment, diet_plan, diet_assignment
 
             # Create all tables
             db.create_all()
@@ -227,6 +228,24 @@ def upgrade_database_schema(db):
                         connection.execute(text('ALTER TABLE workouts ADD COLUMN assigned_date DATETIME'))
                         connection.commit()
                         print("  - Added assigned_date column to workouts table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
+
+                if 'guide_id' not in existing_workouts_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE workouts ADD COLUMN guide_id INTEGER'))
+                        connection.commit()
+                        print("  - Added guide_id column to workouts table")
+                    except OperationalError as e:
+                        if 'duplicate column' not in str(e).lower():
+                            print(f"    Note: {e}")
+
+                if 'guide_assignment_id' not in existing_workouts_columns:
+                    try:
+                        connection.execute(text('ALTER TABLE workouts ADD COLUMN guide_assignment_id INTEGER'))
+                        connection.commit()
+                        print("  - Added guide_assignment_id column to workouts table")
                     except OperationalError as e:
                         if 'duplicate column' not in str(e).lower():
                             print(f"    Note: {e}")

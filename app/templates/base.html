@@ -21,7 +21,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
     <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-brand">
@@ -54,8 +54,8 @@
         </ul>
     </nav>
 
-    <!-- Main content -->
-    <div style="display: flex; flex-grow: 1;">
+    <!-- Main content wrapper -->
+    <div style="display: flex; flex: 1;">
         {% if current_user.is_authenticated %}
         <!-- Sidebar Navigation -->
         {% include 'sidebar.html' %}
@@ -88,7 +88,7 @@
         </div>
 
     <!-- Footer -->
-    <footer style="background-color: var(--primary-navy); color: var(--white); margin-top: var(--spacing-2xl); padding: var(--spacing-lg); text-align: center;">
+    <footer style="background-color: var(--primary-navy); color: var(--white); padding: var(--spacing-lg); text-align: center; margin-top: auto; width: 100%;">
         <small>&copy; 2026 GymTrack Pro. All rights reserved.</small>
     </footer>
 

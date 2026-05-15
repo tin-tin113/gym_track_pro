@@ -6,6 +6,7 @@ from app.utils.decorators import admin_required, staff_or_admin_required
 from app.models.user import User
 from app.models.member import Member
 from app.models.trainer import Trainer
+from app.models.workout_guide import WorkoutGuide
 from app import db
 from datetime import datetime
 
@@ -100,3 +101,99 @@ def reject_member(member_id):
         flash(f'Error rejecting member: {str(e)}', 'danger')
 
     return redirect(url_for('admin.pending_approvals'))
+
+
+# ==================== WORKOUT GUIDE MODERATION ====================
+
+@bp.route('/guides/pending')
+@login_required
+@admin_required
+def pending_guides():
+    """List workout guides pending admin approval."""
+    page = request.args.get('page', 1, type=int)
+
+    pending = WorkoutGuide.query.filter_by(status='pending').order_by(
+        WorkoutGuide.created_at.desc()
+    ).paginate(page=page, per_page=15)
+
+    return render_template(
+        'admin/guides/pending.html',
+        guides=pending,
+        page=page
+    )
+
+
+@bp.route('/guides/<int:guide_id>/review')
+@login_required
+@admin_required
+def review_guide(guide_id):
+    """Review a guide for approval."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    # Get tips for this guide
+    from app.models.workout_tip import WorkoutTip
+    tips = WorkoutTip.query.filter_by(guide_id=guide_id).order_by(
+        WorkoutTip.exercise_name.asc()
+    ).all()
+
+    return render_template(
+        'admin/guides/review.html',
+        guide=guide,
+        tips=tips
+    )
+
+
+@bp.route('/guides/<int:guide_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_guide(guide_id):
+    """Approve a workout guide."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+
+    try:
+        guide.approve()
+        flash(f'Guide "{guide.name}" approved and is now available for assignment.', 'success')
+    except Exception as e:
+        flash(f'Error approving guide: {str(e)}', 'danger')
+
+    return redirect(url_for('admin.pending_guides'))
+
+
+@bp.route('/guides/<int:guide_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_guide(guide_id):
+    """Reject a workout guide."""
+    guide = WorkoutGuide.query.get_or_404(guide_id)
+    reason = request.form.get('reason', 'No reason provided')
+
+    try:
+        guide.reject(reason)
+        flash(f'Guide "{guide.name}" rejected. Trainer may revise and resubmit.', 'info')
+    except Exception as e:
+        flash(f'Error rejecting guide: {str(e)}', 'danger')
+
+    return redirect(url_for('admin.pending_guides'))
+
+
+@bp.route('/guides/all')
+@login_required
+@admin_required
+def all_guides():
+    """View all guides (approved, pending, rejected, draft)."""
+    page = request.args.get('page', 1, type=int)
+    status = request.args.get('status', None)
+
+    query = WorkoutGuide.query
+
+    if status:
+        query = query.filter_by(status=status)
+
+    guides = query.order_by(WorkoutGuide.created_at.desc()).paginate(page=page, per_page=15)
+
+    return render_template(
+        'admin/guides/all.html',
+        guides=guides,
+        page=page,
+        status_filter=status
+    )

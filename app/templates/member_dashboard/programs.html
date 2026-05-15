@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}My Programs - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📚 My Programs</h1>
+            <p class="page-subtitle">Your assigned workout guides and nutrition plan</p>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-card-label">Active Programs</div>
+                <div class="stat-card-value">{{ stats.active_guides }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-card-secondary">
+                <div class="stat-card-label">Completed</div>
+                <div class="stat-card-value">{{ stats.completed_guides }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card stat-card-accent">
+                <div class="stat-card-label">Diet Plan</div>
+                <div class="stat-card-value">{% if stats.current_diet %}✓{% else %}—{% endif %}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-card-label">Recent Workouts</div>
+                <div class="stat-card-value">{{ stats.recent_workouts }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Programs Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-book-open"></i> Active Workout Programs
+        </div>
+        <div class="card-body">
+            {% if active_guides %}
+                <div class="row">
+                    {% for assignment in active_guides %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="program-card">
+                            <div class="program-card-header">
+                                <h5 class="mb-2">
+                                    <i class="fas fa-dumbbell" style="color: var(--neon-green);"></i>
+                                    {{ assignment.guide.name }}
+                                </h5>
+                                <span class="program-card-difficulty {{ assignment.guide.difficulty_level|lower }}">
+                                    {{ assignment.guide.difficulty_level }}
+                                </span>
+                            </div>
+
+                            <p class="text-muted" style="font-size: 0.9rem;">
+                                {{ assignment.guide.description[:100] }}...
+                            </p>
+
+                            <!-- Progress Bar -->
+                            <div style="margin: var(--spacing-md) 0;">
+                                <small style="color: var(--slate-gray);">
+                                    Progress: {{ assignment.calculate_progress() }}%
+                                </small>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar" style="width: {{ assignment.calculate_progress() }}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div style="font-size: 0.85rem; color: var(--slate-gray); margin: var(--spacing-md) 0;">
+                                {% if assignment.guide.duration_weeks %}
+                                    <i class="fas fa-calendar"></i> {{ assignment.guide.duration_weeks }} weeks
+                                {% endif %}
+                                {% if assignment.guide.equipment_needed %}
+                                    <br><i class="fas fa-tools"></i> {{ assignment.guide.equipment_needed|truncate(50) }}
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="margin-top: var(--spacing-lg);">
+                                <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-gym-action btn-sm w-100">
+                                    <i class="fas fa-eye"></i> View Program
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: var(--spacing-2xl);">
+                    <i class="fas fa-inbox" style="font-size: 3rem; color: var(--light-gray); margin-bottom: var(--spacing-lg);"></i>
+                    <p class="text-muted">No active programs. Contact your trainer to get assigned a workout guide!</p>
+                    <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-primary btn-sm mt-3">
+                        Browse Guide Library
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Current Diet Section -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-apple-alt"></i> Current Diet Plan
+                </div>
+                <div class="card-body">
+                    {% if current_diet %}
+                        <div style="margin-bottom: var(--spacing-lg);">
+                            <h5 style="color: var(--neon-orange);">{{ current_diet.diet.name }}</h5>
+                            <p class="text-muted">{{ current_diet.diet.description }}</p>
+
+                            <div class="calorie-tracker" style="margin: var(--spacing-md) 0;">
+                                <div class="calorie-label">Daily Calorie Target</div>
+                                <div class="calorie-value">{{ current_diet.diet.daily_calories }} cal</div>
+                            </div>
+
+                            <div style="font-size: 0.9rem; margin: var(--spacing-md) 0;">
+                                <span style="color: var(--neon-green);">Protein:</span> {{ (current_diet.diet.macro_ratio_protein * 100)|int }}% |
+                                <span style="color: var(--neon-orange);">Carbs:</span> {{ (current_diet.diet.macro_ratio_carbs * 100)|int }}% |
+                                <span style="color: var(--neon-purple);">Fats:</span> {{ (current_diet.diet.macro_ratio_fats * 100)|int }}%
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div style="margin-top: var(--spacing-lg);">
+                            <a href="{{ url_for('member.log_meal') }}" class="btn btn-success btn-sm w-100 mb-2">
+                                <i class="fas fa-plus"></i> Log Meal
+                            </a>
+                            <a href="{{ url_for('member.diet_progress') }}" class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-chart-line"></i> View Progress
+                            </a>
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: var(--spacing-lg);">
+                            <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
+                            <p class="text-muted">No diet plan assigned yet</p>
+                            <p style="font-size: 0.9rem;">Contact your trainer to get a nutrition plan</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Workouts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history"></i> Recent Workouts
+                </div>
+                <div class="card-body">
+                    {% if recent_workouts %}
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            {% for workout in recent_workouts %}
+                            <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--light-gray);">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <div class="exercise-name" style="font-size: 0.95rem;">
+                                            {{ workout.exercise_name }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ workout.workout_date.strftime('%b %d, %Y') }}
+                                        </small>
+                                    </div>
+                                    <span class="badge" style="background-color: rgba(0, 255, 0, 0.15); color: var(--neon-green);">
+                                        {{ workout.intensity|title }}
+                                    </span>
+                                </div>
+                                <small style="color: var(--slate-gray);">
+                                    {% if workout.exercise_category == 'Strength' %}
+                                        {{ workout.sets or '—' }}x{{ workout.reps or '—' }} @ {{ workout.weight or '—' }}kg
+                                    {% elif workout.exercise_category == 'Cardio' %}
+                                        {{ workout.duration_minutes or '—' }}min, {{ workout.distance_km or '—' }}km
+                                    {% else %}
+                                        {{ workout.exercise_category }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: var(--spacing-lg);">
+                            <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
+                            <p class="text-muted">No workouts logged yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completed Programs -->
+    {% if completed_guides %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <i class="fas fa-check-circle"></i> Completed Programs
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for assignment in completed_guides %}
+                <div class="col-md-6 col-lg-3 mb-3">
+                    <div class="program-card" style="opacity: 0.8;">
+                        <div class="program-card-header">
+                            <h6 class="mb-2">
+                                <i class="fas fa-check" style="color: var(--neon-green);"></i>
+                                {{ assignment.guide.name }}
+                            </h6>
+                        </div>
+                        <small class="text-muted">
+                            Completed {{ assignment.completion_date.strftime('%b %d, %Y') }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Browse More Guides CTA -->
+    <div class="card mt-4" style="background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(157, 78, 221, 0.05) 100%); border: 1px solid rgba(157, 78, 221, 0.2);">
+        <div class="card-body text-center" style="padding: var(--spacing-2xl);">
+            <h5 style="color: var(--neon-purple); margin-bottom: var(--spacing-md);">Looking for more programs?</h5>
+            <p class="text-muted mb-3">Browse our complete library of workout guides to inspire your training</p>
+            <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-gym-action">
+                <i class="fas fa-search"></i> Browse Guide Library
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.exercise-name {
+    color: var(--neon-purple);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+{% endblock %}
