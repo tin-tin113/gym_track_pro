@@ -1,34 +1,43 @@
-# GymTrack Pro - Gym Management System
+# GymTrack Pro (Django)
 
-A comprehensive Flask-based gym management system featuring member enrollment, attendance tracking with QR codes, fitness monitoring, trainer assignment, and advanced reporting.
+GymTrack Pro is a Django-based gym management system. Django owns the database schema via migrations, and the default configuration is designed to work with Supabase Postgres using `DATABASE_URL`.
 
-## 🎯 Quick Start
+## Quick Start
 
 ### Requirements
 - Python 3.11+
-- pip package manager
+- pip
 
-### Installation
+### Install
 
 ```bash
-# Clone or navigate to project
-cd Gym_track_pro
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run application
-python run.py
-
-# Access at http://localhost:5000
 ```
 
-### Demo Login
-- **Email**: admin@gym.local
-- **Password**: password123
-- **Role**: Administrator (full access)
+### Configure Supabase
 
-## 📊 Features
+1. Copy [.env.example](.env.example) to `.env`
+2. Set `DATABASE_URL` to your Supabase Postgres connection string (URI). Use the one from Supabase Dashboard → Project Settings → Database → Connection string.
+
+### Run migrations + create admin
+
+```bash
+python django_app/manage.py makemigrations
+python django_app/manage.py migrate
+python django_app/manage.py createsuperuser
+```
+
+### Run server
+
+```bash
+python django_app/manage.py runserver
+```
+
+Open:
+- App: http://127.0.0.1:8000/
+- Admin: http://127.0.0.1:8000/admin/
+
+## Features
 
 ### ✅ Member Management
 - Complete member profiles with membership tracking
@@ -75,39 +84,29 @@ python run.py
 - CSRF protection
 - SQL injection prevention
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 Gym_track_pro/
-├── app/
-│   ├── models/              # Database models
-│   ├── routes/              # API endpoints
-│   ├── templates/           # HTML templates
-│   ├── static/              # CSS, JS
-│   ├── utils/               # Utilities
-│   └── tests/               # Test suite
-├── config.py                # Configuration
-├── run.py                   # Entry point
+├── django_app/
+│   ├── manage.py            # Django entry point
+│   ├── gymtrack_django/      # Django project settings
+│   └── tracker/              # Main app (models live here)
 ├── requirements.txt         # Dependencies
 └── PROJECT_SUMMARY.md       # Detailed documentation
 ```
 
-## 🧪 Testing
+## Testing
 
-Run comprehensive test suite:
+If you add Django tests, run:
 
 ```bash
-# All tests (23/23 passing)
-python -m pytest app/tests/test_all_phases.py -v
-
-# Specific phase
-python -m pytest app/tests/test_all_phases.py::TestPhase1Authentication -v
-
-# With coverage
-python -m pytest app/tests/test_all_phases.py --cov=app
+python django_app/manage.py test
 ```
 
-## 🌐 API Endpoints (41 routes)
+## API
+
+Endpoints are being reintroduced on Django as views/URLs are implemented.
 
 ### Authentication
 - `POST /auth/login` - Login
@@ -144,26 +143,21 @@ python -m pytest app/tests/test_all_phases.py --cov=app
 - `GET /reports/fitness/<member_id>` - Fitness report
 - `GET /reports/members/export` - Export members
 
-## 💾 Database
+## Database
 
-**SQLite** (automatic initialization)
-- 6 core tables
-- Automatic table creation
-- Demo admin user seeded
-- Foreign key relationships
-- Indexed performance
+This project uses Django migrations.
 
-**Tables**: users, members, trainers, trainer_assignments, attendance, fitness_metrics
+- Production: Supabase Postgres via `DATABASE_URL`
+- Local fallback: SQLite (if `DATABASE_URL` is not set)
 
-## 🛠️ Technology Stack
+If Supabase returns `(ECIRCUITBREAKER) too many authentication failures`, fix/rotate the database password in Supabase and update `DATABASE_URL`, then retry `python django_app/manage.py migrate`.
+
+## Technology Stack
 
 ### Backend
-- Flask 3.0
-- SQLAlchemy 2.0
-- Flask-Login
-- Flask-WTF (CSRF)
-- Werkzeug (bcrypt)
-- qrcode
+- Django
+- psycopg
+- PostgreSQL (Supabase)
 
 ### Frontend
 - Bootstrap 5
@@ -172,11 +166,9 @@ python -m pytest app/tests/test_all_phases.py --cov=app
 - Font Awesome
 
 ### Testing
-- pytest
-- pytest-flask
-- pytest-cov
+- Django test runner
 
-## 📋 User Roles
+## User Roles
 
 | Role | Description | Access |
 |------|-------------|--------|
@@ -185,7 +177,7 @@ python -m pytest app/tests/test_all_phases.py --cov=app
 | **Trainer** | Fitness trainer | View assigned members, fitness tracking |
 | **Member** | Gym member | Personal profile, fitness data |
 
-## 🔐 Security Features
+## Security Features
 
 - ✅ Bcrypt password hashing (600k iterations)
 - ✅ CSRF protection on all forms
@@ -194,41 +186,18 @@ python -m pytest app/tests/test_all_phases.py --cov=app
 - ✅ Role-based access control
 - ✅ Session security
 
-## 📈 Test Coverage
+## Deployment
 
-**23/23 tests passing (100%)**
-
-- Phase 1 (Auth): 5/5 ✓
-- Phase 2 (Members): 3/3 ✓
-- Phase 3 (Attendance): 4/4 ✓
-- Phase 4 (Fitness): 3/3 ✓
-- Phase 5 (Trainers): 3/3 ✓
-- Phase 6 (Reports): 5/5 ✓
-
-## 🚀 Deployment
-
-### Local Development
-```bash
-python run.py
-# Access: http://localhost:5000
-```
-
-### Production
-```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 run:app
-```
+Use a standard Django deployment (gunicorn/uvicorn behind a reverse proxy) after migrations are applied.
 
 ### Database Backup
-Database file: `instance/gym_track.db`
+If using SQLite locally, the database file is: `django_app/db.sqlite3`.
+
+If using Supabase/Postgres, use your database provider’s backup tooling.
 
 ## 📝 Configuration
 
-Edit `config.py` for:
-- Database path
-- Debug mode (default: True for development)
-- Session security
-- CSRF settings
+Configuration is via environment variables in `.env` (see `.env.example`).
 
 ## 🤝 Contributing
 
@@ -237,12 +206,12 @@ This is a complete, production-ready system. For enhancements:
 1. Fork the project
 2. Create a feature branch
 3. Make changes
-4. Run tests: `pytest`
+4. Run tests: `python django_app/manage.py test`
 5. Submit pull request
 
 ## 📞 Support
 
-For issues or questions, refer to `PROJECT_SUMMARY.md` for comprehensive documentation.
+For issues or questions, start with this README and `docs/`.
 
 ## 📄 License
 

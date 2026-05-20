@@ -467,17 +467,14 @@ ORDER BY metric_date ASC;
 
 ## Database Migrations
 
-Using Flask-Migrate (Alembic):
+Using Django migrations:
 
 ```bash
-# Create migration
-flask db migrate -m "Add new table"
+# Create migrations (if you change models)
+python django_app/manage.py makemigrations
 
-# Apply migration
-flask db upgrade
-
-# Rollback migration
-flask db downgrade
+# Apply migrations
+python django_app/manage.py migrate
 ```
 
 ---
@@ -486,7 +483,7 @@ flask db downgrade
 
 ### Backup SQLite Database
 ```bash
-cp instance/gym_track.db instance/gym_track.db.backup
+cp django_app/db.sqlite3 django_app/db.sqlite3.backup
 ```
 
 ### For Production (PostgreSQL)

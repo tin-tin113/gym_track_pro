@@ -1,12 +1,9 @@
-# Flask Core
-Flask==3.0.0
-Flask-SQLAlchemy==3.1.1
-Flask-Login==0.6.3
-Flask-WTF==1.2.1
-Werkzeug==3.0.1
+# Django
+Django
+dj-database-url
 
 # Database
-SQLAlchemy==2.0.48
+psycopg[binary]==3.2.9
 
 # QR Code & Image Processing
 qrcode[pil]==7.4.2
@@ -23,9 +20,5 @@ python-dateutil==2.8.2
 
 # Testing
 pytest==7.4.3
-pytest-flask==1.3.0
 pytest-cov==4.1.0
 faker==20.0.0
-
-# Development
-flask-migrate==4.0.5

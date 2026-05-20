@@ -1,8 +1,8 @@
 # GymTrack Pro - API Documentation
 
 **API Version**: 1.0
-**Base URL**: `http://localhost:5000` (development) / `https://api.gym-track.com` (production)
-**Authentication**: Session-based (Flask-Login)
+**Base URL**: `http://127.0.0.1:8000` (development)
+**Authentication**: Session-based (Django sessions)
 
 ---
 
@@ -801,7 +801,7 @@ Response includes:
 ## Authentication
 
 All endpoints (except `/auth/login` and `/auth/register`) require:
-- Valid session cookie (Flask-Login)
+- Valid session cookie (Django sessions)
 - Appropriate role permissions (RBAC)
 
 ---

@@ -13,7 +13,7 @@
 - [x] Project directory structure
 - [x] requirements.txt with all dependencies
 - [x] Configuration management (config.py)
-- [x] Flask app factory pattern
+- [x] Django project/app structure
 - [x] SQLAlchemy ORM setup
 
 ### Database Models
@@ -27,7 +27,7 @@
 ### Authentication & RBAC
 - [x] Login route (email/password)
 - [x] Logout route
-- [x] Session management (Flask-Login)
+- [x] Session management (Django auth)
 - [x] Password hashing (Werkzeug bcrypt)
 - [x] Role-based access control decorators
 - [x] Four roles: admin, staff, trainer, member

@@ -61,7 +61,7 @@ Phase 8: Testing (Week 8)            📅 SCHEDULED
 
 ### Milestones
 - [x] Project structure setup
-- [x] Flask app factory
+- [x] Django project scaffold
 - [x] Database models
 - [x] User authentication
 - [x] RBAC system

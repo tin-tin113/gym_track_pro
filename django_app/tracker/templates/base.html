@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GymTrack Pro{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- CSRF (Django) -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-dumbbell"></i>
+            GymTrack Pro
+        </div>
+        <ul class="navbar-nav" style="margin-left: auto;">
+            {% if current_user.is_authenticated %}
+            <li>
+                <div style="position: relative; display: inline-block;">
+                    <a href="#" class="nav-link" onclick="document.getElementById('user-dropdown').hidden = !document.getElementById('user-dropdown').hidden; return false;">
+                        <i class="fas fa-user-circle"></i>
+                        {{ current_user.full_name }}
+                    </a>
+                    <div id="user-dropdown" hidden style="position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--light-gray); border-radius: 6px; min-width: 180px; box-shadow: var(--shadow-lg); z-index: 1000;">
+                        <a href="{{ url_for('auth.profile') }}" style="display: block; padding: 12px 16px; color: var(--dark-gray); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--light-gray);">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="{{ url_for('auth.logout') }}" style="display: block; padding: 12px 16px; color: var(--dark-gray); text-decoration: none; font-size: 14px;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </li>
+            {% else %}
+            <li>
+                <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <!-- Main content wrapper -->
+    <div style="display: flex; flex: 1;">
+        {% if current_user.is_authenticated %}
+        <!-- Sidebar Navigation -->
+        {% include 'sidebar.html' %}
+        {% endif %}
+
+        <div style="flex: 1; padding: var(--spacing-lg);">
+
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div style="margin-bottom: var(--spacing-lg);">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                        <div class="alert-icon">
+                            <i class="fas fa-{% if category == 'error' %}circle-exclamation{% elif category == 'success' %}circle-check{% else %}circle-info{% endif %}"></i>
+                        </div>
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn btn-small" onclick="this.parentElement.parentElement.style.display='none';" style="margin-left: auto;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Page content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+    <!-- Footer -->
+    <footer style="background-color: var(--primary-navy); color: var(--white); padding: var(--spacing-lg); text-align: center; margin-top: auto; width: 100%;">
+        <small>&copy; 2026 GymTrack Pro. All rights reserved.</small>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Inject CSRF token into all POST forms (Django) -->
+    <script>
+        (function () {
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+
+            function ensureCsrfOnForms() {
+                const token = getCookie('csrftoken') || (document.querySelector('meta[name="csrf-token"]') || {}).content;
+                if (!token) return;
+
+                document.querySelectorAll('form').forEach((form) => {
+                    const method = (form.getAttribute('method') || 'GET').toUpperCase();
+                    if (method !== 'POST') return;
+                    if (form.querySelector('input[name="csrfmiddlewaretoken"]')) return;
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'csrfmiddlewaretoken';
+                    input.value = token;
+                    form.insertBefore(input, form.firstChild);
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureCsrfOnForms);
+            } else {
+                ensureCsrfOnForms();
+            }
+        })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

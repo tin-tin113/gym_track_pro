@@ -3,7 +3,7 @@
 ## PHASE 1: Foundation & Authentication ✅ COMPLETE
 
 ### Completed Components:
-- ✅ Flask app factory with SQLAlchemy ORM
+- ✅ Django app with ORM-backed models and migrations
 - ✅ User authentication (bcrypt password hashing)
 - ✅ Role-based access control (4 roles: admin, staff, trainer, member)
 - ✅ RBAC decorators (@admin_required, @staff_or_admin_required, @role_required)

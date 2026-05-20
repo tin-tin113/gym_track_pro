@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}GymTrack Pro — Smart Gym Operations{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- HERO -->
+    <div class="card mb-4" style="border-left: 4px solid var(--primary-navy);">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <div class="mb-3">
+                        <span class="badge badge-primary"><i class="fas fa-dumbbell"></i> GymTrack Pro</span>
+                        <span class="badge badge-outline"><i class="fas fa-shield"></i> Role-based</span>
+                        <span class="badge badge-outline"><i class="fas fa-file-csv"></i> CSV exports</span>
+                    </div>
+                    <h1 class="mb-3">Modern gym operations. One system.</h1>
+                    <p class="text-muted" style="font-size: var(--font-size-lg);">
+                        Track attendance, manage members and staff, run trainer workflows, publish guides, assign diets,
+                        capture fitness metrics, and generate reports — all with a consistent interface.
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
+                            <i class="fas fa-right-to-bracket"></i> Sign In
+                        </a>
+                        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
+                            <i class="fas fa-user-plus"></i> Member Signup
+                        </a>
+                        <a href="{{ url_for('api.health') }}" class="btn btn-outline btn-large">
+                            <i class="fas fa-heart-pulse"></i> System Health
+                        </a>
+                    </div>
+
+                    <div class="mt-4">
+                        <small>Demo (seeded): <strong>admin@gym.local</strong> / <strong>password123</strong></small>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card" style="background-color: var(--very-light-gray); border: 1px solid var(--light-gray);">
+                        <div class="card-header">Quick preview</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
+                                    <span class="badge badge-primary"><i class="fas fa-check"></i> Live</span>
+                                    <strong>Daily attendance</strong>
+                                </div>
+                                <div class="text-muted">See who’s checked in, export CSV, and print.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
+                                    <span class="badge badge-primary"><i class="fas fa-chart-line"></i></span>
+                                    <strong>Analytics dashboard</strong>
+                                </div>
+                                <div class="text-muted">Operational stats with a clean overview.</div>
+                            </div>
+
+                            <div class="mb-0">
+                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
+                                    <span class="badge badge-primary"><i class="fas fa-link"></i></span>
+                                    <strong>Secure setup links</strong>
+                                </div>
+                                <div class="text-muted">Staff and trainers onboard via one-time links.</div>
+                            </div>
+
+                            <div class="mt-4 d-grid gap-2">
+                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
+                                    <i class="fas fa-play"></i> Open the App
+                                </a>
+                                <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
+                                    <i class="fas fa-user-plus"></i> Create Member Account
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="page-header">
+        <div>
+            <h2 class="mb-1">Everything your team needs</h2>
+            <p class="text-muted mb-0">Designed for front desk speed and trainer clarity.</p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card" style="border-left: 4px solid var(--primary-navy);">
+                <div class="card-body">
+                    <h4 class="mb-2"><i class="fas fa-calendar-check"></i> Attendance</h4>
+                    <p class="text-muted mb-0">Check-in, check-out, history, and daily stats.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card" style="border-left: 4px solid var(--primary-navy);">
+                <div class="card-body">
+                    <h4 class="mb-2"><i class="fas fa-users"></i> Members</h4>
+                    <p class="text-muted mb-0">Approvals, imports, membership status, and assignments.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card" style="border-left: 4px solid var(--primary-navy);">
+                <div class="card-body">
+                    <h4 class="mb-2"><i class="fas fa-dumbbell"></i> Trainers</h4>
+                    <p class="text-muted mb-0">Workouts, progress, guides, and diet assignments.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card" style="border-left: 4px solid var(--primary-navy);">
+                <div class="card-body">
+                    <h4 class="mb-2"><i class="fas fa-chart-bar"></i> Reports</h4>
+                    <p class="text-muted mb-0">Analytics + exports for attendance and fitness.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROLES -->
+    <div class="card mb-4">
+        <div class="card-header">Built for each role</div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <h4 class="mb-2"><i class="fas fa-user-shield"></i> Admin</h4>
+                    <p class="text-muted mb-0">Approvals, staff, trainers, guide review, and overall visibility.</p>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <h4 class="mb-2"><i class="fas fa-headset"></i> Staff</h4>
+                    <p class="text-muted mb-0">Front desk workflows: attendance, member support, and daily operations.</p>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <h4 class="mb-2"><i class="fas fa-person-running"></i> Trainer</h4>
+                    <p class="text-muted mb-0">Member programs, workouts, guides, diets, and progress tracking.</p>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <h4 class="mb-2"><i class="fas fa-id-card"></i> Member</h4>
+                    <p class="text-muted mb-0">Workouts, assigned guides, diet logging, and profile updates.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINAL CTA -->
+    <div class="card" style="border-left: 4px solid var(--primary-navy);">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <h2 class="mb-2">Ready to explore the system?</h2>
+                    <p class="text-muted mb-0">Sign in to the demo or create a member account in seconds.</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
+                            <i class="fas fa-right-to-bracket"></i> Sign In
+                        </a>
+                        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
+                            <i class="fas fa-user-plus"></i> Member Signup
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
