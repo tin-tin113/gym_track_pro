@@ -479,14 +479,14 @@ def admin_review_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 		messages.error(request, 'Admin access required.')
 		return redirect('home')
 
-	guide = WorkoutGuide.objects.select_related('trainer').filter(id=guide_id).first()
+	guide = WorkoutGuide.objects.prefetch_related('tips').select_related('trainer').filter(id=guide_id).first()
 	if guide is None:
 		messages.error(request, 'Guide not found.')
 		return redirect('admin.pending_guides')
 
-	# Template expects guide.tips to be a list
-	setattr(guide, 'tips', list(WorkoutTip.objects.filter(guide=guide).order_by('order', 'id')))
-	return render(request, 'admin/guides/review.html', {'guide': guide})
+	# Prefetch tips via related name - template can access via guide.tips.all
+	tips = list(guide.tips.all().order_by('order', 'id'))
+	return render(request, 'admin/guides/review.html', {'guide': guide, 'tips': tips})
 
 
 def admin_approve_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
@@ -1519,9 +1519,15 @@ def member_view_assigned_guide(request: HttpRequest, guide_id: int) -> HttpRespo
 		.order_by('-assignment_date', '-id')
 		.first()
 	)
+
+	# If no assignment, only allow viewing if guide is approved
+	if not assignment and guide.status != WorkoutGuide.Status.APPROVED:
+		messages.error(request, 'This guide is not yet approved.')
+		return redirect('member.member_programs')
+
 	progress = assignment.calculate_progress() if assignment else 0
 	tips = list(WorkoutTip.objects.filter(guide=guide).order_by('order', 'id'))
-	logged_workouts = list(Workout.objects.filter(member=member, guide=guide).order_by('-workout_date', '-id')[:20])
+	logged_workouts = list(Workout.objects.filter(member=member, guide=guide).order_by('-workout_date', '-id')[:20]) if assignment else []
 
 	return render(
 		request,
@@ -2768,11 +2774,35 @@ def trainer_assign_guide_to_member(request: HttpRequest, member_id: int) -> Http
 	if request.method == 'POST':
 		guide_id = (request.POST.get('guide_id') or '').strip()
 		notes = (request.POST.get('notes') or '').strip()
+		start_date_str = (request.POST.get('start_date') or '').strip()
+		target_completion_str = (request.POST.get('target_completion_date') or '').strip()
+
 		guide = WorkoutGuide.objects.filter(id=guide_id, status=WorkoutGuide.Status.APPROVED).first() if guide_id else None
 		if guide is None:
 			messages.error(request, 'Please select a valid guide.')
 			return redirect('trainer.assign_guide_to_member', member_id=member.id)
-		GuideAssignment.objects.create(guide=guide, member=member, trainer=request.user, notes=notes, is_active=True)
+
+		# Parse dates if provided
+		from datetime import datetime
+		start_date = None
+		target_completion_date = None
+		try:
+			if start_date_str:
+				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+			if target_completion_str:
+				target_completion_date = datetime.strptime(target_completion_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+		except (ValueError, TypeError):
+			messages.warning(request, 'Invalid date format. Dates will be left empty.')
+
+		GuideAssignment.objects.create(
+			guide=guide,
+			member=member,
+			trainer=request.user,
+			notes=notes,
+			is_active=True,
+			start_date=start_date,
+			target_completion_date=target_completion_date
+		)
 		messages.success(request, 'Guide assigned.')
 		return redirect('trainer.member_guides', member_id=member.id)
 
@@ -2840,14 +2870,37 @@ def trainer_assign_diet_to_member(request: HttpRequest, member_id: int) -> HttpR
 	if request.method == 'POST':
 		plan_id = (request.POST.get('diet_plan_id') or '').strip()
 		notes = (request.POST.get('notes') or '').strip()
+		start_date_str = (request.POST.get('start_date') or '').strip()
+		target_end_str = (request.POST.get('target_end_date') or '').strip()
+
 		plan = DietPlan.objects.filter(id=plan_id, is_active=True).first() if plan_id else None
 		if plan is None:
 			messages.error(request, 'Please select a valid diet plan.')
 			return redirect('trainer.assign_diet_to_member', member_id=member.id)
 
+		# Parse dates if provided
+		from datetime import datetime
+		start_date = None
+		target_end_date = None
+		try:
+			if start_date_str:
+				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+			if target_end_str:
+				target_end_date = datetime.strptime(target_end_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+		except (ValueError, TypeError):
+			messages.warning(request, 'Invalid date format. Dates will be left empty.')
+
 		with transaction.atomic():
 			DietAssignment.objects.filter(member=member, is_active=True).update(is_active=False)
-			DietAssignment.objects.create(diet_plan=plan, member=member, trainer=request.user, notes=notes, is_active=True)
+			DietAssignment.objects.create(
+				diet_plan=plan,
+				member=member,
+				trainer=request.user,
+				notes=notes,
+				is_active=True,
+				start_date=start_date,
+				target_end_date=target_end_date
+			)
 		messages.success(request, 'Diet assigned.')
 		return redirect('trainer.member_diet', member_id=member.id)
 

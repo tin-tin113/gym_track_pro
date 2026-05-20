@@ -3,171 +3,662 @@
 {% block title %}GymTrack Pro — Smart Gym Operations{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- HERO -->
-    <div class="card mb-4" style="border-left: 4px solid var(--primary-navy);">
-        <div class="card-body p-4 p-lg-5">
-            <div class="row align-items-center g-4">
-                <div class="col-lg-7">
-                    <div class="mb-3">
-                        <span class="badge badge-primary"><i class="fas fa-dumbbell"></i> GymTrack Pro</span>
-                        <span class="badge badge-outline"><i class="fas fa-shield"></i> Role-based</span>
-                        <span class="badge badge-outline"><i class="fas fa-file-csv"></i> CSV exports</span>
-                    </div>
-                    <h1 class="mb-3">Modern gym operations. One system.</h1>
-                    <p class="text-muted" style="font-size: var(--font-size-lg);">
-                        Track attendance, manage members and staff, run trainer workflows, publish guides, assign diets,
-                        capture fitness metrics, and generate reports — all with a consistent interface.
-                    </p>
+<style>
+    /* Landing Page Custom Styles */
+    .landing-page {
+        background-color: #ffffff;
+        margin: -16px calc(-100vw / 2 + 100% / 2);
+        width: 100vw;
+        padding: 0;
+    }
 
-                    <div class="d-flex flex-wrap gap-2 mt-4">
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
-                            <i class="fas fa-right-to-bracket"></i> Sign In
-                        </a>
-                        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
-                            <i class="fas fa-user-plus"></i> Member Signup
-                        </a>
-                        <a href="{{ url_for('api.health') }}" class="btn btn-outline btn-large">
-                            <i class="fas fa-heart-pulse"></i> System Health
-                        </a>
-                    </div>
+    /* HERO SECTION */
+    .hero-section {
+        background: linear-gradient(135deg, var(--color-navy) 0%, #063a5a 100%);
+        background-image:
+            radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 0% 0%, rgba(0, 217, 217, 0.08) 0%, transparent 50%),
+            linear-gradient(135deg, var(--color-navy), #063a5a);
+        color: white;
+        padding: 120px 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-                    <div class="mt-4">
-                        <small>Demo (seeded): <strong>admin@gym.local</strong> / <strong>password123</strong></small>
-                    </div>
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 217, 217, 0.08) 0%, transparent 70%);
+        top: -150px;
+        left: -100px;
+        animation: float 12s ease-in-out infinite;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 217, 217, 0.06) 0%, transparent 70%);
+        bottom: -50px;
+        right: -80px;
+        animation: float 15s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        50% { transform: translateY(40px) translateX(30px); }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-content {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(0, 217, 217, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #33E8FF;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+    }
+
+    .hero-content h1 {
+        font-size: 64px;
+        font-weight: 900;
+        line-height: 1.15;
+        margin-bottom: 24px;
+        letter-spacing: -2px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-content p {
+        font-size: 20px;
+        line-height: 1.7;
+        margin-bottom: 48px;
+        opacity: 0.98;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 48px;
+    }
+
+    .hero-buttons .btn {
+        min-width: 180px;
+        padding: 16px 32px;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .hero-demo {
+        margin-top: 60px;
+        padding-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        font-size: 14px;
+        opacity: 0.92;
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .hero-demo strong {
+        color: #33E8FF;
+        font-weight: 700;
+    }
+
+    .hero-demo code {
+        background: rgba(0, 217, 217, 0.2);
+        padding: 4px 10px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        color: #33E8FF;
+    }
+
+    /* FEATURES SECTION */
+    .features-section {
+        padding: 100px 40px;
+        background: linear-gradient(to bottom, #ffffff 0%, #f8fafb 100%);
+        position: relative;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 70px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: slideUp 0.8s ease-out 0.2s both;
+    }
+
+    .section-header h2 {
+        font-size: 48px;
+        font-weight: 900;
+        color: var(--color-navy);
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .section-header p {
+        font-size: 18px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        color: var(--text-secondary) !important;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 32px;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        padding: 40px 32px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 2px solid #e5e7eb;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--color-teal), var(--color-teal-light));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.35s ease-out;
+    }
+
+    .feature-card:hover {
+        background: #ffffff;
+        border-color: var(--color-teal);
+        box-shadow: 0 16px 40px rgba(0, 217, 217, 0.15);
+        transform: translateY(-8px);
+    }
+
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .feature-card-icon {
+        font-size: 42px;
+        color: var(--color-teal);
+        margin-bottom: 20px;
+        display: inline-block;
+        width: 70px;
+        height: 70px;
+        background: rgba(0, 217, 217, 0.1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.35s ease-out;
+    }
+
+    .feature-card:hover .feature-card-icon {
+        background: rgba(0, 217, 217, 0.2);
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .feature-card h3 {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--color-navy);
+        margin-bottom: 14px;
+        letter-spacing: -0.5px;
+    }
+
+    .feature-card p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0;
+        color: var(--text-secondary) !important;
+    }
+
+    /* ROLES SECTION */
+    .roles-section {
+        padding: 100px 40px;
+        background: linear-gradient(135deg, rgba(0, 217, 217, 0.05) 0%, rgba(0, 217, 217, 0.02) 100%);
+        position: relative;
+    }
+
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 32px;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .role-card {
+        padding: 36px 28px;
+        background: #ffffff;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        border-left: 5px solid var(--color-teal);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .role-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(0, 217, 217, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.35s ease-out;
+    }
+
+    .role-card:hover {
+        box-shadow: 0 16px 40px rgba(0, 217, 217, 0.15);
+        transform: translateY(-8px);
+        border-color: var(--color-teal);
+    }
+
+    .role-card:hover::after {
+        opacity: 1;
+    }
+
+    .role-card-icon {
+        font-size: 36px;
+        color: var(--color-teal);
+        margin-bottom: 16px;
+        display: inline-block;
+        width: 60px;
+        height: 60px;
+        background: rgba(0, 217, 217, 0.12);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.35s ease-out;
+    }
+
+    .role-card:hover .role-card-icon {
+        background: rgba(0, 217, 217, 0.2);
+        transform: scale(1.15);
+    }
+
+    .role-card h3 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--color-navy);
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+
+    .role-card p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin: 0;
+        color: var(--text-secondary) !important;
+    }
+
+    /* CTA SECTION */
+    .cta-section {
+        padding: 100px 40px;
+        background: linear-gradient(135deg, var(--color-navy) 0%, #063a5a 100%);
+        background-image:
+            radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 0% 20%, rgba(0, 217, 217, 0.08) 0%, transparent 50%),
+            linear-gradient(135deg, var(--color-navy), #063a5a);
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 217, 217, 0.1) 0%, transparent 70%);
+        bottom: -100px;
+        left: -100px;
+    }
+
+    .cta-content {
+        max-width: 700px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        animation: slideUp 0.8s ease-out;
+    }
+
+    .cta-section h2 {
+        font-size: 48px;
+        font-weight: 900;
+        margin-bottom: 16px;
+        letter-spacing: -1px;
+    }
+
+    .cta-section p {
+        font-size: 18px;
+        margin-bottom: 44px;
+        opacity: 0.96;
+        color: rgba(255, 255, 255, 0.95) !important;
+        line-height: 1.7;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cta-buttons .btn {
+        min-width: 180px;
+        padding: 16px 32px;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    /* FOOTER INFO */
+    .footer-info {
+        padding: 50px 40px;
+        background-color: #f0f1f3;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+        font-size: 15px;
+        color: var(--text-secondary);
+    }
+
+    .footer-info p {
+        margin: 0;
+        line-height: 1.7;
+        color: var(--text-secondary) !important;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .footer-info code {
+        background: white;
+        padding: 3px 10px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        color: var(--color-teal);
+        font-weight: 600;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 80px 24px;
+            min-height: auto;
+        }
+
+        .hero-content h1 {
+            font-size: 42px;
+        }
+
+        .hero-content p {
+            font-size: 17px;
+        }
+
+        .hero-buttons {
+            gap: 12px;
+            flex-direction: column;
+        }
+
+        .hero-buttons .btn {
+            width: 100%;
+        }
+
+        .features-section,
+        .roles-section,
+        .cta-section {
+            padding: 80px 24px;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+        }
+
+        .features-grid,
+        .roles-grid {
+            gap: 20px;
+            grid-template-columns: 1fr;
+        }
+
+        .feature-card,
+        .role-card {
+            padding: 32px 24px;
+        }
+
+        .cta-section h2 {
+            font-size: 36px;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .cta-buttons .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-section {
+            padding: 60px 16px;
+            min-height: auto;
+        }
+
+        .hero-content h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .hero-content p {
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
+
+        .hero-badge {
+            font-size: 11px;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 28px;
+        }
+
+        .features-section,
+        .roles-section {
+            padding: 60px 16px;
+        }
+
+        .cta-section {
+            padding: 60px 16px;
+            min-height: auto;
+        }
+
+        .cta-section h2 {
+            font-size: 28px;
+        }
+
+        .feature-card h3,
+        .role-card h3 {
+            font-size: 18px;
+        }
+    }
+
+    /* CONTAINER */
+    .landing-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+</style>
+
+<div class="landing-page">
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">✨ Complete Gym Management Platform</div>
+            <h1>Manage your gym operations with ease</h1>
+            <p>Everything you need for members, trainers, staff, and admin — attendance, workouts, guides, nutrition, reports, and more in one clean interface.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
+            </div>
+            <div class="hero-demo">
+                <strong>Try Demo:</strong> Email: <code>admin@gym.local</code> | Password: <code>password123</code>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section class="features-section">
+        <div class="landing-container">
+            <div class="section-header">
+                <h2>Core Features</h2>
+                <p>Everything you need to run a modern gym</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-calendar-check"></i></div>
+                    <h3>Attendance</h3>
+                    <p>Check-in, check-out, real-time tracking, and daily statistics with CSV export.</p>
                 </div>
-
-                <div class="col-lg-5">
-                    <div class="card" style="background-color: var(--very-light-gray); border: 1px solid var(--light-gray);">
-                        <div class="card-header">Quick preview</div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
-                                    <span class="badge badge-primary"><i class="fas fa-check"></i> Live</span>
-                                    <strong>Daily attendance</strong>
-                                </div>
-                                <div class="text-muted">See who’s checked in, export CSV, and print.</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
-                                    <span class="badge badge-primary"><i class="fas fa-chart-line"></i></span>
-                                    <strong>Analytics dashboard</strong>
-                                </div>
-                                <div class="text-muted">Operational stats with a clean overview.</div>
-                            </div>
-
-                            <div class="mb-0">
-                                <div class="d-flex align-items-center" style="gap: var(--spacing-sm);">
-                                    <span class="badge badge-primary"><i class="fas fa-link"></i></span>
-                                    <strong>Secure setup links</strong>
-                                </div>
-                                <div class="text-muted">Staff and trainers onboard via one-time links.</div>
-                            </div>
-
-                            <div class="mt-4 d-grid gap-2">
-                                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
-                                    <i class="fas fa-play"></i> Open the App
-                                </a>
-                                <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
-                                    <i class="fas fa-user-plus"></i> Create Member Account
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-users"></i></div>
+                    <h3>Members</h3>
+                    <p>Manage memberships, track approvals, imports, status, and trainer assignments.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-dumbbell"></i></div>
+                    <h3>Workouts & Guides</h3>
+                    <p>Create, assign, and track workout programs with detailed exercise guidance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-utensils"></i></div>
+                    <h3>Nutrition</h3>
+                    <p>Assign diet plans, log meals, track macros, and monitor 30-day progress.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3>Reports</h3>
+                    <p>Analytics, fitness metrics, attendance reports, and data exports.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fas fa-shield"></i></div>
+                    <h3>Role-Based Access</h3>
+                    <p>Secure role-based control for Admin, Staff, Trainers, and Members.</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- FEATURES -->
-    <div class="page-header">
-        <div>
-            <h2 class="mb-1">Everything your team needs</h2>
-            <p class="text-muted mb-0">Designed for front desk speed and trainer clarity.</p>
+    <!-- ROLES SECTION -->
+    <section class="roles-section">
+        <div class="landing-container">
+            <div class="section-header">
+                <h2>Built for Every Role</h2>
+                <p>Each user gets a customized experience</p>
+            </div>
+            <div class="roles-grid">
+                <div class="role-card">
+                    <div class="role-card-icon"><i class="fas fa-user-shield"></i></div>
+                    <h3>Admin</h3>
+                    <p>Manage staff, trainers, approvals, guide review, and system-wide settings.</p>
+                </div>
+                <div class="role-card">
+                    <div class="role-card-icon"><i class="fas fa-headset"></i></div>
+                    <h3>Staff</h3>
+                    <p>Front desk operations, attendance, member support, and daily workflows.</p>
+                </div>
+                <div class="role-card">
+                    <div class="role-card-icon"><i class="fas fa-person-running"></i></div>
+                    <h3>Trainer</h3>
+                    <p>Manage members, create programs, assign guides, diets, and track progress.</p>
+                </div>
+                <div class="role-card">
+                    <div class="role-card-icon"><i class="fas fa-id-card"></i></div>
+                    <h3>Member</h3>
+                    <p>Track workouts, follow guides, log meals, view progress, and stay motivated.</p>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-6 col-lg-3">
-            <div class="card" style="border-left: 4px solid var(--primary-navy);">
-                <div class="card-body">
-                    <h4 class="mb-2"><i class="fas fa-calendar-check"></i> Attendance</h4>
-                    <p class="text-muted mb-0">Check-in, check-out, history, and daily stats.</p>
-                </div>
+    <!-- CTA SECTION -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Ready to get started?</h2>
+            <p>Take a test drive of the complete system with our demo account or create your own.</p>
+            <div class="cta-buttons">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Demo Sign In
+                </a>
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </a>
             </div>
         </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card" style="border-left: 4px solid var(--primary-navy);">
-                <div class="card-body">
-                    <h4 class="mb-2"><i class="fas fa-users"></i> Members</h4>
-                    <p class="text-muted mb-0">Approvals, imports, membership status, and assignments.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card" style="border-left: 4px solid var(--primary-navy);">
-                <div class="card-body">
-                    <h4 class="mb-2"><i class="fas fa-dumbbell"></i> Trainers</h4>
-                    <p class="text-muted mb-0">Workouts, progress, guides, and diet assignments.</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-            <div class="card" style="border-left: 4px solid var(--primary-navy);">
-                <div class="card-body">
-                    <h4 class="mb-2"><i class="fas fa-chart-bar"></i> Reports</h4>
-                    <p class="text-muted mb-0">Analytics + exports for attendance and fitness.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- ROLES -->
-    <div class="card mb-4">
-        <div class="card-header">Built for each role</div>
-        <div class="card-body">
-            <div class="row g-4">
-                <div class="col-md-6 col-lg-3">
-                    <h4 class="mb-2"><i class="fas fa-user-shield"></i> Admin</h4>
-                    <p class="text-muted mb-0">Approvals, staff, trainers, guide review, and overall visibility.</p>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <h4 class="mb-2"><i class="fas fa-headset"></i> Staff</h4>
-                    <p class="text-muted mb-0">Front desk workflows: attendance, member support, and daily operations.</p>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <h4 class="mb-2"><i class="fas fa-person-running"></i> Trainer</h4>
-                    <p class="text-muted mb-0">Member programs, workouts, guides, diets, and progress tracking.</p>
-                </div>
-                <div class="col-md-6 col-lg-3">
-                    <h4 class="mb-2"><i class="fas fa-id-card"></i> Member</h4>
-                    <p class="text-muted mb-0">Workouts, assigned guides, diet logging, and profile updates.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FINAL CTA -->
-    <div class="card" style="border-left: 4px solid var(--primary-navy);">
-        <div class="card-body p-4 p-lg-5">
-            <div class="row align-items-center g-3">
-                <div class="col-lg-8">
-                    <h2 class="mb-2">Ready to explore the system?</h2>
-                    <p class="text-muted mb-0">Sign in to the demo or create a member account in seconds.</p>
-                </div>
-                <div class="col-lg-4">
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-large">
-                            <i class="fas fa-right-to-bracket"></i> Sign In
-                        </a>
-                        <a href="{{ url_for('auth.signup') }}" class="btn btn-outline btn-large">
-                            <i class="fas fa-user-plus"></i> Member Signup
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- FOOTER INFO -->
+    <section class="footer-info">
+        <p>GymTrack Pro is a complete gym management platform with attendance tracking, member management, trainer workflows, and comprehensive reporting.</p>
+    </section>
 </div>
 {% endblock %}

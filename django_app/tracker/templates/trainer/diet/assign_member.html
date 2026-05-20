@@ -10,6 +10,7 @@
             <div class="card">
                 <div class="card-body">
                     <form method="POST">
+                        {% csrf_token %}
                         <div class="form-group mb-3">
                             <label class="form-label">Select Diet Plan *</label>
                             <select class="form-control" name="diet_plan_id" required>
@@ -18,6 +19,18 @@
                                 <option value="{{ plan.id }}">{{ plan.name }} ({{ plan.daily_calories }} cal)</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" value="{% now 'Y-m-d' %}">
+                                <small class="text-muted">When diet plan starts</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Target End Date</label>
+                                <input type="date" class="form-control" name="target_end_date">
+                                <small class="text-muted">When diet plan ends</small>
+                            </div>
                         </div>
                         <div class="form-group mb-4">
                             <label class="form-label">Notes</label>

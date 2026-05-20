@@ -6,8 +6,8 @@
 <style>
     .login-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        min-height: calc(100vh - 80px - 60px);
+        grid-template-columns: 1fr 1.2fr;
+        min-height: 100vh;
         margin: -16px calc(-100vw / 2 + 100% / 2);
         width: 100vw;
         background: #ffffff;
@@ -19,12 +19,13 @@
             radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.1) 0%, transparent 50%),
             radial-gradient(circle at 0% 0%, rgba(0, 217, 217, 0.1) 0%, transparent 50%),
             linear-gradient(135deg, var(--color-navy), var(--color-navy));
-        padding: 60px 40px;
+        padding: 60px 50px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: flex-start;
-        gap: 40px;
+        align-items: center;
+        text-align: center;
+        gap: 32px;
         position: relative;
         overflow: hidden;
     }
@@ -49,6 +50,7 @@
     .login-hero-content {
         position: relative;
         z-index: 1;
+        max-width: 360px;
     }
 
     .login-logo {
@@ -57,13 +59,15 @@
         color: #ffffff;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 16px;
         margin-bottom: 0;
+        letter-spacing: -1px;
     }
 
     .login-logo .icon {
-        width: 56px;
-        height: 56px;
+        width: 54px;
+        height: 54px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -75,15 +79,16 @@
     }
 
     .login-tagline {
-        font-size: 20px;
-        color: rgba(255, 255, 255, 0.9);
-        line-height: 1.6;
-        max-width: 400px;
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.95);
+        line-height: 1.7;
+        max-width: 360px;
         font-weight: 500;
+        letter-spacing: -0.3px;
     }
 
     .login-footer-text {
-        font-size: 14px;
+        font-size: 13px;
         color: rgba(255, 255, 255, 0.7);
         position: relative;
         z-index: 1;
@@ -91,53 +96,59 @@
     }
 
     .login-form-container {
-        padding: 60px 40px;
+        padding: 50px 50px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         gap: 0;
+        max-width: 100%;
+        margin: 0 auto;
     }
 
     .login-form-header {
-        margin-bottom: 40px;
+        margin-bottom: 32px;
     }
 
     .login-form-header h2 {
-        font-size: 32px;
-        font-weight: 700;
+        font-size: 38px;
+        font-weight: 800;
         color: var(--color-navy);
-        margin-bottom: 8px;
         margin: 0 0 8px 0;
+        letter-spacing: -0.5px;
     }
 
     .login-form-header p {
         color: var(--text-secondary);
         font-size: 14px;
         margin: 0;
+        line-height: 1.5;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .form-group label {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: var(--text-primary);
-        margin-bottom: 8px;
+        color: var(--color-navy);
+        margin-bottom: 10px;
         display: block;
     }
 
     .form-group input {
         width: 100%;
-        padding: 12px 16px;
+        padding: 18px 20px;
         border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
-        font-size: 15px;
+        font-size: 16px;
+        line-height: 1.5;
         transition: all var(--duration-fast) var(--easing-smooth);
         background-color: #ffffff;
+        min-height: 50px;
+        box-sizing: border-box;
     }
 
     .form-group input:focus {
@@ -151,6 +162,46 @@
         color: var(--text-muted);
     }
 
+    .password-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-wrapper input {
+        padding-right: 44px;
+    }
+
+    .password-toggle-btn {
+        position: absolute;
+        right: 14px;
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .password-toggle-btn:hover {
+        color: var(--color-teal);
+    }
+
+    .form-group.error input {
+        border-color: var(--color-danger);
+    }
+
+    .form-group.error .error-message {
+        font-size: 12px;
+        color: var(--color-danger);
+        margin-top: 6px;
+        display: block;
+    }
+
     .login-demo-hint {
         font-size: 12px;
         color: var(--text-muted);
@@ -160,16 +211,17 @@
     .remember-group {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 30px;
-        font-size: 14px;
+        gap: 12px;
+        margin-bottom: 32px;
+        font-size: 15px;
     }
 
     .remember-group input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+        width: 22px;
+        height: 22px;
         cursor: pointer;
         accent-color: var(--color-teal);
+        flex-shrink: 0;
     }
 
     .remember-group label {
@@ -180,6 +232,7 @@
         text-transform: none;
         letter-spacing: normal;
         font-size: 14px;
+        line-height: 1.5;
     }
 
     .btn-login {
@@ -187,8 +240,8 @@
         color: var(--color-teal);
         border: 2px solid var(--color-teal);
         border-left: 3px solid var(--color-teal);
-        padding: 12px 24px;
-        font-size: 14px;
+        padding: 16px 28px;
+        font-size: 15px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -196,6 +249,11 @@
         cursor: pointer;
         transition: all var(--duration-fast) var(--easing-smooth);
         width: 100%;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
     .btn-login:hover {
@@ -207,9 +265,19 @@
         box-shadow: 0 0 15px rgba(0, 217, 217, 0.3);
     }
 
+    .btn-login:active {
+        transform: translateY(0);
+        box-shadow: 0 0 8px rgba(0, 217, 217, 0.2);
+    }
+
+    .btn-login:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
     .login-divider {
         position: relative;
-        margin: 30px 0;
+        margin: 36px 0 28px 0;
         text-align: center;
     }
 
@@ -235,12 +303,12 @@
 
     .login-footer {
         text-align: center;
-        margin-top: 20px;
+        margin-top: 28px;
     }
 
     .login-footer p {
         margin: 0;
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-secondary);
     }
 
@@ -257,27 +325,51 @@
     }
 
     .demo-credentials {
-        background-color: var(--bg-tertiary);
-        border-left: 3px solid var(--color-teal);
+        background-color: rgba(0, 217, 217, 0.08);
+        border: 2px solid rgba(0, 217, 217, 0.3);
+        border-left: 4px solid var(--color-teal);
         border-radius: var(--radius-md);
-        padding: 16px;
-        margin-top: 20px;
+        padding: 20px 22px;
+        margin-top: 28px;
         font-size: 13px;
-        line-height: 1.6;
+        line-height: 1.7;
     }
 
     .demo-credentials strong {
         color: var(--color-navy);
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .demo-credentials strong i {
+        font-size: 15px;
+        color: var(--color-teal);
+    }
+
+    .demo-credentials div {
+        display: flex;
+        gap: 8px;
+        margin: 5px 0;
+    }
+
+    .demo-credentials label {
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 70px;
+        font-size: 12px;
     }
 
     .demo-credentials code {
         background-color: rgba(0, 217, 217, 0.1);
-        padding: 2px 6px;
+        padding: 3px 8px;
         border-radius: 2px;
         color: var(--color-teal-dark);
         font-family: 'Courier New', monospace;
         font-size: 12px;
+        letter-spacing: 0.3px;
     }
 
     @media (max-width: 768px) {
@@ -289,20 +381,43 @@
         }
 
         .login-hero {
-            min-height: 200px;
+            min-height: 220px;
             padding: 40px 20px;
+            justify-content: flex-start;
+            gap: 24px;
         }
 
         .login-form-container {
-            padding: 40px 20px;
+            padding: 32px 20px;
+            max-width: 100%;
         }
 
         .login-logo {
-            font-size: 28px;
+            font-size: 32px;
+        }
+
+        .login-logo .icon {
+            width: 44px;
+            height: 44px;
+            font-size: 22px;
+        }
+
+        .login-tagline {
+            font-size: 16px;
+            max-width: 100%;
         }
 
         .login-form-header h2 {
-            font-size: 24px;
+            font-size: 26px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .demo-credentials {
+            font-size: 11px;
+            padding: 12px 14px;
         }
     }
 </style>
@@ -333,7 +448,7 @@
             <p>Login to access your fitness dashboard</p>
         </div>
 
-        <form method="POST" action="{{ url_for('tracker.login') }}" style="margin: 0;">
+        <form method="POST" action="{{ url_for('auth.login') }}" style="margin: 0;">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input
@@ -342,21 +457,26 @@
                     name="email"
                     required
                     autofocus
+                    autocomplete="email"
                     placeholder="you@example.com"
                 >
-                <span class="login-demo-hint">Demo: admin@gym.local</span>
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    placeholder="••••••••"
-                >
-                <span class="login-demo-hint">Demo: password123</span>
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="••••••••"
+                    >
+                    <button type="button" class="password-toggle-btn" id="passwordToggle" tabindex="-1">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="remember-group">
@@ -365,7 +485,7 @@
             </div>
 
             <button type="submit" class="btn-login">
-                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> Login
+                <i class="fas fa-sign-in-alt"></i> Sign In
             </button>
         </form>
 
@@ -374,16 +494,39 @@
         </div>
 
         <div class="login-footer">
-            <p>Don't have an account? <a href="{{ url_for('tracker.signup') }}">Create one now</a></p>
+            <p>Don't have an account? <a href="{{ url_for('auth.signup') }}">Create one now</a></p>
         </div>
 
         <div class="demo-credentials">
-            <strong><i class="fas fa-circle-info" style="color: var(--color-teal); margin-right: 8px;"></i>Demo Credentials</strong>
-            <div style="margin-top: 8px;">
-                Email: <code>admin@gym.local</code><br>
-                Password: <code>password123</code>
+            <strong><i class="fas fa-circle-info"></i>Demo Credentials</strong>
+            <div>
+                <label>Email:</label>
+                <code>admin@gym.local</code>
+            </div>
+            <div>
+                <label>Password:</label>
+                <code>password123</code>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Password visibility toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.getElementById('passwordToggle');
+
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                toggleBtn.innerHTML = isPassword
+                    ? '<i class="fas fa-eye-slash"></i>'
+                    : '<i class="fas fa-eye"></i>';
+            });
+        }
+    });
+</script>
 {% endblock %}

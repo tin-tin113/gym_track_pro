@@ -302,6 +302,24 @@ class GuideAssignment(models.Model):
 			return pct
 		return 0
 
+	def is_expiring_soon(self, days: int = 7) -> bool:
+		"""Check if guide assignment is expiring within specified days."""
+		from django.utils import timezone
+
+		if self.is_completed or not self.target_completion_date:
+			return False
+		now = timezone.now()
+		time_until_expiry = (self.target_completion_date - now).days
+		return 0 <= time_until_expiry <= days
+
+	def days_until_expiry(self) -> int | None:
+		"""Get days until target completion date."""
+		from django.utils import timezone
+
+		if not self.target_completion_date:
+			return None
+		return (self.target_completion_date.date() - timezone.localdate()).days
+
 
 class Workout(models.Model):
 	class Intensity(models.TextChoices):
@@ -407,6 +425,24 @@ class DietAssignment(models.Model):
 	def diet(self) -> DietPlan:
 		"""Template compatibility: Flask templates refer to assignment.diet.*"""
 		return self.diet_plan
+
+	def is_expiring_soon(self, days: int = 7) -> bool:
+		"""Check if diet assignment is expiring within specified days."""
+		from django.utils import timezone
+
+		if not self.is_active or not self.target_end_date:
+			return False
+		now = timezone.now()
+		time_until_expiry = (self.target_end_date - now).days
+		return 0 <= time_until_expiry <= days
+
+	def days_until_expiry(self) -> int | None:
+		"""Get days until target end date."""
+		from django.utils import timezone
+
+		if not self.target_end_date:
+			return None
+		return (self.target_end_date.date() - timezone.localdate()).days
 
 
 class MealLog(models.Model):

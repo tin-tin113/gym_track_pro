@@ -245,7 +245,7 @@
         </div>
 
         <div class="register-body">
-            <form method="POST" action="{{ url_for('tracker.register') }}">
+            <form method="POST" action="{{ url_for('auth.register') }}">
                 <!-- Role Selection -->
                 <div class="form-group">
                     <label style="text-transform: none; font-weight: 600; color: var(--color-navy); font-size: 14px;">Select Role</label>
@@ -325,7 +325,7 @@
                     <button type="submit" class="btn-create">
                         <i class="fas fa-plus" style="margin-right: 8px;"></i> Create User
                     </button>
-                    <a href="{{ url_for('tracker.admin_dashboard') }}" class="btn-cancel">
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn-cancel">
                         <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Cancel
                     </a>
                 </div>
