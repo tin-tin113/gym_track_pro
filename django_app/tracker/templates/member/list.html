@@ -3,147 +3,416 @@
 {% block title %}Members - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>👥 Members Management</h2>
-    <div>
-        <a href="{{ url_for('member.create_member') }}" class="btn btn-primary">➕ New Member</a>
-        <a href="{{ url_for('member.import_csv') }}" class="btn btn-secondary">📥 Import CSV</a>
-    </div>
-</div>
+<style>
+    .page-section {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
 
-<!-- Search & Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <form method="GET" action="{{ url_for('member.list_members') }}" class="d-flex gap-2">
-                    <input type="text" name="search" class="form-control" placeholder="Search by name or email..."
-                        value="{{ search }}" autofocus>
-                    <button type="submit" class="btn btn-outline-primary">🔍 Search</button>
-                </form>
-            </div>
-            <div class="col-md-6">
-                <form method="GET" action="{{ url_for('member.list_members') }}" class="d-flex gap-2">
-                    <select name="status" class="form-select" onchange="this.form.submit()">
-                        <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
-                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>⏳ Pending Approval</option>
-                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-                        <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>⚠️ Expiring Soon (7 days)</option>
-                        <option value="expired" {% if status == 'expired' %}selected{% endif %}>❌ Expired</option>
-                    </select>
-                </form>
-            </div>
+    .page-title-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 3px solid var(--color-teal);
+    }
+
+    .page-title-bar h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--color-navy);
+    }
+
+    .page-title-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .filter-section {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        margin-bottom: 24px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-primary);
+        min-width: 60px;
+    }
+
+    .filter-group input,
+    .filter-group select {
+        flex: 1;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+    }
+
+    .filter-group button {
+        padding: 10px 16px;
+        background-color: var(--color-navy);
+        color: var(--color-teal);
+        border: 2px solid var(--color-teal);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .filter-group button:hover {
+        background-color: var(--color-navy);
+        color: var(--color-teal-light);
+        border-color: var(--color-teal-light);
+        transform: translateY(-2px);
+        box-shadow: 0 0 12px rgba(0, 217, 217, 0.2);
+    }
+
+    .table-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .table-card .data-table {
+        margin-bottom: 0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .action-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1px solid;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--easing-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    .action-btn-primary {
+        background-color: var(--color-navy);
+        color: var(--color-teal);
+        border-color: var(--color-teal);
+    }
+
+    .action-btn-primary:hover {
+        background-color: var(--color-navy);
+        color: var(--color-teal-light);
+        border-color: var(--color-teal-light);
+        transform: translateY(-1px);
+    }
+
+    .action-btn-success {
+        background-color: var(--color-success);
+        color: white;
+        border-color: var(--color-success);
+    }
+
+    .action-btn-success:hover {
+        background-color: #059669;
+        border-color: #059669;
+        transform: translateY(-1px);
+    }
+
+    .action-btn-danger {
+        background-color: var(--color-danger);
+        color: white;
+        border-color: var(--color-danger);
+    }
+
+    .action-btn-danger:hover {
+        background-color: #DC2626;
+        border-color: #DC2626;
+        transform: translateY(-1px);
+    }
+
+    .empty-state-container {
+        text-align: center;
+        padding: 60px 20px;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+    }
+
+    .empty-state-icon {
+        font-size: 48px;
+        color: var(--color-teal);
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state-text {
+        color: var(--text-secondary);
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: var(--radius-md);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        border: 1px solid;
+    }
+
+    .status-pending {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: #B45309;
+        border-color: var(--color-warning);
+    }
+
+    .status-active {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border-color: var(--color-success);
+    }
+
+    .status-expiring {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: #B45309;
+        border-color: var(--color-warning);
+    }
+
+    .status-expired {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #DC2626;
+        border-color: var(--color-danger);
+    }
+
+    .member-name {
+        font-weight: 600;
+        color: var(--color-navy);
+    }
+
+    .member-email {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .pagination {
+        margin-top: 24px;
+        justify-content: center;
+    }
+
+    @media (max-width: 768px) {
+        .page-title-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .page-title-actions {
+            width: 100%;
+        }
+
+        .page-title-actions .btn {
+            flex: 1;
+        }
+
+        .filter-section {
+            flex-direction: column;
+        }
+
+        .filter-group {
+            width: 100%;
+        }
+
+        .action-buttons {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+<div class="page-section">
+    <!-- Page Header -->
+    <div class="page-title-bar">
+        <h1>👥 Members</h1>
+        <div class="page-title-actions">
+            <a href="{{ url_for('member.create_member') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Member
+            </a>
+            <a href="{{ url_for('member.import_csv') }}" class="btn btn-secondary">
+                <i class="fas fa-file-import"></i> Import CSV
+            </a>
         </div>
     </div>
-</div>
 
-<!-- Members Table -->
-<div class="card">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-dark">
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="GET" action="{{ url_for('member.list_members') }}" class="filter-group" style="flex: 1.5;">
+            <label>Search:</label>
+            <input type="text" name="search" placeholder="Name or email..." value="{{ search }}" >
+            <button type="submit">
+                <i class="fas fa-search"></i> Find
+            </button>
+        </form>
+
+        <form method="GET" action="{{ url_for('member.list_members') }}" class="filter-group" style="flex: 1;">
+            <label>Status:</label>
+            <select name="status" onchange="this.form.submit()">
+                <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
+                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring Soon</option>
+                <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+            </select>
+        </form>
+    </div>
+
+    <!-- Members Table -->
+    {% if members %}
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Membership Type</th>
+                    <th>Membership</th>
                     <th>Expiry Date</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% if members %}
-                    {% for member in members %}
-                    <tr>
-                        <td class="fw-bold">{{ member.user.full_name }}</td>
-                        <td>{{ member.user.email }}</td>
-                        <td>{{ member.phone_number or 'N/A' }}</td>
-                        <td>
-                            <span class="badge bg-info">{{ member.membership_type|title }}</span>
-                        </td>
-                        <td>{{ member.membership_expiry_date.strftime('%Y-%m-%d') }}</td>
-                        <td>
-                            {% if not member.is_approved %}
-                                <span class="badge bg-warning">⏳ Pending</span>
-                            {% elif member.is_membership_active() %}
-                                {% if member.is_membership_expiring_soon() %}
-                                    <span class="badge bg-warning">⚠️ Expiring Soon</span>
-                                {% else %}
-                                    <span class="badge bg-success">✓ Active</span>
-                                {% endif %}
+                {% for member in members %}
+                <tr>
+                    <td>
+                        <div class="member-name">{{ member.user.full_name }}</div>
+                    </td>
+                    <td>
+                        <div class="member-email">{{ member.user.email }}</div>
+                    </td>
+                    <td>{{ member.phone_number or '—' }}</td>
+                    <td>
+                        <span class="badge badge-primary">{{ member.membership_type|title }}</span>
+                    </td>
+                    <td>{{ member.membership_expiry_date.strftime('%b %d, %Y') }}</td>
+                    <td>
+                        {% if not member.is_approved %}
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-hourglass-half"></i> Pending
+                            </span>
+                        {% elif member.is_membership_active() %}
+                            {% if member.is_membership_expiring_soon() %}
+                                <span class="status-badge status-expiring">
+                                    <i class="fas fa-exclamation-triangle"></i> Expiring Soon
+                                </span>
                             {% else %}
-                                <span class="badge bg-danger">✗ Expired</span>
+                                <span class="status-badge status-active">
+                                    <i class="fas fa-check-circle"></i> Active
+                                </span>
                             {% endif %}
-                        </td>
-                        <td>
+                        {% else %}
+                            <span class="status-badge status-expired">
+                                <i class="fas fa-times-circle"></i> Expired
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
                             {% if not member.is_approved %}
-                                <!-- Pending member actions -->
                                 <form method="POST" action="{{ url_for('admin.approve_member', member_id=member.id) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Approve this member?')">✓ Approve</button>
+                                    <button type="submit" class="action-btn action-btn-success" onclick="return confirm('Approve this member?')">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
                                 </form>
                                 <form method="POST" action="{{ url_for('admin.reject_member', member_id=member.id) }}" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject and remove this member?')">✗ Reject</button>
+                                    <button type="submit" class="action-btn action-btn-danger" onclick="return confirm('Reject this member?')">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
                                 </form>
                             {% else %}
-                                <!-- Approved member actions -->
-                                <a href="{{ url_for('member.view_member', member_id=member.id) }}" class="btn btn-sm btn-info">View</a>
-                                <a href="{{ url_for('member.edit_member', member_id=member.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ url_for('member.view_member', member_id=member.id) }}" class="action-btn action-btn-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a href="{{ url_for('member.edit_member', member_id=member.id) }}" class="action-btn action-btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
                             {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No members found</td>
-                    </tr>
-                {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
+    {% else %}
+    <div class="empty-state-container">
+        <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
+        <p class="empty-state-text">No members found</p>
+        <a href="{{ url_for('member.create_member') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create First Member
+        </a>
+    </div>
+    {% endif %}
 
-<!-- Pagination -->
-{% if pagination.pages > 1 %}
-<nav class="mt-4" aria-label="Pagination">
-    <ul class="pagination justify-content-center">
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <ul class="pagination">
         {% if pagination.has_prev %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('member.list_members', page=1, search=search, status=status) }}">First</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('member.list_members', page=pagination.prev_num, search=search, status=status) }}">Previous</a>
-        </li>
+        <li><a href="{{ url_for('member.list_members', page=1, search=search, status=status) }}">First</a></li>
+        <li><a href="{{ url_for('member.list_members', page=pagination.prev_num, search=search, status=status) }}">Previous</a></li>
         {% endif %}
 
         {% for page_num in pagination.iter_pages() %}
             {% if page_num %}
                 {% if page_num == pagination.page %}
-                <li class="page-item active">
-                    <span class="page-link">{{ page_num }}</span>
-                </li>
+                <li><span class="active">{{ page_num }}</span></li>
                 {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('member.list_members', page=page_num, search=search, status=status) }}">{{ page_num }}</a>
-                </li>
+                <li><a href="{{ url_for('member.list_members', page=page_num, search=search, status=status) }}">{{ page_num }}</a></li>
                 {% endif %}
-            {% else %}
-            <li class="page-item disabled">
-                <span class="page-link">...</span>
-            </li>
             {% endif %}
         {% endfor %}
 
         {% if pagination.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('member.list_members', page=pagination.next_num, search=search, status=status) }}">Next</a>
-        </li>
-        <li class="page-item">
-            <a class="page-link" href="{{ url_for('member.list_members', page=pagination.pages, search=search, status=status) }}">Last</a>
-        </li>
+        <li><a href="{{ url_for('member.list_members', page=pagination.next_num, search=search, status=status) }}">Next</a></li>
+        <li><a href="{{ url_for('member.list_members', page=pagination.pages, search=search, status=status) }}">Last</a></li>
         {% endif %}
     </ul>
-</nav>
-{% endif %}
-
+    {% endif %}
+</div>
 {% endblock %}
