@@ -1,53 +1,466 @@
 {% extends "base.html" %}
 
-{% block title %}Member Signup - GymTrack Pro{% endblock %}
+{% block title %}Sign Up - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body p-5">
-                <h2 class="card-title text-center mb-4"><i class="fas fa-user-plus"></i> Create Member Account</h2>
-                <p class="text-center text-muted mb-4">Join GymTrack Pro</p>
+<style>
+    .signup-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        min-height: calc(100vh - 80px - 60px);
+        margin: -16px calc(-100vw / 2 + 100% / 2);
+        width: 100vw;
+        background: #ffffff;
+    }
 
-                <form method="POST" action="{{ url_for('auth.signup') }}">
-                    <div class="form-group">
-                        <label for="full_name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" required autofocus>
-                    </div>
+    .signup-hero {
+        background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy) 50%, var(--color-navy) 100%);
+        background-image:
+            radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 0% 0%, rgba(0, 217, 217, 0.1) 0%, transparent 50%),
+            linear-gradient(135deg, var(--color-navy), var(--color-navy));
+        padding: 60px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        position: relative;
+        overflow: hidden;
+    }
 
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                        <small class="form-text text-muted">We'll use this to login</small>
-                    </div>
+    .signup-hero::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 217, 217, 0.15) 0%, transparent 80%);
+        bottom: -100px;
+        right: -100px;
+        animation: float 8s ease-in-out infinite;
+    }
 
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                        <small class="form-text text-muted">Minimum 6 characters</small>
-                    </div>
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        50% { transform: translateY(30px) translateX(20px); }
+    }
 
-                    <div class="form-group">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                    </div>
+    .signup-hero-content {
+        position: relative;
+        z-index: 1;
+    }
 
-                    <div class="alert alert-info" role="alert">
-                        <i class="fas fa-info-circle"></i>
-                        <strong>Important:</strong> Your account will require admin approval before you can access the system. You'll be notified once your membership is approved.
-                    </div>
+    .signup-logo {
+        font-size: 48px;
+        font-weight: 800;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 0;
+    }
 
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Create Account</button>
-                </form>
+    .signup-logo .icon {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 217, 217, 0.2);
+        border: 2px solid var(--color-teal);
+        border-radius: 2px;
+        font-size: 32px;
+        color: var(--color-teal);
+    }
 
-                <hr>
+    .signup-tagline {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.6;
+        max-width: 400px;
+        font-weight: 500;
+    }
 
-                <div class="text-center">
-                    <p class="text-muted">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+    .signup-benefits {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    .signup-benefit {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .signup-benefit i {
+        color: var(--color-teal);
+        font-size: 18px;
+        min-width: 24px;
+    }
+
+    .signup-footer-text {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+    }
+
+    .signup-form-container {
+        padding: 60px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0;
+        overflow-y: auto;
+    }
+
+    .signup-form-header {
+        margin-bottom: 40px;
+    }
+
+    .signup-form-header h2 {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--color-navy);
+        margin-bottom: 8px;
+        margin: 0 0 8px 0;
+    }
+
+    .signup-form-header p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        transition: all var(--duration-fast) var(--easing-smooth);
+        background-color: #ffffff;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--color-teal);
+        border-left: 3px solid var(--color-teal);
+        box-shadow: 0 0 0 3px rgba(0, 217, 217, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .password-strength {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background-color: var(--bg-tertiary);
+        border-left: 3px solid var(--color-warning);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .strength-bar {
+        height: 4px;
+        background-color: var(--border-color);
+        border-radius: 2px;
+        margin: 6px 0;
+        overflow: hidden;
+    }
+
+    .strength-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--color-teal), var(--color-teal-light));
+        width: 0%;
+        transition: width 0.3s var(--easing-smooth);
+    }
+
+    .btn-signup {
+        background-color: var(--color-navy);
+        color: var(--color-teal);
+        border: 2px solid var(--color-teal);
+        border-left: 3px solid var(--color-teal);
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--easing-smooth);
+        width: 100%;
+    }
+
+    .btn-signup:hover {
+        background-color: var(--color-navy);
+        color: var(--color-teal-light);
+        border-color: var(--color-teal-light);
+        border-left-color: var(--color-teal-light);
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(0, 217, 217, 0.3);
+    }
+
+    .signup-divider {
+        position: relative;
+        margin: 30px 0;
+        text-align: center;
+    }
+
+    .signup-divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background-color: var(--border-color);
+    }
+
+    .signup-divider span {
+        position: relative;
+        background-color: #ffffff;
+        padding: 0 12px;
+        color: var(--text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .signup-footer {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .signup-footer p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .signup-footer a {
+        color: var(--color-teal);
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 2px solid var(--color-teal);
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .signup-footer a:hover {
+        border-bottom-color: var(--color-teal-dark);
+    }
+
+    .approval-notice {
+        background-color: rgba(0, 217, 217, 0.05);
+        border-left: 3px solid var(--color-teal);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin-top: 20px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    .approval-notice i {
+        color: var(--color-teal);
+        margin-right: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .signup-container {
+            grid-template-columns: 1fr;
+            min-height: auto;
+            margin: 0;
+            width: 100%;
+        }
+
+        .signup-hero {
+            min-height: 200px;
+            padding: 40px 20px;
+        }
+
+        .signup-form-container {
+            padding: 40px 20px;
+        }
+
+        .signup-logo {
+            font-size: 28px;
+        }
+
+        .signup-form-header h2 {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<div class="signup-container">
+    <!-- Left: Hero Section -->
+    <div class="signup-hero">
+        <div class="signup-hero-content">
+            <div class="signup-logo">
+                <div class="icon">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <span>GymTrack Pro</span>
+            </div>
+            <p class="signup-tagline">
+                Join the fitness community and start your transformation today.
+            </p>
+            <div class="signup-benefits">
+                <div class="signup-benefit">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Track your workouts and progress</span>
+                </div>
+                <div class="signup-benefit">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Get personalized training programs</span>
+                </div>
+                <div class="signup-benefit">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Monitor nutrition and macros</span>
+                </div>
+                <div class="signup-benefit">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Connect with certified trainers</span>
                 </div>
             </div>
         </div>
+        <p class="signup-footer-text">
+            500+ members already transforming their fitness
+        </p>
+    </div>
+
+    <!-- Right: Signup Form -->
+    <div class="signup-form-container">
+        <div class="signup-form-header">
+            <h2>Get Started</h2>
+            <p>Create your account and begin your fitness journey</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('tracker.signup') }}" style="margin: 0;">
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input
+                    type="text"
+                    id="full_name"
+                    name="full_name"
+                    required
+                    autofocus
+                    placeholder="John Doe"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="you@example.com"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    placeholder="••••••••"
+                    minlength="8"
+                >
+                <div class="password-strength">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <i class="fas fa-shield-check"></i>
+                        <span>Strength: <span id="strength-text">Weak</span></span>
+                    </div>
+                    <div class="strength-bar">
+                        <div class="strength-bar-fill" id="strength-bar"></div>
+                    </div>
+                    <small>Min. 8 characters, include numbers and symbols</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password_confirm">Confirm Password</label>
+                <input
+                    type="password"
+                    id="password_confirm"
+                    name="password_confirm"
+                    required
+                    placeholder="••••••••"
+                >
+            </div>
+
+            <button type="submit" class="btn-signup">
+                <i class="fas fa-user-plus" style="margin-right: 8px;"></i> Create Account
+            </button>
+        </form>
+
+        <div class="signup-divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <div class="signup-footer">
+            <p><a href="{{ url_for('tracker.login') }}">Login here</a></p>
+        </div>
+
+        <div class="approval-notice">
+            <i class="fas fa-info-circle"></i>
+            <strong>Heads up:</strong> Your account will be reviewed by our team before you gain full access. You'll receive an email once approved.
+        </div>
     </div>
 </div>
+
+<script>
+    // Password strength indicator
+    const passwordInput = document.getElementById('password');
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+
+    function calculateStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score += 25;
+        if (password.length >= 12) score += 25;
+        if (/[0-9]/.test(password)) score += 25;
+        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
+        if (/[^a-zA-Z0-9]/.test(password)) score += 15;
+        return Math.min(score, 100);
+    }
+
+    passwordInput.addEventListener('input', function() {
+        const strength = calculateStrength(this.value);
+        strengthBar.style.width = strength + '%';
+
+        if (strength < 30) strengthText.textContent = 'Weak';
+        else if (strength < 60) strengthText.textContent = 'Fair';
+        else if (strength < 85) strengthText.textContent = 'Good';
+        else strengthText.textContent = 'Strong';
+    });
+</script>
 {% endblock %}

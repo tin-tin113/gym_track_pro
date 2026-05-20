@@ -1,58 +1,335 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Register - GymTrack Pro{% endblock %}
+{% block title %}Create New User - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3>Create New User</h3>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('auth.register') }}">
-                    <div class="mb-3">
-                        <label for="full_name" class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="full_name" name="full_name" required>
-                    </div>
+<style>
+    .register-section {
+        max-width: 700px;
+        margin: 40px auto;
+    }
 
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
+    .register-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--color-teal);
+        border-radius: var(--radius-md);
+        padding: 0;
+        box-shadow: var(--shadow-md);
+    }
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
+    .register-header {
+        background: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy) 100%);
+        color: var(--color-teal);
+        padding: 24px;
+        border-bottom: 2px solid var(--border-color);
+        border-top-left-radius: var(--radius-md);
+        border-top-right-radius: var(--radius-md);
+    }
 
-                    <div class="mb-3">
-                        <label for="role" class="form-label">Role</label>
-                        <select class="form-select" id="role" name="role" required>
-                            <option value="member">Member</option>
-                            <option value="staff">Staff</option>
-                            <option value="trainer">Trainer</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
+    .register-header h2 {
+        margin: 0;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required minlength="6">
-                        <small class="form-text text-muted">Minimum 6 characters</small>
-                    </div>
+    .register-header i {
+        font-size: 28px;
+        color: var(--color-teal-light);
+    }
 
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                    </div>
+    .register-body {
+        padding: 32px;
+    }
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Create User</button>
-                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    .role-selector {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 24px 0;
+    }
+
+    .role-card {
+        padding: 16px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--easing-smooth);
+        text-align: center;
+        position: relative;
+    }
+
+    .role-card:hover {
+        border-color: var(--color-teal);
+        background-color: rgba(0, 217, 217, 0.02);
+        transform: translateY(-2px);
+    }
+
+    .role-card input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .role-card input[type="radio"]:checked + .role-content {
+        color: var(--color-navy);
+    }
+
+    .role-card input[type="radio"]:checked ~ .role-check {
+        display: block;
+    }
+
+    .role-check {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        background-color: var(--color-success);
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+    }
+
+    .role-content {
+        padding: 8px;
+    }
+
+    .role-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+        color: var(--color-teal);
+    }
+
+    .role-name {
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-primary);
+    }
+
+    .role-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 15px;
+        transition: all var(--duration-fast) var(--easing-smooth);
+        background-color: #ffffff;
+        font-family: var(--font-family-base);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        outline: none;
+        border-color: var(--color-teal);
+        border-left: 3px solid var(--color-teal);
+        box-shadow: 0 0 0 3px rgba(0, 217, 217, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .form-hint {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 32px;
+    }
+
+    .btn-create {
+        flex: 1;
+        background-color: var(--color-navy);
+        color: var(--color-teal);
+        border: 2px solid var(--color-teal);
+        border-left: 3px solid var(--color-teal);
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .btn-create:hover {
+        background-color: var(--color-navy);
+        color: var(--color-teal-light);
+        border-color: var(--color-teal-light);
+        border-left-color: var(--color-teal-light);
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(0, 217, 217, 0.3);
+    }
+
+    .btn-cancel {
+        flex: 1;
+        background-color: transparent;
+        color: var(--color-navy);
+        border: 2px solid var(--color-navy);
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .btn-cancel:hover {
+        background-color: var(--color-navy);
+        color: var(--color-teal);
+        border-color: var(--color-teal);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .register-body {
+            padding: 20px;
+        }
+
+        .role-selector {
+            grid-template-columns: 1fr;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="register-section">
+    <div class="register-card">
+        <div class="register-header">
+            <h2>
+                <i class="fas fa-user-shield"></i>
+                Create New User
+            </h2>
+        </div>
+
+        <div class="register-body">
+            <form method="POST" action="{{ url_for('tracker.register') }}">
+                <!-- Role Selection -->
+                <div class="form-group">
+                    <label style="text-transform: none; font-weight: 600; color: var(--color-navy); font-size: 14px;">Select Role</label>
+                    <div class="role-selector">
+                        <label class="role-card">
+                            <input type="radio" name="role" value="member" required>
+                            <div class="role-content">
+                                <div class="role-icon"><i class="fas fa-heart"></i></div>
+                                <div class="role-name">Member</div>
+                                <div class="role-desc">Fitness enthusiast</div>
+                            </div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+
+                        <label class="role-card">
+                            <input type="radio" name="role" value="trainer" required>
+                            <div class="role-content">
+                                <div class="role-icon"><i class="fas fa-dumbbell"></i></div>
+                                <div class="role-name">Trainer</div>
+                                <div class="role-desc">Fitness professional</div>
+                            </div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+
+                        <label class="role-card">
+                            <input type="radio" name="role" value="staff" required>
+                            <div class="role-content">
+                                <div class="role-icon"><i class="fas fa-clipboard-check"></i></div>
+                                <div class="role-name">Staff</div>
+                                <div class="role-desc">Check-in operator</div>
+                            </div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
+
+                        <label class="role-card">
+                            <input type="radio" name="role" value="admin" required>
+                            <div class="role-content">
+                                <div class="role-icon"><i class="fas fa-cog"></i></div>
+                                <div class="role-name">Admin</div>
+                                <div class="role-desc">System admin</div>
+                            </div>
+                            <div class="role-check"><i class="fas fa-check"></i></div>
+                        </label>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <!-- User Details -->
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required placeholder="John Doe">
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="johndoe">
+                    <span class="form-hint">Used for login, alphanumeric only</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="john@example.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required minlength="8" placeholder="••••••••">
+                    <span class="form-hint">Minimum 8 characters</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="••••••••">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button type="submit" class="btn-create">
+                        <i class="fas fa-plus" style="margin-right: 8px;"></i> Create User
+                    </button>
+                    <a href="{{ url_for('tracker.admin_dashboard') }}" class="btn-cancel">
+                        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Cancel
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
