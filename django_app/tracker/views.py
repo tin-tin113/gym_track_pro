@@ -31,6 +31,7 @@ from .models import (
 	DietPlan,
 	FitnessMetric,
 	GuideAssignment,
+	GuideRequest,
 	MealLog,
 	MealPlan,
 	Member,
@@ -60,6 +61,14 @@ def _require_member_access(request: HttpRequest) -> Member | None:
 	if not member.is_approved:
 		return None
 	return member
+
+
+def _safe_next_redirect(request: HttpRequest, default_route_name: str) -> HttpResponse:
+	"""Redirect to a user-provided next path if it's a safe relative path."""
+	next_url = (request.POST.get('next') or request.GET.get('next') or '').strip()
+	if next_url.startswith('/') and not next_url.startswith('//'):
+		return redirect(next_url)
+	return redirect(default_route_name)
 
 
 class _PaginationAdapter:
@@ -184,7 +193,7 @@ def auth_signup(request: HttpRequest) -> HttpResponse:
 		full_name = (request.POST.get('full_name') or '').strip()
 		email = (request.POST.get('email') or '').strip().lower()
 		password = request.POST.get('password') or ''
-		confirm_password = request.POST.get('confirm_password') or ''
+		confirm_password = request.POST.get('confirm_password') or request.POST.get('password_confirm') or ''
 
 		if not full_name or not email or not password:
 			messages.error(request, 'Please fill in all required fields.')
@@ -251,7 +260,7 @@ def auth_register(request: HttpRequest) -> HttpResponse:
 		email = (request.POST.get('email') or '').strip().lower()
 		role = (request.POST.get('role') or 'member').strip()
 		password = request.POST.get('password') or ''
-		confirm_password = request.POST.get('confirm_password') or ''
+		confirm_password = request.POST.get('confirm_password') or request.POST.get('password_confirm') or ''
 
 		if not full_name or not username or not email or not password:
 			messages.error(request, 'Please fill in all required fields.')
@@ -336,7 +345,7 @@ def auth_setup_password(request: HttpRequest) -> HttpResponse:
 
 	if request.method == 'POST':
 		password = request.POST.get('password') or ''
-		confirm_password = request.POST.get('confirm_password') or ''
+		confirm_password = request.POST.get('confirm_password') or request.POST.get('password_confirm') or ''
 
 		if user is None:
 			messages.error(request, 'Invalid or expired setup link.')
@@ -486,7 +495,18 @@ def admin_review_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 
 	# Prefetch tips via related name - template can access via guide.tips.all
 	tips = list(guide.tips.all().order_by('order', 'id'))
-	return render(request, 'admin/guides/review.html', {'guide': guide, 'tips': tips})
+
+	# Generate URLs for Jinja2 template
+	from django.urls import reverse
+	approve_url = reverse('admin.approve_guide', kwargs={'guide_id': guide.id})
+	reject_url = reverse('admin.reject_guide', kwargs={'guide_id': guide.id})
+
+	return render(request, 'admin/guides/review.html', {
+		'guide': guide,
+		'tips': tips,
+		'approve_url': approve_url,
+		'reject_url': reject_url,
+	})
 
 
 def admin_approve_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
@@ -1464,16 +1484,29 @@ def member_diet_history(request: HttpRequest) -> HttpResponse:
 def member_guides_library(request: HttpRequest) -> HttpResponse:
 	if not request.user.is_authenticated:
 		return redirect('auth.login')
-	member = _require_member_access(request)
-	if member is None:
-		if getattr(request.user, 'role', None) == 'member':
-			return redirect('auth.pending_status')
-		messages.error(request, 'Access denied.')
-		return redirect('home')
+	# Allow any logged-in user with role 'member' to browse the library,
+	# even if their Member profile is not yet marked `is_approved`.
+	# Keep strict denial for non-members or anonymous users.
+	member = getattr(request.user, 'member_profile', None)
+	if not request.user.is_authenticated or getattr(request.user, 'role', None) != 'member' or member is None:
+		# If the user is authenticated but lacks a member profile, show pending status if they are a member.
+		if getattr(request.user, 'role', None) == 'member' and member is None:
+			# Allow browsing but with no assigned programs for missing profile.
+			member = None
+		else:
+			messages.error(request, 'Access denied.')
+			return redirect('home')
 
-	items = list(WorkoutGuide.objects.filter(status=WorkoutGuide.Status.APPROVED).order_by('category', 'name', 'id'))
-	guides = SimpleNamespace(items=items)
-	return render(request, "member_dashboard/guides_library.html", {"guides": guides})
+	# Get all approved guides for browsing
+	all_guides = WorkoutGuide.objects.filter(status=WorkoutGuide.Status.APPROVED).order_by('category', 'name', 'id')
+
+	# Get guides assigned to this member
+	assigned_programs = GuideAssignment.objects.filter(member=member, is_active=True).select_related('guide').order_by('-assignment_date')
+
+	return render(request, "member_dashboard/guides_library.html", {
+		"guides": all_guides,
+		"assigned_programs": assigned_programs,
+	})
 
 
 def member_request_guide_assignment(request: HttpRequest, guide_id: int) -> HttpResponse:
@@ -1488,13 +1521,52 @@ def member_request_guide_assignment(request: HttpRequest, guide_id: int) -> Http
 	if request.method != 'POST':
 		return redirect('member.browse_guides_library')
 
-	guide = WorkoutGuide.objects.filter(id=guide_id).first()
+	# Get the guide
+	guide = WorkoutGuide.objects.filter(id=guide_id, status=WorkoutGuide.Status.APPROVED).first()
 	if guide is None:
-		messages.error(request, 'Guide not found.')
+		messages.error(request, 'Guide not found or not approved.')
 		return redirect('member.browse_guides_library')
 
-	# No dedicated "request" model exists yet; acknowledge the action.
-	messages.success(request, 'Request submitted. Your trainer will review it.')
+	# Ensure member has an assigned trainer
+	if not member.assigned_trainer:
+		messages.error(request, 'You must be assigned to a trainer to request guides.')
+		return redirect('member.browse_guides_library')
+
+	# Check if already assigned
+	existing_assignment = GuideAssignment.objects.filter(
+		guide=guide,
+		member=member,
+		is_active=True
+	).first()
+	if existing_assignment:
+		messages.warning(request, 'You are already assigned to this guide.')
+		return redirect('member.browse_guides_library')
+
+	# Check if request already exists and is pending/approved
+	existing_request = GuideRequest.objects.filter(
+		guide=guide,
+		member=member,
+		status__in=[GuideRequest.Status.PENDING, GuideRequest.Status.APPROVED]
+	).first()
+	if existing_request:
+		messages.warning(request, 'You have already requested this guide.')
+		return redirect('member.browse_guides_library')
+
+	try:
+		# Create guide request
+		from django.db import transaction
+		with transaction.atomic():
+			guide_request = GuideRequest.objects.create(
+				guide=guide,
+				member=member,
+				trainer=member.assigned_trainer,
+				status=GuideRequest.Status.PENDING,
+				notes=request.POST.get('notes', '').strip()
+			)
+		messages.success(request, f'Request sent to your trainer. Tracking ID: {guide_request.id}')
+	except Exception as e:
+		messages.error(request, f'Error submitting request: {str(e)}')
+
 	return redirect('member.browse_guides_library')
 
 
@@ -1529,6 +1601,14 @@ def member_view_assigned_guide(request: HttpRequest, guide_id: int) -> HttpRespo
 	tips = list(WorkoutTip.objects.filter(guide=guide).order_by('order', 'id'))
 	logged_workouts = list(Workout.objects.filter(member=member, guide=guide).order_by('-workout_date', '-id')[:20]) if assignment else []
 
+	# Group tips by exercise name
+	grouped_tips = {}
+	for tip in tips:
+		exercise = tip.exercise_name or 'General'
+		if exercise not in grouped_tips:
+			grouped_tips[exercise] = []
+		grouped_tips[exercise].append(tip)
+
 	return render(
 		request,
 		"member_dashboard/guide_detail.html",
@@ -1537,9 +1617,75 @@ def member_view_assigned_guide(request: HttpRequest, guide_id: int) -> HttpRespo
 			"assignment": assignment,
 			"progress": progress,
 			"tips": tips,
+			"grouped_tips": grouped_tips,
 			"logged_workouts": logged_workouts,
 		},
 	)
+
+
+def member_complete_guide(request: HttpRequest, assignment_id: int) -> HttpResponse:
+	"""Mark a guide assignment as completed by member."""
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if request.method != 'POST':
+		return redirect('member.member_programs')
+
+	member = _require_member_access(request)
+	if member is None:
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	# Get the assignment
+	assignment = GuideAssignment.objects.filter(id=assignment_id, member=member, is_active=True).first()
+	if assignment is None:
+		messages.error(request, 'Guide assignment not found.')
+		return redirect('member.member_programs')
+
+	try:
+		with transaction.atomic():
+			assignment.is_completed = True
+			assignment.completion_date = timezone.now()
+			assignment.save(update_fields=['is_completed', 'completion_date', 'updated_at'])
+		messages.success(request, f'Congratulations! You have completed "{assignment.guide.name}"!')
+	except Exception as e:
+		messages.error(request, f'Error completing guide: {str(e)}')
+
+	return redirect('member.member_programs')
+
+
+def trainer_complete_member_guide(request: HttpRequest, assignment_id: int) -> HttpResponse:
+	"""Trainer marks a member's guide completion."""
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if request.method != 'POST':
+		messages.error(request, 'Invalid request method.')
+		return redirect('home')
+
+	if not _require_roles(request, {'trainer', 'admin'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	# Get the assignment
+	assignment = GuideAssignment.objects.select_related('member', 'guide').filter(id=assignment_id).first()
+	if assignment is None:
+		messages.error(request, 'Guide assignment not found.')
+		return redirect('home')
+
+	# Verify trainer access
+	if not _can_view_member_as_trainer(request, assignment.member):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	try:
+		with transaction.atomic():
+			assignment.is_completed = True
+			assignment.completion_date = timezone.now()
+			assignment.save(update_fields=['is_completed', 'completion_date', 'updated_at'])
+		messages.success(request, f'Guide "{assignment.guide.name}" marked as completed for {assignment.member.user.full_name}')
+	except Exception as e:
+		messages.error(request, f'Error completing guide: {str(e)}')
+
+	return redirect('trainer.member_guides', member_id=assignment.member.id)
 
 
 # --- Attendance ---
@@ -1561,21 +1707,21 @@ def attendance_dashboard(request: HttpRequest) -> HttpResponse:
 		.order_by('user__full_name', 'id')
 	)
 
-	active_members = list(
+	all_sessions = list(
 		Attendance.objects.select_related('member', 'member__user')
-		.filter(check_in_time__gte=start_of_day, check_in_time__lt=end_of_day, check_out_time__isnull=True)
+		.filter(
+			Q(check_out_time__isnull=True) |
+			Q(check_out_time__gte=start_of_day, check_out_time__lt=end_of_day)
+		)
 		.order_by('-check_in_time')
-	)
-
-	completed_sessions = list(
-		Attendance.objects.select_related('member', 'member__user')
-		.filter(check_out_time__gte=start_of_day, check_out_time__lt=end_of_day)
-		.order_by('-check_out_time')[:15]
 	)
 
 	qr_payload = f"GymTrackPro Attendance Check-In {today.isoformat()}"
 	qr_image = _qr_data_uri(qr_payload)
 	countdown = {"minutes": 23, "seconds": 59}
+
+	# Count active
+	active_count = sum(1 for s in all_sessions if s.check_out_time is None)
 
 	return render(
 		request,
@@ -1584,8 +1730,8 @@ def attendance_dashboard(request: HttpRequest) -> HttpResponse:
 			"qr_image": qr_image,
 			"countdown": countdown,
 			"members": members,
-			"active_members": active_members,
-			"completed_sessions": completed_sessions,
+			"all_sessions": all_sessions,
+			"active_count": active_count,
 		},
 	)
 
@@ -1608,23 +1754,57 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 		member = Member.objects.select_related('user').filter(id=member_id).first() if member_id else None
 		if member is None:
 			messages.error(request, 'Please select a valid member.')
-			return redirect('attendance_routes.check_in')
+			return _safe_next_redirect(request, 'attendance_routes.check_in')
 
 		# Prevent duplicate active sessions
 		already_active = Attendance.objects.filter(member=member, check_out_time__isnull=True).exists()
 		if already_active:
 			messages.info(request, f"{member.user.full_name} is already checked in.")
-			return redirect('attendance_routes.dashboard')
+			return _safe_next_redirect(request, 'attendance_routes.dashboard')
+
+		# Prevent a member from being checked in more than once per calendar day
+		today = timezone.localdate()
+		already_today = Attendance.objects.filter(member=member, check_in_time__date=today).exists()
+		if already_today:
+			messages.info(request, f"{member.user.full_name} has already been checked in today — use Undo if this was a mistake.")
+			return _safe_next_redirect(request, 'attendance_routes.dashboard')
 
 		Attendance.objects.create(member=member, check_in_time=timezone.now())
 		messages.success(request, f"Checked in: {member.user.full_name}")
-		return redirect('attendance_routes.dashboard')
+		return _safe_next_redirect(request, 'attendance_routes.dashboard')
 
 	today = timezone.localdate()
 	qr_payload = f"GymTrackPro Attendance Check-In {today.isoformat()}"
 	qr_image = _qr_data_uri(qr_payload)
 	countdown = {"minutes": 23, "seconds": 59}
 	return render(request, "attendance/check_in.html", {"qr_image": qr_image, "countdown": countdown, "members": members})
+
+
+@login_required
+def attendance_undo_check_in(request: HttpRequest) -> HttpResponse:
+	if not _require_roles(request, {'admin', 'staff'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	if request.method != 'POST':
+		messages.error(request, 'Invalid request method.')
+		return _safe_next_redirect(request, 'attendance_routes.check_in')
+
+	member_id = (request.POST.get('member_id') or '').strip()
+	member = Member.objects.select_related('user').filter(id=member_id).first() if member_id else None
+	if member is None:
+		messages.error(request, 'Please select a valid member.')
+		return _safe_next_redirect(request, 'attendance_routes.check_in')
+
+	today = timezone.localdate()
+	attendance = Attendance.objects.filter(member=member, check_in_time__date=today).order_by('-check_in_time').first()
+	if attendance is None:
+		messages.error(request, f'No check-in found for {member.user.full_name} today.')
+		return _safe_next_redirect(request, 'attendance_routes.check_in')
+
+	attendance.delete()
+	messages.success(request, f"Removed today's check-in for: {member.user.full_name}")
+	return _safe_next_redirect(request, 'attendance_routes.check_in')
 
 
 def attendance_history(request: HttpRequest) -> HttpResponse:
@@ -1747,7 +1927,7 @@ def attendance_api_active_today(request: HttpRequest) -> JsonResponse:
 
 	active_qs = (
 		Attendance.objects.select_related('member', 'member__user')
-		.filter(check_in_time__gte=start_of_day, check_in_time__lt=end_of_day, check_out_time__isnull=True)
+		.filter(check_out_time__isnull=True)
 		.order_by('-check_in_time')
 	)
 
@@ -1802,14 +1982,131 @@ def attendance_api_stats(request: HttpRequest) -> JsonResponse:
 	# Build 24-hour buckets
 	buckets = {f"{h:02d}": 0 for h in range(24)}
 	for dt in qs.values_list('check_in_time', flat=True):
-		buckets[f"{dt.hour:02d}"] += 1
+		local_dt = timezone.localtime(dt)
+		buckets[f"{local_dt.hour:02d}"] += 1
 	return JsonResponse(buckets)
 
 
 # --- Fitness ---
 
 def fitness_metrics(request: HttpRequest) -> HttpResponse:
-	return render(request, "fitness/metrics.html")
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if not _require_roles(request, {'admin', 'staff', 'trainer'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	User = get_user_model()
+	role = getattr(request.user, 'role', None)
+
+	if role == 'trainer':
+		try:
+			trainer = request.user.trainer
+			members = Member.objects.filter(assigned_trainer=trainer, is_approved=True, is_active=True).select_related('user').order_by('user__full_name', 'id')
+		except AttributeError:
+			members = Member.objects.none()
+	else:
+		members = Member.objects.filter(is_approved=True, is_active=True).select_related('user').order_by('user__full_name', 'id')
+
+	if request.method == 'POST':
+		member_id = (request.POST.get('member_id') or '').strip()
+		metric_date_str = (request.POST.get('metric_date') or '').strip()
+		weight_str = (request.POST.get('weight') or '').strip()
+		height_str = (request.POST.get('height') or '').strip()
+
+		# Optional body/composition measurements
+		chest_str = (request.POST.get('chest') or '').strip()
+		waist_str = (request.POST.get('waist') or '').strip()
+		hips_str = (request.POST.get('hips') or '').strip()
+		bicep_str = (request.POST.get('bicep') or '').strip()
+		thigh_str = (request.POST.get('thigh') or '').strip()
+		body_fat_str = (request.POST.get('body_fat_percentage') or '').strip()
+		notes = (request.POST.get('notes') or '').strip()
+
+		if not member_id or not metric_date_str or not weight_str or not height_str:
+			messages.error(request, 'Please fill in all required fields.')
+			return redirect('fitness.add_metrics')
+
+		try:
+			member = Member.objects.get(id=int(member_id))
+		except (ValueError, Member.DoesNotExist):
+			messages.error(request, 'Invalid member selected.')
+			return redirect('fitness.add_metrics')
+
+		# If trainer, check if member is assigned to them
+		if role == 'trainer':
+			try:
+				trainer = request.user.trainer
+				if member.assigned_trainer_id != trainer.id:
+					messages.error(request, 'You can only record metrics for your assigned members.')
+					return redirect('fitness.add_metrics')
+			except AttributeError:
+				messages.error(request, 'Access denied.')
+				return redirect('fitness.add_metrics')
+
+		try:
+			metric_date = timezone.datetime.fromisoformat(metric_date_str).date()
+		except ValueError:
+			messages.error(request, 'Invalid date format.')
+			return redirect('fitness.add_metrics')
+
+		try:
+			weight = float(weight_str)
+			height = float(height_str)
+		except ValueError:
+			messages.error(request, 'Weight and height must be valid numbers.')
+			return redirect('fitness.add_metrics')
+
+		# Validate optional values
+		def parse_float(val_str):
+			if not val_str:
+				return None
+			try:
+				return float(val_str)
+			except ValueError:
+				return None
+
+		chest = parse_float(chest_str)
+		waist = parse_float(waist_str)
+		hips = parse_float(hips_str)
+		bicep = parse_float(bicep_str)
+		thigh = parse_float(thigh_str)
+		body_fat = parse_float(body_fat_str)
+
+		# BMI calculation: weight (kg) / (height (m) ^ 2)
+		height_m = height / 100.0
+		bmi = weight / (height_m * height_m) if height_m > 0 else 0.0
+
+		try:
+			FitnessMetric.objects.create(
+				member=member,
+				metric_date=metric_date,
+				weight=weight,
+				height=height,
+				bmi=bmi,
+				chest=chest,
+				waist=waist,
+				hips=hips,
+				bicep=bicep,
+				thigh=thigh,
+				body_fat_percentage=body_fat,
+				notes=notes,
+				created_by=request.user
+			)
+			messages.success(request, f'Fitness metrics recorded successfully for {member.user.full_name}.')
+		except Exception as e:
+			messages.error(request, f'Error saving metrics: {str(e)}')
+
+		return redirect('fitness.add_metrics')
+
+	return render(
+		request,
+		"fitness/metrics.html",
+		{
+			"members": list(members),
+			"now": timezone.now,
+		}
+	)
 
 
 # --- Trainer ---
@@ -2782,29 +3079,51 @@ def trainer_assign_guide_to_member(request: HttpRequest, member_id: int) -> Http
 			messages.error(request, 'Please select a valid guide.')
 			return redirect('trainer.assign_guide_to_member', member_id=member.id)
 
-		# Parse dates if provided
+		# Parse and validate dates if provided
 		from datetime import datetime
 		start_date = None
 		target_completion_date = None
+		date_error = False
+
 		try:
 			if start_date_str:
 				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
 			if target_completion_str:
 				target_completion_date = datetime.strptime(target_completion_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-		except (ValueError, TypeError):
-			messages.warning(request, 'Invalid date format. Dates will be left empty.')
 
-		GuideAssignment.objects.create(
-			guide=guide,
-			member=member,
-			trainer=request.user,
-			notes=notes,
-			is_active=True,
-			start_date=start_date,
-			target_completion_date=target_completion_date
-		)
-		messages.success(request, 'Guide assigned.')
-		return redirect('trainer.member_guides', member_id=member.id)
+			# Validate date order
+			if start_date and target_completion_date and target_completion_date <= start_date:
+				messages.error(request, 'Completion date must be after start date.')
+				date_error = True
+
+		except (ValueError, TypeError) as e:
+			messages.error(request, 'Invalid date format. Please use YYYY-MM-DD format.')
+			date_error = True
+
+		if date_error:
+			return redirect('trainer.assign_guide_to_member', member_id=member.id)
+
+		try:
+			with transaction.atomic():
+				assignment = GuideAssignment.objects.create(
+					guide=guide,
+					member=member,
+					trainer=request.user,
+					notes=notes,
+					is_active=True,
+					start_date=start_date,
+					target_completion_date=target_completion_date
+				)
+			# Build success message with assignment details
+			message = f'Guide "{guide.name}" assigned to {member.user.full_name}.'
+			if start_date and target_completion_date:
+				duration_days = (target_completion_date.date() - start_date.date()).days
+				message += f' | Duration: {duration_days} days'
+			messages.success(request, message)
+			return redirect('trainer.member_guides', member_id=member.id)
+		except Exception as e:
+			messages.error(request, f'Error assigning guide: {str(e)}')
+			return redirect('trainer.assign_guide_to_member', member_id=member.id)
 
 	return render(request, 'trainer/guides/assign_member.html', {'member': member, 'guides': guides})
 
@@ -2878,30 +3197,62 @@ def trainer_assign_diet_to_member(request: HttpRequest, member_id: int) -> HttpR
 			messages.error(request, 'Please select a valid diet plan.')
 			return redirect('trainer.assign_diet_to_member', member_id=member.id)
 
-		# Parse dates if provided
+		# Parse and validate dates
 		from datetime import datetime
 		start_date = None
 		target_end_date = None
+		date_error = False
+
 		try:
 			if start_date_str:
 				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
 			if target_end_str:
 				target_end_date = datetime.strptime(target_end_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-		except (ValueError, TypeError):
-			messages.warning(request, 'Invalid date format. Dates will be left empty.')
 
-		with transaction.atomic():
-			DietAssignment.objects.filter(member=member, is_active=True).update(is_active=False)
-			DietAssignment.objects.create(
-				diet_plan=plan,
-				member=member,
-				trainer=request.user,
-				notes=notes,
-				is_active=True,
-				start_date=start_date,
-				target_end_date=target_end_date
-			)
-		messages.success(request, 'Diet assigned.')
+			# Validate date order
+			if start_date and target_end_date and target_end_date <= start_date:
+				messages.error(request, 'End date must be after start date.')
+				date_error = True
+
+		except (ValueError, TypeError) as e:
+			messages.error(request, f'Invalid date format. Please use YYYY-MM-DD format.')
+			date_error = True
+
+		if date_error:
+			return redirect('trainer.assign_diet_to_member', member_id=member.id)
+
+		try:
+			with transaction.atomic():
+				# Get existing active diet
+				previous_diet = DietAssignment.objects.filter(member=member, is_active=True).first()
+				previous_diet_name = f'"{previous_diet.diet_plan.name}"' if previous_diet else 'None'
+
+				# Deactivate all previous active diet assignments
+				DietAssignment.objects.filter(member=member, is_active=True).update(is_active=False)
+
+				# Create new diet assignment
+				new_assignment = DietAssignment.objects.create(
+					diet_plan=plan,
+					member=member,
+					trainer=request.user,
+					notes=notes,
+					is_active=True,
+					start_date=start_date,
+					target_end_date=target_end_date
+				)
+
+			# Build success message with transition details
+			message = f'Diet plan "{plan.name}" assigned.'
+			if previous_diet:
+				message += f' (Replaced: {previous_diet_name})'
+			if start_date and target_end_date:
+				message += f' | Duration: {(target_end_date.date() - start_date.date()).days} days'
+			messages.success(request, message)
+
+		except Exception as e:
+			messages.error(request, f'Error assigning diet: {str(e)}')
+			return redirect('trainer.assign_diet_to_member', member_id=member.id)
+
 		return redirect('trainer.member_diet', member_id=member.id)
 
 	return render(request, 'trainer/diet/assign_member.html', {'member': member, 'plans': plans})

@@ -4,107 +4,96 @@
 
 {% block content %}
 <style>
-    /* Landing Page Custom Styles */
+    /* Premium Gym-Aligned Landing Page Custom Styles */
     .landing-page {
-        background-color: #ffffff;
+        background-color: var(--bg-primary);
         margin: -16px calc(-100vw / 2 + 100% / 2);
         width: 100vw;
         padding: 0;
+        overflow-x: hidden;
     }
 
-    /* HERO SECTION */
+    /* HERO SECTION - SLEEK CYBER METRICS LOOK */
     .hero-section {
-        background: linear-gradient(135deg, var(--color-navy) 0%, #063a5a 100%);
-        background-image:
-            radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 0% 0%, rgba(0, 217, 217, 0.08) 0%, transparent 50%),
-            linear-gradient(135deg, var(--color-navy), #063a5a);
-        color: white;
-        padding: 120px 40px;
+        background: radial-gradient(circle at 80% 20%, rgba(0, 229, 229, 0.12) 0%, transparent 60%),
+                    radial-gradient(circle at 10% 80%, rgba(0, 229, 229, 0.06) 0%, transparent 60%),
+                    linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        border-bottom: 1px solid var(--border-color);
+        color: #ffffff;
+        padding: 100px 24px;
         text-align: center;
         position: relative;
         overflow: hidden;
-        min-height: 600px;
+        min-height: 580px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
+    /* Cyber grid overlay */
     .hero-section::before {
         content: '';
         position: absolute;
-        width: 600px;
-        height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0, 217, 217, 0.08) 0%, transparent 70%);
-        top: -150px;
-        left: -100px;
-        animation: float 12s ease-in-out infinite;
-    }
-
-    .hero-section::after {
-        content: '';
-        position: absolute;
-        width: 400px;
-        height: 400px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0, 217, 217, 0.06) 0%, transparent 70%);
-        bottom: -50px;
-        right: -80px;
-        animation: float 15s ease-in-out infinite reverse;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) translateX(0px); }
-        50% { transform: translateY(40px) translateX(30px); }
-    }
-
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
+        inset: 0;
+        background-image: 
+            linear-gradient(to right, rgba(0, 229, 229, 0.02) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 229, 229, 0.02) 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.8;
+        pointer-events: none;
     }
 
     .hero-content {
-        max-width: 900px;
+        max-width: 850px;
         margin: 0 auto;
         position: relative;
-        z-index: 1;
-        animation: slideUp 0.8s ease-out;
+        z-index: 2;
+        animation: slideUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .hero-badge {
-        display: inline-block;
-        background: rgba(0, 217, 217, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: #33E8FF;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        background: rgba(0, 229, 229, 0.08);
+        border: 1px solid var(--border-color-dark);
+        color: var(--color-teal);
+        padding: 8px 16px;
+        border-radius: 99px;
+        font-family: var(--font-family-headers);
+        font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-bottom: 30px;
-        backdrop-filter: blur(10px);
+        margin-bottom: 24px;
+        box-shadow: var(--shadow-teal);
     }
 
     .hero-content h1 {
-        font-size: 64px;
-        font-weight: 900;
-        line-height: 1.15;
-        margin-bottom: 24px;
-        letter-spacing: -2px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        font-family: var(--font-family-headers);
+        font-size: 60px;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        letter-spacing: -1px;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-shadow: 0 0 30px rgba(0, 229, 229, 0.15);
+    }
+
+    .hero-content h1 span {
+        color: var(--color-teal);
+        text-shadow: 0 0 15px rgba(0, 229, 229, 0.35);
     }
 
     .hero-content p {
-        font-size: 20px;
-        line-height: 1.7;
-        margin-bottom: 48px;
-        opacity: 0.98;
-        max-width: 700px;
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 40px;
+        color: var(--text-secondary) !important;
+        max-width: 680px;
         margin-left: auto;
         margin-right: auto;
-        color: rgba(255, 255, 255, 0.95) !important;
     }
 
     .hero-buttons {
@@ -112,284 +101,235 @@
         gap: 16px;
         justify-content: center;
         flex-wrap: wrap;
-        margin-bottom: 48px;
+        margin-bottom: 40px;
     }
 
     .hero-buttons .btn {
         min-width: 180px;
-        padding: 16px 32px;
-        font-size: 15px;
-        font-weight: 700;
+        padding: 14px 28px;
+        font-size: 14px;
     }
 
     .hero-demo {
-        margin-top: 60px;
-        padding-top: 40px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        font-size: 14px;
-        opacity: 0.92;
-        color: rgba(255, 255, 255, 0.9) !important;
+        margin-top: 40px;
+        padding: 16px 24px;
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        font-size: 13px;
+        color: var(--text-secondary);
+        box-shadow: var(--shadow-md);
     }
 
     .hero-demo strong {
-        color: #33E8FF;
+        color: var(--color-teal);
+        font-family: var(--font-family-headers);
+        text-transform: uppercase;
         font-weight: 700;
+        letter-spacing: 0.5px;
     }
 
     .hero-demo code {
-        background: rgba(0, 217, 217, 0.2);
-        padding: 4px 10px;
-        border-radius: 3px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
         font-family: 'Courier New', monospace;
-        color: #33E8FF;
+        color: #ffffff;
+        font-weight: 600;
     }
 
-    /* FEATURES SECTION */
+    /* FEATURES SECTION - GLASSMORPHIC SPORTS CELLS */
     .features-section {
-        padding: 100px 40px;
-        background: linear-gradient(to bottom, #ffffff 0%, #f8fafb 100%);
-        position: relative;
+        padding: 80px 24px;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .section-header {
         text-align: center;
-        margin-bottom: 70px;
+        margin-bottom: 60px;
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
-        animation: slideUp 0.8s ease-out 0.2s both;
     }
 
     .section-header h2 {
-        font-size: 48px;
-        font-weight: 900;
-        color: var(--color-navy);
-        margin-bottom: 16px;
-        letter-spacing: -1px;
+        font-size: 40px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 12px;
+        font-family: var(--font-family-headers);
     }
 
     .section-header p {
-        font-size: 18px;
-        color: var(--text-secondary);
-        line-height: 1.7;
+        font-size: 16px;
         color: var(--text-secondary) !important;
+        line-height: 1.5;
     }
 
     .features-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 32px;
-        max-width: 1300px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: var(--spacing-xl);
+        max-width: 1200px;
         margin: 0 auto;
     }
 
     .feature-card {
-        padding: 40px 32px;
-        border-radius: 12px;
-        background: #ffffff;
-        border: 2px solid #e5e7eb;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        text-align: center;
+        padding: 32px;
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-left: 3px solid var(--color-teal);
+        transition: all var(--duration-normal) var(--easing-smooth);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .feature-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        background: linear-gradient(90deg, var(--color-teal), var(--color-teal-light));
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.35s ease-out;
     }
 
     .feature-card:hover {
-        background: #ffffff;
-        border-color: var(--color-teal);
-        box-shadow: 0 16px 40px rgba(0, 217, 217, 0.15);
-        transform: translateY(-8px);
-    }
-
-    .feature-card:hover::before {
-        transform: scaleX(1);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg), var(--shadow-teal);
+        border-left-color: var(--color-teal-light);
+        border-color: var(--border-color-dark);
     }
 
     .feature-card-icon {
-        font-size: 42px;
+        font-size: 32px;
         color: var(--color-teal);
-        margin-bottom: 20px;
-        display: inline-block;
-        width: 70px;
-        height: 70px;
-        background: rgba(0, 217, 217, 0.1);
-        border-radius: 10px;
+        margin-bottom: 16px;
+        width: 54px;
+        height: 54px;
+        background: rgba(0, 229, 229, 0.08);
+        border: 1px solid var(--border-color-dark);
+        border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.35s ease-out;
+        transition: all var(--duration-fast) var(--easing-smooth);
     }
 
     .feature-card:hover .feature-card-icon {
-        background: rgba(0, 217, 217, 0.2);
-        transform: scale(1.1) rotate(5deg);
+        background: rgba(0, 229, 229, 0.16);
+        transform: scale(1.1) rotate(3deg);
+        color: var(--color-teal-light);
     }
 
     .feature-card h3 {
-        font-size: 20px;
-        font-weight: 800;
-        color: var(--color-navy);
-        margin-bottom: 14px;
-        letter-spacing: -0.5px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 10px;
+        font-family: var(--font-family-headers);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .feature-card p {
-        font-size: 15px;
-        color: var(--text-secondary);
-        line-height: 1.7;
-        margin: 0;
+        font-size: 14px;
         color: var(--text-secondary) !important;
+        line-height: 1.6;
+        margin: 0;
     }
 
     /* ROLES SECTION */
     .roles-section {
-        padding: 100px 40px;
-        background: linear-gradient(135deg, rgba(0, 217, 217, 0.05) 0%, rgba(0, 217, 217, 0.02) 100%);
-        position: relative;
+        padding: 80px 24px;
+        background-color: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .roles-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 32px;
-        max-width: 1300px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: var(--spacing-lg);
+        max-width: 1200px;
         margin: 0 auto;
     }
 
     .role-card {
-        padding: 36px 28px;
-        background: #ffffff;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        border-left: 5px solid var(--color-teal);
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 28px var(--spacing-lg);
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        transition: all var(--duration-normal) var(--easing-smooth);
         position: relative;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .role-card::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100px;
-        height: 100px;
-        background: radial-gradient(circle, rgba(0, 217, 217, 0.1) 0%, transparent 70%);
-        border-radius: 50%;
-        opacity: 0;
-        transition: opacity 0.35s ease-out;
     }
 
     .role-card:hover {
-        box-shadow: 0 16px 40px rgba(0, 217, 217, 0.15);
-        transform: translateY(-8px);
+        box-shadow: var(--shadow-md), var(--shadow-teal);
+        transform: translateY(-2px);
         border-color: var(--color-teal);
     }
 
-    .role-card:hover::after {
-        opacity: 1;
-    }
-
     .role-card-icon {
-        font-size: 36px;
+        font-size: 28px;
         color: var(--color-teal);
         margin-bottom: 16px;
-        display: inline-block;
-        width: 60px;
-        height: 60px;
-        background: rgba(0, 217, 217, 0.12);
-        border-radius: 10px;
+        width: 48px;
+        height: 48px;
+        background: rgba(0, 229, 229, 0.06);
+        border-radius: var(--radius-sm);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.35s ease-out;
     }
 
     .role-card:hover .role-card-icon {
-        background: rgba(0, 217, 217, 0.2);
-        transform: scale(1.15);
+        background: rgba(0, 229, 229, 0.12);
+        color: var(--color-teal-light);
     }
 
     .role-card h3 {
-        font-size: 22px;
-        font-weight: 800;
-        color: var(--color-navy);
-        margin-bottom: 12px;
-        letter-spacing: -0.5px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 8px;
+        font-family: var(--font-family-headers);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .role-card p {
-        font-size: 15px;
-        color: var(--text-secondary);
-        line-height: 1.7;
-        margin: 0;
+        font-size: 14px;
         color: var(--text-secondary) !important;
+        line-height: 1.5;
+        margin: 0;
     }
 
-    /* CTA SECTION */
+    /* CTA SECTION - CYBER GLOW PANEL */
     .cta-section {
-        padding: 100px 40px;
-        background: linear-gradient(135deg, var(--color-navy) 0%, #063a5a 100%);
-        background-image:
-            radial-gradient(circle at 100% 100%, rgba(0, 217, 217, 0.12) 0%, transparent 50%),
-            radial-gradient(circle at 0% 20%, rgba(0, 217, 217, 0.08) 0%, transparent 50%),
-            linear-gradient(135deg, var(--color-navy), #063a5a);
-        color: white;
+        padding: 80px 24px;
+        background: radial-gradient(circle at center, rgba(0, 229, 229, 0.08) 0%, transparent 80%),
+                    linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
         text-align: center;
+        border-bottom: 1px solid var(--border-color);
         position: relative;
-        overflow: hidden;
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .cta-section::before {
-        content: '';
-        position: absolute;
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(0, 217, 217, 0.1) 0%, transparent 70%);
-        bottom: -100px;
-        left: -100px;
     }
 
     .cta-content {
-        max-width: 700px;
+        max-width: 650px;
         margin: 0 auto;
+        z-index: 2;
         position: relative;
-        z-index: 1;
-        animation: slideUp 0.8s ease-out;
     }
 
     .cta-section h2 {
-        font-size: 48px;
-        font-weight: 900;
-        margin-bottom: 16px;
-        letter-spacing: -1px;
+        font-size: 38px;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 12px;
+        font-family: var(--font-family-headers);
     }
 
     .cta-section p {
-        font-size: 18px;
-        margin-bottom: 44px;
-        opacity: 0.96;
-        color: rgba(255, 255, 255, 0.95) !important;
-        line-height: 1.7;
+        font-size: 16px;
+        margin-bottom: 32px;
+        color: var(--text-secondary) !important;
+        line-height: 1.6;
     }
 
     .cta-buttons {
@@ -401,42 +341,29 @@
 
     .cta-buttons .btn {
         min-width: 180px;
-        padding: 16px 32px;
-        font-size: 15px;
-        font-weight: 700;
+        padding: 14px 28px;
     }
 
     /* FOOTER INFO */
     .footer-info {
-        padding: 50px 40px;
-        background-color: #f0f1f3;
+        padding: 40px 24px;
+        background-color: var(--bg-secondary);
         text-align: center;
-        border-top: 1px solid var(--border-color);
-        font-size: 15px;
-        color: var(--text-secondary);
+        font-size: 13px;
+        color: var(--text-muted);
     }
 
     .footer-info p {
-        margin: 0;
-        line-height: 1.7;
-        color: var(--text-secondary) !important;
-        max-width: 800px;
         margin: 0 auto;
+        line-height: 1.6;
+        color: var(--text-muted) !important;
+        max-width: 800px;
     }
 
-    .footer-info code {
-        background: white;
-        padding: 3px 10px;
-        border-radius: 3px;
-        font-family: 'Courier New', monospace;
-        color: var(--color-teal);
-        font-weight: 600;
-    }
-
-    /* RESPONSIVE */
+    /* RESPONSIVE MEDIA QUERIES */
     @media (max-width: 768px) {
         .hero-section {
-            padding: 80px 24px;
+            padding: 60px 16px;
             min-height: auto;
         }
 
@@ -445,7 +372,8 @@
         }
 
         .hero-content p {
-            font-size: 17px;
+            font-size: 16px;
+            margin-bottom: 30px;
         }
 
         .hero-buttons {
@@ -460,26 +388,26 @@
         .features-section,
         .roles-section,
         .cta-section {
-            padding: 80px 24px;
+            padding: 60px 16px;
         }
 
         .section-header h2 {
-            font-size: 36px;
+            font-size: 32px;
         }
 
         .features-grid,
         .roles-grid {
-            gap: 20px;
+            gap: var(--spacing-md);
             grid-template-columns: 1fr;
         }
 
         .feature-card,
         .role-card {
-            padding: 32px 24px;
+            padding: 24px;
         }
 
         .cta-section h2 {
-            font-size: 36px;
+            font-size: 32px;
         }
 
         .cta-buttons {
@@ -492,55 +420,9 @@
         }
     }
 
-    @media (max-width: 480px) {
-        .hero-section {
-            padding: 60px 16px;
-            min-height: auto;
-        }
-
-        .hero-content h1 {
-            font-size: 32px;
-            margin-bottom: 16px;
-        }
-
-        .hero-content p {
-            font-size: 15px;
-            margin-bottom: 32px;
-        }
-
-        .hero-badge {
-            font-size: 11px;
-            padding: 8px 16px;
-            margin-bottom: 20px;
-        }
-
-        .section-header h2 {
-            font-size: 28px;
-        }
-
-        .features-section,
-        .roles-section {
-            padding: 60px 16px;
-        }
-
-        .cta-section {
-            padding: 60px 16px;
-            min-height: auto;
-        }
-
-        .cta-section h2 {
-            font-size: 28px;
-        }
-
-        .feature-card h3,
-        .role-card h3 {
-            font-size: 18px;
-        }
-    }
-
-    /* CONTAINER */
+    /* CONTAINER WIDTH LIMITER */
     .landing-container {
-        max-width: 1400px;
+        max-width: 1200px;
         margin: 0 auto;
     }
 </style>
@@ -550,8 +432,8 @@
     <section class="hero-section">
         <div class="hero-content">
             <div class="hero-badge">✨ Complete Gym Management Platform</div>
-            <h1>Manage your gym operations with ease</h1>
-            <p>Everything you need for members, trainers, staff, and admin — attendance, workouts, guides, nutrition, reports, and more in one clean interface.</p>
+            <h1>Smart Operations for <span>Modern Gyms</span></h1>
+            <p>Everything you need for members, trainers, staff, and admin — attendance tracking, workout generators, nutrition planners, progress charts, and robust reports in one clean dashboard.</p>
             <div class="hero-buttons">
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-sign-in-alt"></i> Sign In
@@ -570,39 +452,39 @@
     <section class="features-section">
         <div class="landing-container">
             <div class="section-header">
-                <h2>Core Features</h2>
-                <p>Everything you need to run a modern gym</p>
+                <h2>Core Architecture</h2>
+                <p>Engineered for high performance, high density visual clarity, and secure roles control</p>
             </div>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-calendar-check"></i></div>
-                    <h3>Attendance</h3>
-                    <p>Check-in, check-out, real-time tracking, and daily statistics with CSV export.</p>
+                    <h3>Attendance Tracking</h3>
+                    <p>Real-time check-in/out records, detailed daily rosters, automated logs, and standard CSV data exports.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-users"></i></div>
-                    <h3>Members</h3>
-                    <p>Manage memberships, track approvals, imports, status, and trainer assignments.</p>
+                    <h3>Member Accounts</h3>
+                    <p>Manage membership tiers, monitor application approvals, import users in bulk, and review trainer assignments.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-dumbbell"></i></div>
                     <h3>Workouts & Guides</h3>
-                    <p>Create, assign, and track workout programs with detailed exercise guidance.</p>
+                    <p>Build comprehensive workout sheets, assign program schedules, and review multi-tier exercise tutorials.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-utensils"></i></div>
-                    <h3>Nutrition</h3>
-                    <p>Assign diet plans, log meals, track macros, and monitor 30-day progress.</p>
+                    <h3>Nutrition Planners</h3>
+                    <p>Generate highly structured diet models, log macro allocations, track calorie metrics, and check progress logs.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-chart-bar"></i></div>
-                    <h3>Reports</h3>
-                    <p>Analytics, fitness metrics, attendance reports, and data exports.</p>
+                    <h3>Analytics Reports</h3>
+                    <p>Compute fitness indicators, display visual chart matrices, monitor metrics logs, and run reports summaries.</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-card-icon"><i class="fas fa-shield"></i></div>
-                    <h3>Role-Based Access</h3>
-                    <p>Secure role-based control for Admin, Staff, Trainers, and Members.</p>
+                    <h3>Secure Control</h3>
+                    <p>Fully partition views and dashboard endpoints for Admin, Staff, Trainers, and Members seamlessly.</p>
                 </div>
             </div>
         </div>
@@ -612,29 +494,29 @@
     <section class="roles-section">
         <div class="landing-container">
             <div class="section-header">
-                <h2>Built for Every Role</h2>
-                <p>Each user gets a customized experience</p>
+                <h2>Tailored Workspace Panels</h2>
+                <p>Individual dashboard flows built precisely around the tasks of every gym stakeholder</p>
             </div>
             <div class="roles-grid">
                 <div class="role-card">
                     <div class="role-card-icon"><i class="fas fa-user-shield"></i></div>
-                    <h3>Admin</h3>
-                    <p>Manage staff, trainers, approvals, guide review, and system-wide settings.</p>
+                    <h3>System Admin</h3>
+                    <p>Review active staff, approve onboarding requests, auditing system files, and monitor data health metrics.</p>
                 </div>
                 <div class="role-card">
                     <div class="role-card-icon"><i class="fas fa-headset"></i></div>
-                    <h3>Staff</h3>
-                    <p>Front desk operations, attendance, member support, and daily workflows.</p>
+                    <h3>Desk Staff</h3>
+                    <p>Execute attendance check-ins, record visitor logs, edit general member profiles, and check active counts.</p>
                 </div>
                 <div class="role-card">
                     <div class="role-card-icon"><i class="fas fa-person-running"></i></div>
-                    <h3>Trainer</h3>
-                    <p>Manage members, create programs, assign guides, diets, and track progress.</p>
+                    <h3>Active Trainer</h3>
+                    <p>Oversee assigned trainees, track workout schedules, issue customized meal models, and view charts.</p>
                 </div>
                 <div class="role-card">
                     <div class="role-card-icon"><i class="fas fa-id-card"></i></div>
-                    <h3>Member</h3>
-                    <p>Track workouts, follow guides, log meals, view progress, and stay motivated.</p>
+                    <h3>Gym Member</h3>
+                    <p>View daily training guides, check off exercise sets, log dietary tracking macros, and record progress.</p>
                 </div>
             </div>
         </div>
@@ -643,22 +525,22 @@
     <!-- CTA SECTION -->
     <section class="cta-section">
         <div class="cta-content">
-            <h2>Ready to get started?</h2>
-            <p>Take a test drive of the complete system with our demo account or create your own.</p>
+            <h2>Take control of your gym</h2>
+            <p>Deploy a fast, secure, and athletic-focused dashboard ecosystem optimized for mobile and desktop screens alike.</p>
             <div class="cta-buttons">
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i> Demo Sign In
+                    <i class="fas fa-sign-in-alt"></i> Login with Demo
                 </a>
                 <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-lg">
-                    <i class="fas fa-user-plus"></i> Create Account
+                    <i class="fas fa-user-plus"></i> Register
                 </a>
             </div>
         </div>
     </section>
 
     <!-- FOOTER INFO -->
-    <section class="footer-info">
-        <p>GymTrack Pro is a complete gym management platform with attendance tracking, member management, trainer workflows, and comprehensive reporting.</p>
-    </section>
+    <footer class="footer-info">
+        <p>GymTrack Pro is a modern web platform engineered using secure Django models, clean Jinja2 rendering environments, and high contrast CSS tokens. Powered by Outfit and Rajdhani athletic typographies.</p>
+    </footer>
 </div>
 {% endblock %}

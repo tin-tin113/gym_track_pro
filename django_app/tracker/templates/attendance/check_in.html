@@ -3,18 +3,18 @@
 {% block title %}Check-In - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="attendance-page attendance-check-in row">
     <!-- QR Code Column -->
     <div class="col-md-6">
-        <div class="card mb-4">
+        <div class="card mb-3">
             <div class="card-header">
                 <h4 class="mb-0"><i class="fas fa-qrcode"></i> QR Code Check-In</h4>
             </div>
             <div class="card-body text-center">
-                <p class="text-muted mb-3">Display this QR code to members</p>
+                <p class="text-muted mb-2">Display this QR code to members</p>
 
                 <!-- QR Code Image -->
-                <div class="mb-4 p-4 bg-light rounded">
+                <div class="mb-3 p-3 bg-light rounded">
                     <img src="{{ qr_image }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
                 </div>
 
@@ -24,7 +24,7 @@
                     <div id="countdown" style="font-size: 2rem; font-weight: bold;">
                         <span id="minutes">{{ countdown.minutes }}</span>:<span id="seconds">{{ "%.02d"|format(countdown.seconds) }}</span>
                     </div>
-                    <small class="d-block mt-2">QR codes refresh every 24 hours</small>
+                    <small class="d-block mt-1">QR codes refresh every 24 hours</small>
                 </div>
 
                 <!-- Refresh Button -->
@@ -51,9 +51,9 @@
                 <h4 class="mb-0"><i class="fas fa-check"></i> Manual Check-In</h4>
             </div>
             <div class="card-body">
-                <p class="text-muted mb-4">For members without QR code access</p>
+                <p class="text-muted mb-2">For members without QR code access</p>
 
-                <form method="POST" action="{{ url_for('attendance_routes.check_in') }}">
+                <form id="manual-checkin-form" method="POST" action="{{ url_for('attendance_routes.check_in') }}">
                     <div class="form-group">
                         <label for="member_id" class="form-label">Select Member *</label>
                         <select class="form-control" id="member_id" name="member_id" required autofocus style="padding: 12px; font-size: 16px;">
@@ -66,21 +66,33 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 mb-3" style="padding: 12px; font-size: 16px;"><i class="fas fa-check"></i> Check In Member</button>
+                    <button type="button" id="open-checkin-modal" class="btn btn-primary w-100 mb-3" style="padding: 12px; font-size: 16px;"><i class="fas fa-check"></i> Check In Member</button>
+                </form>
+
+                <form id="undo-checkin-form" method="POST" action="{{ url_for('attendance_routes.undo_check_in') }}">
+                    <div class="form-group">
+                        <label for="undo_member_id" class="form-label">Undo Today's Check-In</label>
+                        <select class="form-control" id="undo_member_id" name="member_id" required style="padding: 10px 12px; font-size: 15px;">
+                            <option value="">-- Choose a member --</option>
+                            {% for member in members %}
+                            <option value="{{ member.id }}">{{ member.user.full_name }} ({{ member.user.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" id="open-undo-modal" class="btn btn-outline-danger w-100 mb-2"><i class="fas fa-undo"></i> Undo Today's Check-In</button>
                 </form>
 
                 <!-- Quick Member Buttons -->
-                <hr class="my-4">
-                <h6 class="mb-3"><i class="fas fa-lightning-bolt"></i> Quick Check-In</h6>
+                <hr class="my-2">
+                <h6 class="mb-2"><i class="fas fa-lightning-bolt"></i> Quick Check-In</h6>
                 <div style="max-height: 300px; overflow-y: auto;">
                     {% if members %}
                         {% for member in members[:8] %}
-                        <form method="POST" action="{{ url_for('attendance_routes.check_in') }}" class="d-inline mb-2">
-                            <input type="hidden" name="member_id" value="{{ member.id }}">
-                            <button type="submit" class="btn btn-small btn-secondary">
+                        <div class="d-inline mb-1 me-1">
+                            <button type="button" class="btn btn-small btn-secondary quick-checkin-btn" data-member-id="{{ member.id }}">
                                 <i class="fas fa-check"></i> {{ member.user.full_name|truncate(20) }}
                             </button>
-                        </form>
+                        </div>
                         {% endfor %}
                     {% else %}
                         <p class="text-muted">No active members</p>
@@ -114,4 +126,157 @@ function updateCountdown() {
 
 setInterval(updateCountdown, 1000);
 </script>
+
+<!-- Check-in Confirmation Modal -->
+<div class="modal fade" id="checkinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Check-In</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="checkin-modal-form" method="POST" action="{{ url_for('attendance_routes.check_in') }}">
+                <input type="hidden" name="next" value="{{ url_for('attendance_routes.check_in') }}">
+                <input type="hidden" name="member_id" id="modal_member_id">
+                <div class="modal-body">
+                    <p>Check in <strong id="modal_member_name">selected member</strong> now?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Check-In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Undo Confirmation Modal -->
+<div class="modal fade" id="undoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Undo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="undo-modal-form" method="POST" action="{{ url_for('attendance_routes.undo_check_in') }}">
+                <input type="hidden" name="next" value="{{ url_for('attendance_routes.check_in') }}">
+                <input type="hidden" name="member_id" id="undo_modal_member_id">
+                <div class="modal-body">
+                    <p>Remove today's check-in for <strong id="undo_modal_member_name">selected member</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Remove Check-In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+        const checkinModal = new bootstrap.Modal(document.getElementById('checkinModal'));
+        const undoModal = new bootstrap.Modal(document.getElementById('undoModal'));
+
+        function openCheckinModal(memberId, memberName) {
+                document.getElementById('modal_member_id').value = memberId;
+                document.getElementById('modal_member_name').textContent = memberName;
+                checkinModal.show();
+        }
+
+        function openUndoModal(memberId, memberName) {
+                document.getElementById('undo_modal_member_id').value = memberId;
+                document.getElementById('undo_modal_member_name').textContent = memberName;
+                undoModal.show();
+        }
+
+        // Manual check-in button
+        document.getElementById('open-checkin-modal').addEventListener('click', function (e) {
+                const sel = document.getElementById('member_id');
+                if (!sel.value) {
+                        showToast('Please select a member first.', 'warning');
+                        return;
+                }
+                const selectedName = sel.options[sel.selectedIndex].text;
+                openCheckinModal(sel.value, selectedName);
+        });
+
+        // Quick check-in buttons
+        document.querySelectorAll('.quick-checkin-btn').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                        const memberId = this.dataset.memberId;
+                        const memberName = this.textContent.trim();
+                        openCheckinModal(memberId, memberName);
+                });
+        });
+
+        // Undo button opens undo modal
+        document.getElementById('open-undo-modal').addEventListener('click', function () {
+                const sel = document.getElementById('undo_member_id');
+                if (!sel.value) {
+                        showToast('Please select a member to undo.', 'warning');
+                        return;
+                }
+                const selectedName = sel.options[sel.selectedIndex].text;
+                openUndoModal(sel.value, selectedName);
+        });
+
+        // Convert base flash messages into toasts (do not touch page-local alerts)
+        document.querySelectorAll('#flash-messages .alert').forEach(function (alertEl) {
+                const category = alertEl.className.match(/alert-([a-z]+)/);
+                const variant = (category && category[1] === 'danger') ? 'danger' : (category ? category[1] : 'info');
+                const body = alertEl.querySelector('div') ? alertEl.querySelector('div').innerHTML : alertEl.innerHTML;
+                showToast(body, variant);
+                // remove original alert
+                alertEl.remove();
+        });
+
+        function showToast(message, variant='info', timeout=4000) {
+                const id = 't' + Math.random().toString(36).slice(2,9);
+                const toastHtml = `
+                        <div id="${id}" class="toast text-bg-${variant} mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-inner">
+                                <div class="toast-body">${message}</div>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>`;
+                const container = document.getElementById('toast-container');
+                container.insertAdjacentHTML('beforeend', toastHtml);
+                const toastEl = document.getElementById(id);
+                const toast = new bootstrap.Toast(toastEl, { delay: timeout });
+                toast.show();
+        }
+});
+</script>
+
+<style>
+.attendance-check-in.row {
+    gap: var(--spacing-md);
+}
+
+.attendance-check-in .card {
+    margin-bottom: 0;
+}
+
+.attendance-check-in .card-body {
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+}
+
+.attendance-check-in .card-header {
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+}
+
+.attendance-check-in .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.attendance-check-in .quick-checkin-btn {
+    margin-bottom: var(--spacing-sm);
+}
+</style>
 {% endblock %}

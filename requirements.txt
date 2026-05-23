@@ -1,5 +1,6 @@
 # Django
 Django
+Jinja2
 dj-database-url
 
 # Database

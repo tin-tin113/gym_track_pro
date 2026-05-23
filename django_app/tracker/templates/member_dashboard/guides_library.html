@@ -1,24 +1,157 @@
 {% extends "base.html" %}
-{% block title %}Guide Library - GymTrack Pro{% endblock %}
+{% block title %}Guides & Programs - GymTrack Pro{% endblock %}
 {% block content %}
 <div class="page-container">
-    <div class="page-header">
-        <h1 class="page-title">📚 Browse Workout Guides</h1>
-        <p class="page-subtitle">Explore programs available for assignment by your trainer</p>
-    </div>
-    <div class="row">
-        {% for guide in guides.items %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="program-card">
-                <h5 style="color: var(--neon-purple);">{{ guide.name }}</h5>
-                <span class="badge program-card-difficulty {{ guide.difficulty_level|lower }}">{{ guide.difficulty_level }}</span>
-                <p class="text-muted mt-2">{{ guide.description[:80] }}</p>
-                <form action="{{ url_for('member.request_guide_assignment', guide_id=guide.id) }}" method="POST">
-                    <button type="submit" class="btn btn-gym-action btn-sm w-100">Request</button>
-                </form>
-            </div>
+    <!-- My Assigned Programs Section -->
+    <div class="mb-5">
+        <div class="page-header">
+            <h2 class="page-title" style="color: #ffffff; margin-bottom: 20px;">
+                <i class="fas fa-tasks"></i> My Assigned Programs
+            </h2>
         </div>
-        {% endfor %}
+        {% if assigned_programs %}
+        <div class="row">
+            {% for assignment in assigned_programs %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="program-card" style="border-left: 4px solid var(--teal); background: var(--surface); border: 1px solid var(--border-color); box-shadow: var(--shadow-md);">
+                    <div style="margin-bottom: 10px;">
+                        <h5 style="color: #ffffff; margin-bottom: 5px;">{{ assignment.guide.name }}</h5>
+                        <span class="badge" style="background: var(--teal); color: white; font-size: 12px;">
+                            {{ assignment.guide.difficulty_level }}
+                        </span>
+                    </div>
+
+                    {% if assignment.target_completion_date %}
+                    <div style="margin: 10px 0; font-size: 13px;">
+                        {% if assignment.is_expiring_soon %}
+                        <span style="color: #e74c3c; font-weight: bold;">
+                            <i class="fas fa-exclamation-circle"></i> Expires Soon
+                        </span>
+                        {% elif assignment.is_completed %}
+                        <span style="color: #27ae60; font-weight: bold;">
+                            <i class="fas fa-check-circle"></i> Completed
+                        </span>
+                        {% else %}
+                        <span style="color: #3498db;">
+                            Due: {{ assignment.target_completion_date.strftime('%b %d, %Y') }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <p class="text-muted mt-2" style="font-size: 13px;">{{ assignment.guide.description[:100] }}</p>
+
+                    <div style="background: var(--bg-secondary); padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; margin-top: 10px;">
+                        <strong style="font-size: 12px; color: var(--text-secondary);">Progress:</strong>
+                        <div style="background: #e0e0e0; height: 6px; border-radius: 3px; margin-top: 5px; overflow: hidden;">
+                            <div style="background: var(--teal); height: 100%; width: {{ assignment.calculate_progress }}%;">
+                            </div>
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-muted);">{{ assignment.calculate_progress }}% Complete</span>
+                    </div>
+
+                    <a href="/member/guides/{{ assignment.guide.id }}"
+                       class="btn btn-primary btn-sm w-100 mt-3"
+                       style="background: var(--teal); border: none; color: white;">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px;">
+            <p style="color: #7f8c8d; font-size: 14px;">
+                <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
+                No assigned programs yet. Your trainer will assign programs here.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Browse All Guides Section -->
+    <div>
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="page-title" style="color: #ffffff; margin: 0;">
+                    <i class="fas fa-book"></i> Browse Workout Guides
+                </h2>
+                <p style="color: #7f8c8d; margin: 0; font-size: 14px;">
+                    Explore programs available for your fitness journey
+                </p>
+            </div>
+            <div style="border-bottom: 3px solid var(--teal); margin-top: 15px;"></div>
+        </div>
+
+        {% if guides %}
+        <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
+            {% for guide in guides %}
+            <div class="guide-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; background: var(--surface); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
+                <!-- Guide Header -->
+                <div style="margin-bottom: 12px;">
+                    <h5 style="color: #ffffff; margin: 0 0 8px 0; font-size: 15px;">
+                        <a href="/member/guides/{{ guide.id }}" style="color: #ffffff; text-decoration: none; cursor: pointer;" onmouseover="this.style.textDecoration='underline'; this.style.color='var(--color-teal)';" onmouseout="this.style.textDecoration='none'; this.style.color='#ffffff';">
+                            {{ guide.name }}
+                        </a>
+                    </h5>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="badge" style="background: var(--teal); color: white; font-size: 11px; padding: 4px 8px; font-weight: 500; display: inline-block;">
+                            {{ guide.difficulty_level|upper }}
+                        </span>
+                        <span style="font-size: 11px; color: #7f8c8d;">{{ guide.category }}</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <p style="color: #7f8c8d; font-size: 13px; margin: 12px 0; line-height: 1.5;">
+                    {{ guide.description[:100] }}{% if guide.description|length > 100 %}...{% endif %}
+                </p>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                    <a href="/member/guides/{{ guide.id }}" style="flex: 1; background: var(--color-teal); border: 2px solid var(--color-teal); color: #000000; padding: 14px 18px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s ease; text-decoration: none; text-align: center; display: inline-block; box-shadow: var(--shadow-teal); opacity: 1; visibility: visible;" onmouseover="this.style.background='var(--color-teal-light)'; this.style.boxShadow='0 6px 16px rgba(0,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--color-teal)'; this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(0)';" title="View guide content">
+                        <i class="fas fa-eye" style="margin-right: 6px;"></i> VIEW GUIDE
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
+            <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
+            <p style="color: #7f8c8d;">No guides available yet.</p>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+    .guide-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 217, 217, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .badge {
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: 500;
+    }
+
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+        [style*="grid-template-columns"] {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        }
+    }
+</style>
 {% endblock %}

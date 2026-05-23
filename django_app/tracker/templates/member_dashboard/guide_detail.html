@@ -66,17 +66,7 @@
             <div class="card mb-4">
                 <div class="card-header">Exercise Guidance & Tips</div>
                 <div class="card-body">
-                    {% if tips %}
-                        {% set grouped_tips = {} %}
-                        {% for tip in tips %}
-                            {% set exercise = tip.exercise_name %}
-                            {% if exercise not in grouped_tips %}
-                                {% set grouped_tips = grouped_tips|combine({exercise: []}) %}
-                            {% endif %}
-                            {% set tips_list = grouped_tips[exercise] %}
-                            {% set _ = tips_list.append(tip) %}
-                        {% endfor %}
-
+                    {% if grouped_tips %}
                         {% for exercise, exercise_tips in grouped_tips.items() %}
                         <div class="mb-4">
                             <h6 style="color: var(--neon-purple); text-transform: uppercase; margin-bottom: var(--spacing-md);">

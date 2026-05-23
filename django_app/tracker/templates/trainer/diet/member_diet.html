@@ -1,41 +1,102 @@
 {% extends "base.html" %}
-{% block title %}Member Diet - GymTrack Pro{% endblock %}
+{% block title %}Member Diet Plan - GymTrack Pro{% endblock %}
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <div>
-            <h1 class="page-title">🥗 {{ member.user.full_name }}'s Diet</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 class="page-title" style="color: #ffffff; margin: 0;">{{ member.user.full_name }}'s Diet Plan</h1>
+            {% if diet_assignment %}
+            <form action="/trainer/member/{{ member.id }}/diet/remove/" method="POST" style="display: inline;">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <button type="submit" class="btn" style="background: #e74c3c; border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;" onclick="return confirm('Remove this diet plan?')">
+                    <i class="fas fa-trash"></i> Remove Diet
+                </button>
+            </form>
+            {% endif %}
         </div>
-        {% if diet_assignment %}
-        <form action="{{ url_for('trainer.remove_member_diet', member_id=member.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Remove diet?')">Remove Diet</button>
-        </form>
-        {% endif %}
     </div>
+
     {% if diet_assignment %}
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 style="color: var(--neon-orange);">{{ diet_assignment.diet.name }}</h5>
-            <p>{{ diet_assignment.diet.description }}</p>
-            <div class="calorie-tracker mt-3">
-                <div class="calorie-label">Daily Calories</div>
-                <div class="calorie-value">{{ diet_assignment.diet.daily_calories }}</div>
+    <div style="background: var(--surface); border: 1px solid var(--border-color); border-left: 4px solid var(--teal); padding: 20px; border-radius: 6px; box-shadow: var(--shadow-md); margin-top: 20px;">
+        <!-- Diet Plan Info -->
+        <h5 style="color: #ffffff; margin: 0 0 12px 0;">{{ diet_assignment.diet_plan.name }}</h5>
+        <p style="color: var(--text-secondary); margin: 0 0 15px 0; line-height: 1.5;">{{ diet_assignment.diet_plan.description }}</p>
+
+        <!-- Calories & Macros -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;">
+            <div style="text-align: center;">
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Daily Calories</div>
+                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.daily_calories }}</div>
             </div>
-            <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-md);">
-                <div><strong>Protein:</strong> {{ (diet_assignment.diet.macro_ratio_protein * 100)|int }}%</div>
-                <div><strong>Carbs:</strong> {{ (diet_assignment.diet.macro_ratio_carbs * 100)|int }}%</div>
-                <div><strong>Fats:</strong> {{ (diet_assignment.diet.macro_ratio_fats * 100)|int }}%</div>
+            <div style="text-align: center;">
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Protein</div>
+                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
             </div>
+            <div style="text-align: center;">
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Carbs</div>
+                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Fats</div>
+                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
+            </div>
+        </div>
+
+        <!-- Expiration Status -->
+        {% if diet_assignment.target_end_date %}
+        <div style="margin: 15px 0; padding: 12px; background: rgba(0, 229, 229, 0.08); border-left: 3px solid var(--teal); border: 1px solid var(--border-color); border-radius: 4px;">
+            {% if diet_assignment.is_expiring_soon %}
+                <div style="color: #e74c3c; font-weight: bold; font-size: 12px;">
+                    <i class="fas fa-exclamation-circle"></i> Diet Plan Expiring Soon
+                </div>
+                <div style="font-size: 11px; color: #c0392b; margin-top: 4px;">
+                    Expires: {{ diet_assignment.target_end_date|strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry }} days)
+                </div>
+            {% else %}
+                <div style="color: #3498db; font-weight: bold; font-size: 12px;">
+                    <i class="fas fa-check-circle"></i> Active
+                </div>
+                <div style="font-size: 11px; color: #2980b9; margin-top: 4px;">
+                    Expires: {{ diet_assignment.target_end_date|strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry }} days remaining)
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if diet_assignment.notes %}
+        <div style="margin-top: 15px; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; color: var(--text-secondary);">
+            <strong style="display: block; margin-bottom: 5px;">Notes:</strong>
+            {{ diet_assignment.notes }}
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <a href="/trainer/member/{{ member.id }}/diet/assign/" class="btn" style="flex: 1; background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-edit"></i> Change Diet
+            </a>
+            <a href="/member/diet/current/" class="btn" style="flex: 1; background: var(--navy); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-eye"></i> View for Member
+            </a>
         </div>
     </div>
-    <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-primary">Change Diet</a>
+
     {% else %}
-    <div class="card">
-        <div class="card-body" style="text-align: center; padding: var(--spacing-2xl);">
-            <p class="text-muted">No diet plan assigned yet</p>
-            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-gym-action mt-3">Assign Diet</a>
-        </div>
+    <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
+        <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">No diet plan assigned yet</p>
+        <a href="/trainer/member/{{ member.id }}/diet/assign/" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">
+            <i class="fas fa-plus"></i> Assign Diet Plan
+        </a>
     </div>
     {% endif %}
 </div>
+
+<style>
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+</style>
 {% endblock %}

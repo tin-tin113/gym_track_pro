@@ -58,6 +58,29 @@ class TrainerModuleSmokeTests(TestCase):
 
 		Attendance.objects.create(member=self.member, check_in_time=timezone.now() - timedelta(days=1), duration_minutes=45)
 
+	def test_admin_review_guide_page_renders(self):
+		guide = WorkoutGuide.objects.create(
+			name='Test Guide',
+			description='Test description',
+			category='Strength',
+			difficulty_level='Beginner',
+			duration_weeks=4,
+			trainer=self.trainer_user,
+			status=WorkoutGuide.Status.PENDING,
+		)
+		WorkoutTip.objects.create(
+			guide=guide,
+			exercise_name='Squat',
+			tip_category='Form',
+			content='Keep your back neutral.',
+			order=1,
+		)
+
+		self.client.force_login(self.admin)
+		resp = self.client.get(reverse('admin.review_guide', kwargs={'guide_id': guide.id}))
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Tips Included:')
+
 	def test_trainer_dashboard_and_members_pages(self):
 		self.client.force_login(self.trainer_user)
 		resp = self.client.get(reverse('trainer.dashboard'))
@@ -156,3 +179,16 @@ class TrainerModuleSmokeTests(TestCase):
 		)
 		self.assertEqual(resp.status_code, 302)
 		self.assertTrue(DietAssignment.objects.filter(member=self.member, diet_plan=plan, is_active=True).exists())
+
+	def test_public_signup_accepts_matching_passwords(self):
+		resp = self.client.post(
+			reverse('auth.signup'),
+			data={
+				'full_name': 'New Member',
+				'email': 'new.member@example.com',
+				'password': 'StrongPass123!',
+				'confirm_password': 'StrongPass123!',
+			},
+		)
+		self.assertEqual(resp.status_code, 302)
+		self.assertTrue(User.objects.filter(email='new.member@example.com').exists())

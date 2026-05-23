@@ -1,6 +1,24 @@
+{% macro sidebar_link(url, icon, label, route_key) -%}
+<li class="sidebar-nav-item">
+    <a href="{{ url }}" class="sidebar-nav-link{% if sidebar_active_route == route_key %} active{% endif %}">
+        <span class="sidebar-nav-icon"><i class="fas fa-{{ icon }}"></i></span>
+        <span class="sidebar-nav-text">{{ label }}</span>
+    </a>
+</li>
+{%- endmacro %}
+
 <!-- Sidebar Navigation -->
 <div class="sidebar">
     <nav class="sidebar-nav-container">
+        {% if sidebar_current_page_title %}
+        <div class="sidebar-current-page">
+            <div class="sidebar-current-page-kicker">
+                <i class="fas fa-location-dot"></i>
+                <span>Current page</span>
+            </div>
+            <div class="sidebar-current-page-title">{{ sidebar_current_page_title }}</div>
+        </div>
+        {% endif %}
         <ul class="sidebar-nav">
             <!-- Member Navigation -->
             {% if current_user.member %}
@@ -8,42 +26,11 @@
                 <i class="fas fa-user-circle"></i>
                 <span>Member</span>
             </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.member_dashboard') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-chart-line"></i></span>
-                    <span class="sidebar-nav-text">Progress</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.member_profile') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-user"></i></span>
-                    <span class="sidebar-nav-text">Profile</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.list_workouts') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-dumbbell"></i></span>
-                    <span class="sidebar-nav-text">Workouts</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.member_programs') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-book"></i></span>
-                    <span class="sidebar-nav-text">Programs</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.current_diet') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-apple-alt"></i></span>
-                    <span class="sidebar-nav-text">Nutrition</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('attendance_routes.check_in') }}" class="sidebar-nav-link sidebar-nav-link-cta">
-                    <span class="sidebar-nav-icon"><i class="fas fa-sign-in-alt"></i></span>
-                    <span class="sidebar-nav-text">Check In</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('member.member_dashboard'), 'chart-line', 'Progress', 'member.dashboard') }}
+            {{ sidebar_link(url_for('member.member_profile'), 'user', 'Profile', 'member.profile') }}
+            {{ sidebar_link(url_for('member.list_workouts'), 'dumbbell', 'Workouts', 'member.workouts') }}
+            {{ sidebar_link(url_for('member.member_programs'), 'book', 'Programs', 'member.programs') }}
+            {{ sidebar_link(url_for('member.current_diet'), 'apple-alt', 'Nutrition', 'member.nutrition') }}
             {% endif %}
 
             <!-- Trainer Navigation -->
@@ -52,36 +39,11 @@
                 <i class="fas fa-heart-pulse"></i>
                 <span>Trainer</span>
             </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.dashboard') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-chart-line"></i></span>
-                    <span class="sidebar-nav-text">Dashboard</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.members') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-users"></i></span>
-                    <span class="sidebar-nav-text">Members</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.list_guides') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-book"></i></span>
-                    <span class="sidebar-nav-text">Guides</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.list_diet_plans') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-apple-alt"></i></span>
-                    <span class="sidebar-nav-text">Diets</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('fitness.add_metrics') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-heartbeat"></i></span>
-                    <span class="sidebar-nav-text">Metrics</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('trainer.dashboard'), 'chart-line', 'Dashboard', 'trainer.dashboard') }}
+            {{ sidebar_link(url_for('trainer.members'), 'users', 'Members', 'trainer.members') }}
+            {{ sidebar_link(url_for('trainer.list_guides'), 'book', 'Guides', 'trainer.guides') }}
+            {{ sidebar_link(url_for('trainer.list_diet_plans'), 'apple-alt', 'Diets', 'trainer.diets') }}
+            {{ sidebar_link(url_for('fitness.add_metrics'), 'heartbeat', 'Metrics', 'fitness.metrics') }}
             {% endif %}
 
             <!-- Admin/Staff Navigation -->
@@ -90,45 +52,20 @@
                 <i class="fas fa-cog"></i>
                 <span>Management</span>
             </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-gauge"></i></span>
-                    <span class="sidebar-nav-text">Dashboard</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('admin.dashboard'), 'gauge', 'Dashboard', 'admin.dashboard') }}
 
             <!-- Member Management -->
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('member.list_members') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-users"></i></span>
-                    <span class="sidebar-nav-text">Members</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('member.list_members'), 'users', 'Members', 'admin.members') }}
 
             <!-- Trainer Management (Admin only) -->
             {% if current_user.is_admin %}
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('trainer.list_trainers') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-heart-pulse"></i></span>
-                    <span class="sidebar-nav-text">Trainers</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('trainer.list_trainers'), 'heart-pulse', 'Trainers', 'admin.trainers') }}
 
             <!-- Staff Management (Admin only) -->
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('staff.list_staff') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-users-cog"></i></span>
-                    <span class="sidebar-nav-text">Staff</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('staff.list_staff'), 'users-cog', 'Staff', 'admin.staff') }}
 
             <!-- Guide Approvals (Admin only) -->
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('admin.pending_guides') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-check-circle"></i></span>
-                    <span class="sidebar-nav-text">Approvals</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('admin.pending_guides'), 'check-circle', 'Approvals', 'admin.approvals') }}
             {% endif %}
 
             <!-- Attendance & Reports -->
@@ -136,27 +73,10 @@
                 <i class="fas fa-clipboard"></i>
                 <span>Operations</span>
             </li>
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('attendance_routes.dashboard') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-calendar-check"></i></span>
-                    <span class="sidebar-nav-text">Attendance</span>
-                </a>
-            </li>
-
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('reports.daily_attendance') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-clock"></i></span>
-                    <span class="sidebar-nav-text">Today</span>
-                </a>
-            </li>
-
-            <!-- Reports -->
-            <li class="sidebar-nav-item">
-                <a href="{{ url_for('reports.dashboard') }}" class="sidebar-nav-link">
-                    <span class="sidebar-nav-icon"><i class="fas fa-chart-bar"></i></span>
-                    <span class="sidebar-nav-text">Reports</span>
-                </a>
-            </li>
+            {{ sidebar_link(url_for('attendance_routes.check_in'), 'sign-in-alt', 'Check In', 'attendance.check_in') }}
+            {{ sidebar_link(url_for('attendance_routes.dashboard'), 'calendar-check', 'Attendance', 'attendance.dashboard') }}
+            {{ sidebar_link(url_for('reports.daily_attendance'), 'clock', 'Today', 'reports.daily_attendance') }}
+            {{ sidebar_link(url_for('reports.dashboard'), 'chart-bar', 'Reports', 'reports.dashboard') }}
 
             {% endif %}
         </ul>

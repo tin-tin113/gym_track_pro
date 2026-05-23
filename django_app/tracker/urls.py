@@ -46,6 +46,7 @@ urlpatterns = [
     # Attendance
     path('attendance/', views.attendance_dashboard, name='attendance_routes.dashboard'),
     path('attendance/check-in', views.attendance_check_in, name='attendance_routes.check_in'),
+    path('attendance/undo-check-in', views.attendance_undo_check_in, name='attendance_routes.undo_check_in'),
     path('attendance/check-out/<int:attendance_id>', views.attendance_check_out, name='attendance_routes.check_out'),
     path('attendance/history', views.attendance_history, name='attendance_routes.history'),
     path('attendance/stats', views.attendance_stats, name='attendance_routes.stats'),
@@ -90,6 +91,8 @@ urlpatterns = [
     path('trainer/members/<int:member_id>/guides', views.trainer_member_guides, name='trainer.member_guides'),
     path('trainer/members/<int:member_id>/guides/assign', views.trainer_assign_guide_to_member, name='trainer.assign_guide_to_member'),
     path('trainer/members/<int:member_id>/guides/<int:guide_id>/unassign', views.trainer_unassign_guide, name='trainer.unassign_guide'),
+    path('member/guides/<int:assignment_id>/complete', views.member_complete_guide, name='member.complete_guide'),
+    path('trainer/guides/<int:assignment_id>/complete', views.trainer_complete_member_guide, name='trainer.complete_member_guide'),
 
     # Diets
     path('trainer/diets/<int:plan_id>', views.trainer_view_diet_plan, name='trainer.view_diet_plan'),

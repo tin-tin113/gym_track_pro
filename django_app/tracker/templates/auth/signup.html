@@ -10,7 +10,7 @@
         min-height: calc(100vh - 80px - 60px);
         margin: -16px calc(-100vw / 2 + 100% / 2);
         width: 100vw;
-        background: #ffffff;
+        background: var(--bg-primary);
     }
 
     .signup-hero {
@@ -130,7 +130,7 @@
     .signup-form-header h2 {
         font-size: 32px;
         font-weight: 700;
-        color: var(--color-navy);
+        color: #ffffff;
         margin: 0 0 8px 0;
     }
 
@@ -163,7 +163,8 @@
         font-size: 15px;
         line-height: 1.5;
         transition: all var(--duration-fast) var(--easing-smooth);
-        background-color: #ffffff;
+        background-color: var(--bg-secondary);
+        color: #ffffff;
         min-height: 44px;
         box-sizing: border-box;
     }
@@ -193,8 +194,8 @@
     .password-strength {
         margin-top: 10px;
         padding: 10px 12px;
-        background-color: rgba(0, 217, 217, 0.05);
-        border: 1px solid rgba(0, 217, 217, 0.2);
+        background-color: var(--surface);
+        border: 1px solid var(--border-color);
         border-left: 3px solid var(--color-teal);
         border-radius: var(--radius-sm);
         font-size: 12px;
@@ -219,8 +220,8 @@
     }
 
     .btn-signup {
-        background-color: var(--color-navy);
-        color: var(--color-teal);
+        background-color: var(--color-teal);
+        color: #000000;
         border: 2px solid var(--color-teal);
         border-left: 3px solid var(--color-teal);
         padding: 14px 24px;
@@ -240,12 +241,12 @@
     }
 
     .btn-signup:hover {
-        background-color: var(--color-navy);
-        color: var(--color-teal-light);
+        background-color: var(--color-teal-light);
+        color: #000000;
         border-color: var(--color-teal-light);
         border-left-color: var(--color-teal-light);
         transform: translateY(-2px);
-        box-shadow: 0 0 15px rgba(0, 217, 217, 0.3);
+        box-shadow: var(--shadow-teal);
     }
 
     .btn-signup:active {
@@ -276,7 +277,7 @@
 
     .signup-divider span {
         position: relative;
-        background-color: #ffffff;
+        background-color: var(--bg-primary);
         padding: 0 12px;
         color: var(--text-muted);
         font-size: 12px;
@@ -308,8 +309,8 @@
     }
 
     .approval-notice {
-        background-color: rgba(0, 217, 217, 0.05);
-        border: 1px solid rgba(0, 217, 217, 0.2);
+        background-color: var(--surface);
+        border: 1px solid var(--border-color);
         border-left: 3px solid var(--color-teal);
         border-radius: var(--radius-md);
         padding: 14px 16px;
@@ -325,7 +326,7 @@
     }
 
     .approval-notice strong {
-        color: var(--color-navy);
+        color: #ffffff;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -472,7 +473,7 @@
                 <input
                     type="password"
                     id="password_confirm"
-                    name="password_confirm"
+                    name="confirm_password"
                     required
                     placeholder="••••••••"
                 >

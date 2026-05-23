@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GymTrack Pro{% endblock %}</title>
 
+    <!-- Google Fonts: Outfit (UI text) & Rajdhani (Headers & Stats) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -18,7 +23,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body style="display: flex; flex-direction: column; min-height: 100vh;">
+<body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-primary); color: var(--text-primary);">
     <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-brand">
@@ -33,11 +38,11 @@
                         <i class="fas fa-user-circle"></i>
                         {{ current_user.full_name }}
                     </a>
-                    <div id="user-dropdown" hidden style="position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 180px; box-shadow: var(--shadow-lg); z-index: var(--z-dropdown);">
-                        <a href="{{ url_for('auth.profile') }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border-color);">
+                    <div id="user-dropdown" hidden style="position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 180px; box-shadow: var(--shadow-lg); z-index: var(--z-dropdown);">
+                        <a href="{{ url_for('auth.profile') }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
                             <i class="fas fa-user"></i> Profile
                         </a>
-                        <a href="{{ url_for('auth.logout') }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px;">
+                        <a href="{{ url_for('auth.logout') }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px; transition: background-color 0.2s;">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </div>
@@ -63,7 +68,7 @@
                 <!-- Flash messages -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                <div style="margin-bottom: var(--spacing-lg);">
+                <div id="flash-messages" style="margin-bottom: var(--spacing-lg);">
                     {% for category, message in messages %}
                     <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
                         <div class="alert-icon">
@@ -85,8 +90,8 @@
         </div>
 
     <!-- Footer -->
-    <footer style="background-color: var(--color-navy); color: #ffffff; padding: var(--spacing-lg); text-align: center; margin-top: auto; width: 100%;">
-        <small>&copy; 2026 GymTrack Pro. All rights reserved.</small>
+    <footer style="background-color: var(--surface); color: var(--text-secondary); padding: var(--spacing-lg); text-align: center; margin-top: auto; width: 100%; border-top: 1px solid var(--border-color);">
+        <small style="color: var(--text-muted);">&copy; 2026 GymTrack Pro. All rights reserved.</small>
     </footer>
 
     <!-- Bootstrap JS -->
