@@ -97,7 +97,11 @@
             {% else %}
                 <div style="text-align: center; padding: var(--spacing-2xl);">
                     <i class="fas fa-inbox" style="font-size: 3rem; color: var(--light-gray); margin-bottom: var(--spacing-lg);"></i>
-                    <p class="text-muted">No active programs. Contact your trainer to get assigned a workout guide!</p>
+                    {% if current_user.member.assigned_trainer %}
+                        <p class="text-muted">No active programs. Reach out to your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to get assigned a tailored workout guide!</p>
+                    {% else %}
+                        <p class="text-muted">No active programs. You don't have a personal trainer assigned yet! Please contact gym staff to get paired with an expert trainer.</p>
+                    {% endif %}
                     <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-primary btn-sm mt-3">
                         Browse Guide Library
                     </a>
@@ -145,7 +149,11 @@
                         <div style="text-align: center; padding: var(--spacing-lg);">
                             <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
                             <p class="text-muted">No diet plan assigned yet</p>
-                            <p style="font-size: 0.9rem;">Contact your trainer to get a nutrition plan</p>
+                            {% if current_user.member.assigned_trainer %}
+                                <p style="font-size: 0.9rem;">Contact your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to get a nutrition plan.</p>
+                            {% else %}
+                                <p style="font-size: 0.9rem;">You don't have a personal trainer assigned yet! Contact gym staff or the front desk to get paired with a trainer to receive a custom nutrition plan.</p>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>

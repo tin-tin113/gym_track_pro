@@ -5,40 +5,98 @@
 <div class="container mt-4">
     <h1 class="mb-4"><i class="fas fa-user-circle"></i> My Profile</h1>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p><strong>Name:</strong> {{ member.user.full_name }}</p>
-                    <p><strong>Email:</strong> {{ member.user.email }}</p>
-                    <p><strong>Phone:</strong> {{ member.phone_number or 'N/A' }}</p>
+    <div class="row cols-2">
+        <!-- Personal Information Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-circle" style="color: var(--color-teal); margin-right: 8px;"></i> Personal Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ member.user.full_name }}</p>
+                        <p><strong>Email:</strong> {{ member.user.email }}</p>
+                        <p><strong>Phone:</strong> {{ member.phone_number or 'N/A' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Gender:</strong> {{ member.gender or 'N/A' }}</p>
+                        <p><strong>Date of Birth:</strong> {{ member.date_of_birth or 'N/A' }}</p>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <p><strong>Gender:</strong> {{ member.gender or 'N/A' }}</p>
-                    <p><strong>Date of Birth:</strong> {{ member.date_of_birth or 'N/A' }}</p>
+                <hr>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Membership Type:</strong> {{ member.membership_type }}</p>
+                        <p><strong>Started:</strong> {{ member.membership_start_date }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Expires:</strong> {{ member.membership_expiry_date }}</p>
+                        <p><strong>Status:</strong>
+                            {% if member.is_membership_active() %}
+                            <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
+                            {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Expired</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{{ url_for('member.edit_member_profile') }}" class="btn btn-primary"><i class="fas fa-pen-to-square"></i> Edit Profile</a>
                 </div>
             </div>
-            <hr>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <p><strong>Membership Type:</strong> {{ member.membership_type }}</p>
-                    <p><strong>Started:</strong> {{ member.membership_start_date }}</p>
-                </div>
-                <div class="col-md-6">
-                    <p><strong>Expires:</strong> {{ member.membership_expiry_date }}</p>
-                    <p><strong>Status:</strong>
-                        {% if member.is_membership_active() %}
-                        <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
+        </div>
+
+        <!-- Personal Trainer Card -->
+        <div class="card" style="border-left-color: var(--color-warning);">
+            <div class="card-header">
+                <h3><i class="fas fa-dumbbell" style="color: var(--color-warning); margin-right: 8px;"></i> My Personal Trainer</h3>
+            </div>
+            <div class="card-body">
+                {% if member.assigned_trainer %}
+                    <div style="display: flex; gap: var(--spacing-lg); align-items: start;">
+                        {% if member.assigned_trainer.trainer_profile.profile_image_url %}
+                            <img src="{{ member.assigned_trainer.trainer_profile.profile_image_url }}" alt="Trainer Photo" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--color-warning); object-fit: cover;">
                         {% else %}
-                        <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Expired</span>
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; border: 2px solid var(--color-warning);">
+                                <i class="fas fa-user-ninja" style="font-size: 32px; color: var(--color-warning);"></i>
+                            </div>
                         {% endif %}
-                    </p>
-                </div>
-            </div>
-            <div class="mt-4">
-                <a href="{{ url_for('member.edit_member_profile') }}" class="btn btn-primary"><i class="fas fa-pen-to-square"></i> Edit Profile</a>
+                        <div style="flex: 1;">
+                            <h2 style="font-size: 20px; color: var(--color-warning); margin-top: 0; margin-bottom: 4px;">{{ member.assigned_trainer.full_name }}</h2>
+                            {% if member.assigned_trainer.trainer_profile.specialization %}
+                                <p class="text-muted" style="font-size: 13px; font-weight: 700; color: var(--color-teal) !important; text-transform: uppercase; margin-bottom: 8px;">
+                                    {{ member.assigned_trainer.trainer_profile.specialization }}
+                                </p>
+                            {% endif %}
+                            {% if member.assigned_trainer.trainer_profile.years_experience %}
+                                <p style="font-size: 12px; margin-bottom: 12px; color: var(--text-muted);">
+                                    <i class="fas fa-award"></i> {{ member.assigned_trainer.trainer_profile.years_experience }} Years of Experience
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr style="margin: var(--spacing-md) 0;">
+                    <div>
+                        <p style="margin-bottom: 6px;"><strong>Email:</strong> {{ member.assigned_trainer.email }}</p>
+                        {% if member.assigned_trainer.trainer_profile.phone_number %}
+                            <p style="margin-bottom: 6px;"><strong>Phone:</strong> {{ member.assigned_trainer.trainer_profile.phone_number }}</p>
+                        {% endif %}
+                        {% if member.assigned_trainer.trainer_profile.bio %}
+                            <p style="margin-top: var(--spacing-md); line-height: 1.5; font-size: 13px; font-style: italic; color: var(--text-secondary);">
+                                "{{ member.assigned_trainer.trainer_profile.bio }}"
+                            </p>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div style="text-align: center; padding: var(--spacing-lg) 0;">
+                        <i class="fas fa-user-slash" style="font-size: 40px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-md);"></i>
+                        <h4 style="font-size: 16px; margin-bottom: 8px;">No Trainer Assigned Yet</h4>
+                        <p class="text-muted" style="font-size: 13px; margin-bottom: 0;">Please contact the front desk or gym administrator to get assigned to a personal trainer!</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

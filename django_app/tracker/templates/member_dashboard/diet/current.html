@@ -198,7 +198,11 @@
             <i class="fas fa-inbox" style="font-size: 40px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-lg);"></i>
             <h2 style="font-size: 20px; margin-bottom: 8px;">No Nutrition Plan Assigned</h2>
             <p class="text-muted" style="margin-bottom: 12px;">You don't have an active dietary model assigned yet.</p>
-            <p class="text-muted" style="margin-bottom: var(--spacing-xl);">Please request your personal gym trainer to compile a custom nutrition model structured around your target indicators.</p>
+            {% if current_user.member.assigned_trainer %}
+                <p class="text-muted" style="margin-bottom: var(--spacing-xl);">Please request your personal gym trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to compile a custom nutrition model structured around your target indicators.</p>
+            {% else %}
+                <p class="text-muted" style="margin-bottom: var(--spacing-xl);">You don't have a personal trainer assigned yet! Please contact gym staff or the front desk to get paired with an expert trainer to receive a custom nutrition plan.</p>
+            {% endif %}
             <a href="{{ url_for('member.member_dashboard') }}" class="btn btn-primary">
                 <i class="fas fa-arrow-left"></i> Back to Progress Dashboard
             </a>
