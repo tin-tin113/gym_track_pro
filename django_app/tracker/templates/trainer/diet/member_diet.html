@@ -1,19 +1,23 @@
-{% extends "base.html" %}
-{% block title %}Member Diet Plan - GymTrack Pro{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}{{ member.user.full_name }}'s Diet Plan - GymTrack Pro{% endblock %}
+
 {% block content %}
-<div class="page-container">
-    <div class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 class="page-title" style="margin: 0;">{{ member.user.full_name }}'s Diet Plan</h1>
-            {% if diet_assignment %}
-            <form action="{{ url_for('trainer.remove_member_diet', member_id=member.id) }}" method="POST" style="display: inline;">
-                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                <button type="submit" class="btn" style="background: #e74c3c; border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;" onclick="return confirm('Remove this diet plan?')">
-                    <i class="fas fa-trash"></i> Remove Diet
-                </button>
-            </form>
-            {% endif %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>🍎 Assigned Diet Plan</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Configure and manage customized daily calories, macro ratios, and diet schedules for {{ member.user.full_name }}</p>
         </div>
+        {% if diet_assignment %}
+        <form action="{{ url_for('trainer.remove_member_diet', member_id=member.id) }}" method="POST" style="display: inline; margin: 0;">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Remove this diet plan?')">
+                <i class="fas fa-trash"></i> Remove Diet
+            </button>
+        </form>
+        {% endif %}
     </div>
 
     <!-- Member Management Hub Tabs -->
@@ -33,86 +37,94 @@
     </div>
 
     {% if diet_assignment %}
-    <div style="background: var(--surface); border: 1px solid var(--border-color); border-left: 4px solid var(--teal); padding: 20px; border-radius: 6px; box-shadow: var(--shadow-md); margin-top: 20px;">
-        <!-- Diet Plan Info -->
-        <h5 style="margin: 0 0 12px 0;">{{ diet_assignment.diet_plan.name }}</h5>
-        <p style="color: var(--text-secondary); margin: 0 0 15px 0; line-height: 1.5;">{{ diet_assignment.diet_plan.description }}</p>
-
-        <!-- Calories & Macros -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;">
-            <div style="text-align: center;">
-                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Daily Calories</div>
-                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.daily_calories }}</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Protein</div>
-                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Carbs</div>
-                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Fats</div>
-                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
-            </div>
+    <div class="card mb-4" style="border-left-color: var(--color-teal); padding: var(--spacing-lg); margin-top: var(--spacing-lg);">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+            <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-apple-whole" style="color: var(--color-teal);"></i>
+                {{ diet_assignment.diet_plan.name }}
+            </h3>
         </div>
+        
+        <div class="card-body" style="padding: 0;">
+            <p class="text-secondary" style="font-size: 14px; line-height: 1.5; margin-bottom: var(--spacing-lg);">
+                {{ diet_assignment.diet_plan.description }}
+            </p>
 
-        <!-- Expiration Status -->
-        {% if diet_assignment.target_end_date %}
-        <div style="margin: 15px 0; padding: 12px; background: rgba(0, 229, 229, 0.08); border-left: 3px solid var(--teal); border: 1px solid var(--border-color); border-radius: 4px;">
-            {% if diet_assignment.is_expiring_soon %}
-                <div style="color: #e74c3c; font-weight: bold; font-size: 12px;">
-                    <i class="fas fa-exclamation-circle"></i> Diet Plan Expiring Soon
+            <!-- Calories & Macros Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--spacing-md); padding: var(--spacing-md); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md);">
+                <div style="text-align: center;">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Daily Calories</div>
+                    <div style="color: var(--color-teal); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.daily_calories }} kcal</div>
                 </div>
-                <div style="font-size: 11px; color: #c0392b; margin-top: 4px;">
-                    Expires: {{ diet_assignment.target_end_date|strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry }} days)
+                <div style="text-align: center;">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Protein Ratio</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
                 </div>
-            {% else %}
-                <div style="color: #3498db; font-weight: bold; font-size: 12px;">
-                    <i class="fas fa-check-circle"></i> Active
+                <div style="text-align: center;">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Carbs Ratio</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
                 </div>
-                <div style="font-size: 11px; color: #2980b9; margin-top: 4px;">
-                    Expires: {{ diet_assignment.target_end_date|strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry }} days remaining)
+                <div style="text-align: center;">
+                    <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Fats Ratio</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
                 </div>
+            </div>
+
+            <!-- Expiration Status -->
+            {% if diet_assignment.target_end_date %}
+            <div style="margin: var(--spacing-md) 0; padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 12px; display: flex; align-items: center; gap: 8px;">
+                {% if diet_assignment.is_expiring_soon() %}
+                    <span class="status-badge status-expired" style="font-size: 10px; padding: 2px 8px;">
+                        <i class="fas fa-exclamation-circle"></i> Expiring Soon
+                    </span>
+                    <span style="color: var(--color-danger); font-size: 11px;">Expires: {{ diet_assignment.target_end_date.strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry() }} days remaining)</span>
+                {% else %}
+                    <span class="status-badge status-success" style="font-size: 10px; padding: 2px 8px;">
+                        <i class="fas fa-check-circle"></i> Active Plan
+                    </span>
+                    <span style="color: var(--text-secondary); font-size: 11px;">Expires: {{ diet_assignment.target_end_date.strftime('%b %d, %Y') }} ({{ diet_assignment.days_until_expiry() }} days remaining)</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Notes -->
+            {% if diet_assignment.notes %}
+            <div style="margin-top: var(--spacing-md); padding: 10px 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary);">
+                <strong style="color: var(--text-primary); display: block; margin-bottom: 4px;">Notes & Recommendations:</strong>
+                {{ diet_assignment.notes }}
+            </div>
             {% endif %}
         </div>
-        {% endif %}
 
-        <!-- Notes -->
-        {% if diet_assignment.notes %}
-        <div style="margin-top: 15px; padding: 12px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; color: var(--text-secondary);">
-            <strong style="display: block; margin-bottom: 5px;">Notes:</strong>
-            {{ diet_assignment.notes }}
-        </div>
-        {% endif %}
-
-        <!-- Action Buttons -->
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn" style="flex: 1; background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
-                <i class="fas fa-edit"></i> Change Diet
+        <!-- Action CTAs -->
+        <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-lg); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md);">
+            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-secondary" style="flex: 1; padding: 8px 16px;">
+                <i class="fas fa-rotate"></i> Change Diet Plan
             </a>
-            <a href="{{ url_for('member.current_diet') }}" class="btn" style="flex: 1; background: var(--navy); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+            <a href="{{ url_for('member.current_diet') }}" class="btn btn-secondary" style="flex: 1; padding: 8px 16px;">
                 <i class="fas fa-eye"></i> View for Member
             </a>
         </div>
     </div>
-
     {% else %}
-    <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
-        <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
-        <p style="color: #7f8c8d; margin-bottom: 20px;">No diet plan assigned yet</p>
-        <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">
-            <i class="fas fa-plus"></i> Assign Diet Plan
+        <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
+            <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(0, 229, 229, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(0, 229, 229, 0.2); box-shadow: var(--shadow-teal);">
+                <i class="fas fa-apple-whole" style="font-size: 24px; color: var(--color-teal);"></i>
+            </div>
+            <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: #ffffff;">No diet plan assigned</h3>
+            <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
+                There is currently no nutrition or diet schedule configured for {{ member.user.full_name }}. Assign a diet plan to begin!
+            </p>
+            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn btn-success" style="padding: 10px 24px; font-size: 13px;">
+                <i class="fas fa-plus"></i> Assign Diet Plan
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="mt-4 mb-4" style="margin-top: var(--spacing-xl);">
+        <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Progress
         </a>
     </div>
-    {% endif %}
 </div>
-
-<style>
-    .btn:hover {
-        opacity: 0.9;
-        transform: translateY(-1px);
-    }
-</style>
 {% endblock %}

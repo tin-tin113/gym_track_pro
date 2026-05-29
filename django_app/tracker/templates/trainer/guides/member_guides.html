@@ -1,14 +1,18 @@
-{% extends "base.html" %}
-{% block title %}Member Guides - GymTrack Pro{% endblock %}
+{% extends 'base.html' %}
+
+{% block title %}{{ member.user.full_name }}'s Assigned Programs - GymTrack Pro{% endblock %}
+
 {% block content %}
-<div class="page-container">
-    <div class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 class="page-title" style="margin: 0;">{{ member.user.full_name }}'s Assigned Programs</h1>
-            <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;">
-                <i class="fas fa-plus"></i> Assign Guide
-            </a>
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>📖 Assigned Programs</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Manage and track training guides and workout programs assigned to {{ member.user.full_name }}</p>
         </div>
+        <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Assign Guide
+        </a>
     </div>
 
     <!-- Member Management Hub Tabs -->
@@ -28,67 +32,67 @@
     </div>
 
     {% if assignments %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+    <div class="row cols-3 mb-4" style="margin-top: var(--spacing-lg);">
         {% for assignment in assignments %}
-        <div class="program-card" style="border-left: 4px solid var(--teal); background: var(--surface); border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; box-shadow: var(--shadow-md);">
-            <!-- Header -->
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
-                <div>
-                    <h5 style="margin: 0 0 5px 0;">{{ assignment.guide.name }}</h5>
-                    <span class="badge" style="background: var(--teal); color: white; font-size: 11px; padding: 4px 8px; border-radius: 3px;">
-                        {{ assignment.guide.difficulty_level|upper }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Progress -->
-            <div style="margin: 12px 0;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong style="font-size: 12px; color: var(--text-secondary);">Progress:</strong>
-                    <span style="font-size: 12px; color: var(--text-muted);">{{ assignment.calculate_progress }}%</span>
-                </div>
-                <div style="background: #e0e0e0; height: 6px; border-radius: 3px; overflow: hidden;">
-                    <div style="background: var(--teal); height: 100%; width: {{ assignment.calculate_progress }}%; transition: width 0.3s ease;"></div>
-                </div>
-            </div>
-
-            <!-- Expiration Status -->
-            {% if assignment.target_completion_date %}
-            <div style="margin: 10px 0; padding: 8px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px;">
-                {% if assignment.is_completed %}
-                    <span style="color: #27ae60; font-weight: bold;">
-                        <i class="fas fa-check-circle"></i> Completed
-                    </span>
-                {% elif assignment.is_expiring_soon %}
-                    <span style="color: #e74c3c; font-weight: bold;">
-                        <i class="fas fa-exclamation-circle"></i> Expiring Soon
-                    </span>
-                    <div style="font-size: 11px; margin-top: 3px; color: #c0392b;">
-                        Due: {{ assignment.target_completion_date|strftime('%b %d, %Y') }}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; border-left-color: var(--color-teal); padding: var(--spacing-lg); height: 100%;">
+            <div>
+                <!-- Card Header Info -->
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-md);">
+                    <div>
+                        <h4 style="margin: 0 0 6px 0; font-size: 16px; color: var(--text-primary); text-transform: uppercase;">{{ assignment.guide.name }}</h4>
+                        <span class="status-badge status-active" style="font-size: 10px; padding: 2px 8px;">
+                            {{ assignment.guide.difficulty_level|upper }}
+                        </span>
                     </div>
-                {% else %}
-                    <span style="color: #3498db;">
-                        <i class="fas fa-calendar"></i> Due: {{ assignment.target_completion_date|strftime('%b %d, %Y') }}
-                    </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div style="margin: var(--spacing-md) 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700;">Progress</span>
+                        <strong style="font-size: 12px; color: var(--color-teal);">{{ assignment.calculate_progress() }}%</strong>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.05); height: 6px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-color);">
+                        <div style="background: var(--color-teal); height: 100%; width: {{ assignment.calculate_progress() }}%; transition: width 0.3s ease; box-shadow: var(--shadow-teal);"></div>
+                    </div>
+                </div>
+
+                <!-- Expiration Status -->
+                {% if assignment.target_completion_date %}
+                <div style="margin: var(--spacing-md) 0; padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+                    {% if assignment.is_completed %}
+                        <span class="status-badge status-success" style="font-size: 10px; padding: 2px 8px;">
+                            <i class="fas fa-check-circle"></i> Completed
+                        </span>
+                    {% elif assignment.is_expiring_soon %}
+                        <span class="status-badge status-expired" style="font-size: 10px; padding: 2px 8px;">
+                            <i class="fas fa-exclamation-circle"></i> Expiring Soon
+                        </span>
+                        <span style="font-size: 11px; color: var(--color-danger);">Due: {{ assignment.target_completion_date.strftime('%b %d, %Y') }}</span>
+                    {% else %}
+                        <span class="status-badge status-pending" style="font-size: 10px; padding: 2px 8px;">
+                            <i class="fas fa-calendar"></i> Due: {{ assignment.target_completion_date.strftime('%b %d, %Y') }}
+                        </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if assignment.notes %}
+                <div style="font-size: 12px; color: var(--text-secondary); padding: 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin: var(--spacing-md) 0;">
+                    <strong style="color: var(--text-primary);">Notes:</strong> {{ assignment.notes }}
+                </div>
                 {% endif %}
             </div>
-            {% endif %}
-
-            <!-- Notes -->
-            {% if assignment.notes %}
-            <div style="font-size: 12px; color: var(--text-secondary); padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 3px; margin: 10px 0;">
-                <strong>Notes:</strong> {{ assignment.notes }}
-            </div>
-            {% endif %}
 
             <!-- Action Buttons -->
-            <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide.id) }}" class="btn btn-sm" style="flex: 1; background: var(--navy); border: none; color: white; padding: 6px 12px; border-radius: 4px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.3s ease;">
+            <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-md); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md);">
+                <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide.id) }}" class="btn btn-small btn-secondary" style="flex: 1; padding: 6px 12px; font-size: 11px;">
                     <i class="fas fa-eye"></i> View
                 </a>
-                <form action="{{ url_for('trainer.unassign_guide', member_id=member.id, guide_id=assignment.guide.id) }}" method="POST" style="flex: 1;">
+                <form action="{{ url_for('trainer.unassign_guide', member_id=member.id, guide_id=assignment.guide.id) }}" method="POST" style="flex: 1; margin: 0;">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                    <button type="submit" class="btn btn-sm" style="width: 100%; background: #e74c3c; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="return confirm('Unassign this guide?')">
+                    <button type="submit" class="btn btn-small btn-danger w-100" style="padding: 6px 12px; font-size: 11px;" onclick="return confirm('Unassign this guide?')">
                         <i class="fas fa-trash"></i> Unassign
                     </button>
                 </form>
@@ -97,17 +101,24 @@
         {% endfor %}
     </div>
     {% else %}
-    <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
-        <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
-        <p style="color: #7f8c8d; margin: 0;">No guides assigned yet. <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" style="color: var(--teal); font-weight: 500;">Assign one now</a></p>
-    </div>
+        <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
+            <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(0, 229, 229, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(0, 229, 229, 0.2); box-shadow: var(--shadow-teal);">
+                <i class="fas fa-book" style="font-size: 24px; color: var(--color-teal);"></i>
+            </div>
+            <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: #ffffff;">No programs active</h3>
+            <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
+                There are currently no training guides or programs assigned to {{ member.user.full_name }}. Assign a guide to begin!
+            </p>
+            <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn btn-success" style="padding: 10px 24px; font-size: 13px;">
+                <i class="fas fa-plus"></i> Assign Guide
+            </a>
+        </div>
     {% endif %}
-</div>
 
-<style>
-    .program-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 217, 217, 0.15);
-        transform: translateY(-2px);
-    }
-</style>
+    <div class="mt-4 mb-4" style="margin-top: var(--spacing-xl);">
+        <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Progress
+        </a>
+    </div>
+</div>
 {% endblock %}
