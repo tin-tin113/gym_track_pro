@@ -3,231 +3,270 @@
 {% block title %}My Programs - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="page-container">
+<div class="container-fluid">
+    <!-- Page Header -->
     <div class="page-header">
         <div>
-            <h1 class="page-title">📚 My Programs</h1>
-            <p class="page-subtitle">Your assigned workout guides and nutrition plan</p>
+            <h1>📚 My Active Programs</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Track your assigned fitness guides, daily nutrition plans, and progress</p>
         </div>
     </div>
 
-    <!-- Stats Row -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card stat-card-primary">
-                <div class="stat-card-label">Active Programs</div>
-                <div class="stat-card-value">{{ stats.active_guides }}</div>
-            </div>
+    <!-- Stats Metric Row -->
+    <div class="row cols-4 mb-4">
+        <div class="stat-card">
+            <div class="stat-card-title">Active Programs</div>
+            <div class="stat-card-value">{{ stats.active_guides }}</div>
+            <div class="stat-card-subtitle">Guides currently in progress</div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card stat-card-secondary">
-                <div class="stat-card-label">Completed</div>
-                <div class="stat-card-value">{{ stats.completed_guides }}</div>
-            </div>
+        <div class="stat-card stat-success">
+            <div class="stat-card-title">Completed</div>
+            <div class="stat-card-value">{{ stats.completed_guides }}</div>
+            <div class="stat-card-subtitle">Workout guides completed</div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card stat-card-accent">
-                <div class="stat-card-label">Diet Plan</div>
-                <div class="stat-card-value">{% if stats.current_diet %}✓{% else %}—{% endif %}</div>
-            </div>
+        <div class="stat-card stat-warning">
+            <div class="stat-card-title">Diet Plan</div>
+            <div class="stat-card-value">{% if stats.current_diet %}Active{% else %}None{% endif %}</div>
+            <div class="stat-card-subtitle">Your active daily dietary model</div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-card">
-                <div class="stat-card-label">Recent Workouts</div>
-                <div class="stat-card-value">{{ stats.recent_workouts }}</div>
-            </div>
+        <div class="stat-card stat-info">
+            <div class="stat-card-title">Recent Workouts</div>
+            <div class="stat-card-value">{{ stats.recent_workouts }}</div>
+            <div class="stat-card-subtitle">Logged in the last 30 days</div>
         </div>
     </div>
 
-    <!-- Active Programs Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <i class="fas fa-book-open"></i> Active Workout Programs
+    <!-- Active Workout Programs Section -->
+    <div class="card mb-4" style="border-left: none; padding: 0;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-book-open" style="color: var(--color-teal);"></i>
+            <h3 style="margin: 0; font-size: 15px;">Active Workout Programs</h3>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: var(--spacing-lg);">
             {% if active_guides %}
-                <div class="row">
+                <div class="row cols-3">
                     {% for assignment in active_guides %}
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="program-card">
-                            <div class="program-card-header">
-                                <h5 class="mb-2">
-                                    <i class="fas fa-dumbbell" style="color: var(--neon-green);"></i>
+                    <div class="card" style="border-left-color: var(--color-teal); background: var(--bg-secondary); display: flex; flex-direction: column; justify-content: space-between; height: 100%; margin-bottom: 0;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
+                                <h4 style="font-size: 16px; color: #ffffff; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ assignment.guide.name }}">
+                                    <i class="fas fa-dumbbell" style="color: var(--color-teal); margin-right: 6px;"></i>
                                     {{ assignment.guide.name }}
-                                </h5>
-                                <span class="program-card-difficulty {{ assignment.guide.difficulty_level|lower }}">
-                                    {{ assignment.guide.difficulty_level }}
-                                </span>
+                                </h4>
+                                {% set diff = assignment.guide.difficulty_level|lower %}
+                                {% if diff == 'beginner' %}
+                                    <span class="badge badge-success">{{ assignment.guide.difficulty_level }}</span>
+                                {% elif diff == 'intermediate' %}
+                                    <span class="badge badge-warning">{{ assignment.guide.difficulty_level }}</span>
+                                {% else %}
+                                    <span class="badge badge-danger">{{ assignment.guide.difficulty_level }}</span>
+                                {% endif %}
                             </div>
 
-                            <p class="text-muted" style="font-size: 0.9rem;">
-                                {{ assignment.guide.description[:100] }}...
+                            <p class="text-muted" style="font-size: 13px; line-height: 1.4; margin-bottom: var(--spacing-md); height: 54px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                                {{ assignment.guide.description or "No description provided." }}
                             </p>
 
                             <!-- Progress Bar -->
-                            <div style="margin: var(--spacing-md) 0;">
-                                <small style="color: var(--slate-gray);">
-                                    Progress: {{ assignment.calculate_progress() }}%
-                                </small>
-                                <div class="progress" style="height: 6px;">
+                            <div style="margin-bottom: var(--spacing-md);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <small class="text-muted" style="font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Progress</small>
+                                    <span style="color: var(--color-teal); font-family: var(--font-family-headers); font-weight: 700; font-size: 12px;">{{ assignment.calculate_progress() }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background-color: var(--bg-tertiary);">
                                     <div class="progress-bar" style="width: {{ assignment.calculate_progress() }}%"></div>
                                 </div>
                             </div>
 
-                            <!-- Info -->
-                            <div style="font-size: 0.85rem; color: var(--slate-gray); margin: var(--spacing-md) 0;">
-                                {% if assignment.guide.duration_weeks %}
-                                    <i class="fas fa-calendar"></i> {{ assignment.guide.duration_weeks }} weeks
-                                {% endif %}
-                                {% if assignment.guide.equipment_needed %}
-                                    <br><i class="fas fa-tools"></i> {{ assignment.guide.equipment_needed|truncate(50) }}
-                                {% endif %}
+                            <!-- Info Grid -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); background-color: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: var(--spacing-sm); margin-bottom: var(--spacing-md);">
+                                <div>
+                                    <small class="text-muted" style="font-size: 9px; text-transform: uppercase; display: block;">Duration</small>
+                                    <span style="font-family: var(--font-family-headers); font-size: 12px; font-weight: 700; color: var(--text-secondary);">
+                                        {% if assignment.guide.duration_weeks %}
+                                            <i class="far fa-calendar-alt" style="color: var(--color-teal); margin-right: 4px;"></i>{{ assignment.guide.duration_weeks }} Weeks
+                                        {% else %}
+                                            <i class="far fa-calendar-alt" style="color: var(--color-teal); margin-right: 4px;"></i>Self-Paced
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted" style="font-size: 9px; text-transform: uppercase; display: block;">Equipment</small>
+                                    <span style="font-family: var(--font-family-headers); font-size: 12px; font-weight: 700; color: var(--text-secondary); text-overflow: ellipsis; display: block; overflow: hidden; white-space: nowrap;" title="{{ assignment.guide.equipment_needed }}">
+                                        <i class="fas fa-toolbox" style="color: var(--color-teal); margin-right: 4px;"></i>{{ assignment.guide.equipment_needed or 'None' }}
+                                    </span>
+                                </div>
                             </div>
+                        </div>
 
-                            <!-- Actions -->
-                            <div style="margin-top: var(--spacing-lg);">
-                                <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-gym-action btn-sm w-100">
-                                    <i class="fas fa-eye"></i> View Program
-                                </a>
-                            </div>
+                        <!-- Actions -->
+                        <div style="margin-top: auto;">
+                            <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-primary w-100" style="padding: 10px;">
+                                <i class="fas fa-eye"></i> View Program
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
                 <div style="text-align: center; padding: var(--spacing-2xl);">
-                    <i class="fas fa-inbox" style="font-size: 3rem; color: var(--light-gray); margin-bottom: var(--spacing-lg);"></i>
+                    <i class="fas fa-inbox" style="font-size: 3rem; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-lg);"></i>
                     {% if current_user.member.assigned_trainer %}
-                        <p class="text-muted">No active programs. Reach out to your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to get assigned a tailored workout guide!</p>
+                        <p class="text-muted">You have no active workout programs. Reach out to your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to get assigned a tailored workout guide!</p>
                     {% else %}
-                        <p class="text-muted">No active programs. You don't have a personal trainer assigned yet! Please contact gym staff to get paired with an expert trainer.</p>
+                        <p class="text-muted">You have no active workout programs. Paired trainers can assign custom workout routines specifically tailored to your targets.</p>
                     {% endif %}
-                    <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-primary btn-sm mt-3">
-                        Browse Guide Library
+                    <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-search"></i> Browse Guide Library
                     </a>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <div class="row">
+    <!-- Nutrition & Recent Workouts Section -->
+    <div class="row cols-2 mb-4">
         <!-- Current Diet Section -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-apple-alt"></i> Current Diet Plan
+        <div class="card" style="border-left-color: var(--color-warning); padding: 0; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-apple-alt" style="color: var(--color-warning);"></i>
+                    <h3 style="margin: 0; font-size: 15px;">Current Diet Plan</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: var(--spacing-lg);">
                     {% if current_diet %}
-                        <div style="margin-bottom: var(--spacing-lg);">
-                            <h5 style="color: var(--neon-orange);">{{ current_diet.diet.name }}</h5>
-                            <p class="text-muted">{{ current_diet.diet.description }}</p>
+                        <h4 style="color: var(--color-warning); font-size: 16px; margin-top: 0; margin-bottom: var(--spacing-xs);">{{ current_diet.diet_plan.name }}</h4>
+                        <p class="text-muted" style="font-size: 13px; line-height: 1.4; margin-bottom: var(--spacing-md);">{{ current_diet.diet_plan.description }}</p>
 
-                            <div class="calorie-tracker" style="margin: var(--spacing-md) 0;">
-                                <div class="calorie-label">Daily Calorie Target</div>
-                                <div class="calorie-value">{{ current_diet.diet.daily_calories }} cal</div>
-                            </div>
-
-                            <div style="font-size: 0.9rem; margin: var(--spacing-md) 0;">
-                                <span style="color: var(--neon-green);">Protein:</span> {{ (current_diet.diet.macro_ratio_protein * 100)|int }}% |
-                                <span style="color: var(--neon-orange);">Carbs:</span> {{ (current_diet.diet.macro_ratio_carbs * 100)|int }}% |
-                                <span style="color: var(--neon-purple);">Fats:</span> {{ (current_diet.diet.macro_ratio_fats * 100)|int }}%
-                            </div>
+                        <!-- Daily Calorie Target Card -->
+                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: var(--spacing-md); text-align: center; box-shadow: var(--shadow-sm); margin-bottom: var(--spacing-md);">
+                            <div style="font-family: var(--font-family-headers); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Daily Calorie Target</div>
+                            <div style="font-family: var(--font-family-headers); font-size: 28px; font-weight: 800; color: var(--color-warning); line-height: 1.1; margin-top: 4px;">{{ current_diet.diet_plan.daily_calories }} cal</div>
                         </div>
 
-                        <hr>
-
-                        <div style="margin-top: var(--spacing-lg);">
-                            <a href="{{ url_for('member.log_meal') }}" class="btn btn-success btn-sm w-100 mb-2">
-                                <i class="fas fa-plus"></i> Log Meal
-                            </a>
-                            <a href="{{ url_for('member.diet_progress') }}" class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-chart-line"></i> View Progress
-                            </a>
+                        <!-- Macros Breakdown -->
+                        <div style="font-size: 13px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-sm); text-align: center; margin-bottom: var(--spacing-md);">
+                            <div style="background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                                <small class="text-muted" style="font-size: 9px; text-transform: uppercase; display: block;">Protein</small>
+                                <div style="color: var(--color-success); font-weight: 700; font-size: 14px; font-family: var(--font-family-headers);">
+                                    {{ (current_diet.diet_plan.macro_ratio_protein * 100)|int }}%
+                                </div>
+                            </div>
+                            <div style="background-color: rgba(245, 158, 11, 0.04); border: 1px solid rgba(245, 158, 11, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                                <small class="text-muted" style="font-size: 9px; text-transform: uppercase; display: block;">Carbs</small>
+                                <div style="color: var(--color-warning); font-weight: 700; font-size: 14px; font-family: var(--font-family-headers);">
+                                    {{ (current_diet.diet_plan.macro_ratio_carbs * 100)|int }}%
+                                </div>
+                            </div>
+                            <div style="background-color: rgba(0, 229, 229, 0.04); border: 1px solid rgba(0, 229, 229, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                                <small class="text-muted" style="font-size: 9px; text-transform: uppercase; display: block;">Fats</small>
+                                <div style="color: var(--color-teal); font-weight: 700; font-size: 14px; font-family: var(--font-family-headers);">
+                                    {{ (current_diet.diet_plan.macro_ratio_fats * 100)|int }}%
+                                </div>
+                            </div>
                         </div>
                     {% else %}
                         <div style="text-align: center; padding: var(--spacing-lg);">
-                            <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
-                            <p class="text-muted">No diet plan assigned yet</p>
+                            <i class="fas fa-inbox" style="font-size: 2.5rem; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-md);"></i>
+                            <p class="text-muted" style="font-size: 13px; margin-bottom: 0;">No active diet plan assigned yet</p>
                             {% if current_user.member.assigned_trainer %}
-                                <p style="font-size: 0.9rem;">Contact your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong> (<a href="mailto:{{ current_user.member.assigned_trainer.email }}">{{ current_user.member.assigned_trainer.email }}</a>), to get a nutrition plan.</p>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Reach out to your trainer, <strong>{{ current_user.member.assigned_trainer.full_name }}</strong>, to get a custom nutrition plan.</p>
                             {% else %}
-                                <p style="font-size: 0.9rem;">You don't have a personal trainer assigned yet! Contact gym staff or the front desk to get paired with a trainer to receive a custom nutrition plan.</p>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Please contact gym staff to get paired with a trainer to receive a custom nutrition plan.</p>
                             {% endif %}
                         </div>
                     {% endif %}
                 </div>
             </div>
+            {% if current_diet %}
+            <div style="padding: var(--spacing-lg); padding-top: 0; display: flex; gap: var(--spacing-sm); margin-top: auto;">
+                <a href="{{ url_for('member.log_meal') }}" class="btn btn-success w-100" style="padding: 10px;">
+                    <i class="fas fa-plus"></i> Log Meal
+                </a>
+                <a href="{{ url_for('member.current_diet') }}" class="btn btn-primary w-100" style="padding: 10px;">
+                    <i class="fas fa-eye"></i> View Details
+                </a>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Recent Workouts -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-history"></i> Recent Workouts
+        <div class="card" style="border-left-color: var(--color-info); padding: 0; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-history" style="color: var(--color-info);"></i>
+                    <h3 style="margin: 0; font-size: 15px;">Recent Logged Workouts</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding: var(--spacing-lg);">
                     {% if recent_workouts %}
-                        <div style="max-height: 400px; overflow-y: auto;">
+                        <div style="max-height: 290px; overflow-y: auto; padding-right: 4px;">
                             {% for workout in recent_workouts %}
-                            <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--light-gray);">
-                                <div style="display: flex; justify-content: space-between; align-items: start;">
-                                    <div>
-                                        <div class="exercise-name" style="font-size: 0.95rem;">
-                                            {{ workout.exercise_name }}
-                                        </div>
-                                        <small class="text-muted">
-                                            {{ workout.workout_date.strftime('%b %d, %Y') }}
-                                        </small>
+                            <div class="mb-2 pb-2" style="border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="color: var(--color-teal); font-family: var(--font-family-headers); font-weight: 700; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px;">
+                                        {{ workout.exercise_name }}
                                     </div>
-                                    <span class="badge" style="background-color: rgba(0, 255, 0, 0.15); color: var(--neon-green);">
-                                        {{ workout.intensity|title }}
-                                    </span>
+                                    <small class="text-muted" style="font-size: 11px;">
+                                        {{ workout.workout_date.strftime('%b %d, %Y') }} • <span class="text-uppercase" style="font-size: 9px; color: var(--text-muted); font-weight: 600;">{{ workout.exercise_category }}</span>
+                                    </small>
                                 </div>
-                                <small style="color: var(--slate-gray);">
-                                    {% if workout.exercise_category == 'Strength' %}
-                                        {{ workout.sets or '—' }}x{{ workout.reps or '—' }} @ {{ workout.weight or '—' }}kg
-                                    {% elif workout.exercise_category == 'Cardio' %}
-                                        {{ workout.duration_minutes or '—' }}min, {{ workout.distance_km or '—' }}km
-                                    {% else %}
-                                        {{ workout.exercise_category }}
-                                    {% endif %}
-                                </small>
+                                <div style="text-align: right;">
+                                    <span class="badge {% if workout.intensity|lower == 'intense' %}badge-danger{% elif workout.intensity|lower == 'moderate' %}badge-warning{% else %}badge-success{% endif %}" style="margin-bottom: 2px;">
+                                        {{ workout.intensity|upper }}
+                                    </span>
+                                    <div style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">
+                                        {% if workout.exercise_category == 'Strength' %}
+                                            {{ workout.sets or '—' }} sets x {{ workout.reps or '—' }} reps @ {{ workout.weight or '—' }}kg
+                                        {% elif workout.exercise_category == 'Cardio' %}
+                                            {{ workout.duration_minutes or '—' }} min, {{ workout.distance_km or '—' }} km
+                                        {% else %}
+                                            Details logged
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
                     {% else %}
                         <div style="text-align: center; padding: var(--spacing-lg);">
-                            <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
-                            <p class="text-muted">No workouts logged yet</p>
+                            <i class="fas fa-inbox" style="font-size: 2.5rem; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-md);"></i>
+                            <p class="text-muted" style="font-size: 13px; margin-bottom: 0;">No workouts logged yet</p>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Log your active exercises to track daily progress metrics.</p>
                         </div>
                     {% endif %}
                 </div>
+            </div>
+            <div style="padding: var(--spacing-lg); padding-top: 0; margin-top: auto;">
+                <a href="{{ url_for('member.create_workout') }}" class="btn btn-primary w-100" style="padding: 10px;">
+                    <i class="fas fa-plus"></i> Log New Workout Entry
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Completed Programs -->
     {% if completed_guides %}
-    <div class="card mt-4">
-        <div class="card-header">
-            <i class="fas fa-check-circle"></i> Completed Programs
+    <div class="card mt-4" style="border-left-color: var(--color-success); padding: 0;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-check-circle" style="color: var(--color-success);"></i>
+            <h3 style="margin: 0; font-size: 15px;">Completed Programs</h3>
         </div>
-        <div class="card-body">
-            <div class="row">
+        <div class="card-body" style="padding: var(--spacing-lg);">
+            <div class="row cols-4">
                 {% for assignment in completed_guides %}
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="program-card" style="opacity: 0.8;">
-                        <div class="program-card-header">
-                            <h6 class="mb-2">
-                                <i class="fas fa-check" style="color: var(--neon-green);"></i>
-                                {{ assignment.guide.name }}
-                            </h6>
-                        </div>
-                        <small class="text-muted">
-                            Completed {{ assignment.completion_date.strftime('%b %d, %Y') }}
+                <div class="card" style="background: var(--bg-secondary); border-left-color: var(--color-success); padding: var(--spacing-md); display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <h4 style="font-size: 14px; color: #ffffff; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ assignment.guide.name }}">
+                            <i class="fas fa-award" style="color: var(--color-success);"></i>
+                            {{ assignment.guide.name }}
+                        </h4>
+                        <small class="text-muted" style="font-size: 11px; display: block; margin-top: 2px;">
+                            Completed: {{ assignment.completion_date.strftime('%b %d, %Y') }}
                         </small>
                     </div>
+                    <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-secondary btn-sm w-100 mt-3" style="padding: 4px 8px; font-size: 11px;">
+                        View Summary
+                    </a>
                 </div>
                 {% endfor %}
             </div>
@@ -236,23 +275,12 @@
     {% endif %}
 
     <!-- Browse More Guides CTA -->
-    <div class="card mt-4" style="background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(157, 78, 221, 0.05) 100%); border: 1px solid rgba(157, 78, 221, 0.2);">
-        <div class="card-body text-center" style="padding: var(--spacing-2xl);">
-            <h5 style="color: var(--neon-purple); margin-bottom: var(--spacing-md);">Looking for more programs?</h5>
-            <p class="text-muted mb-3">Browse our complete library of workout guides to inspire your training</p>
-            <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-gym-action">
-                <i class="fas fa-search"></i> Browse Guide Library
-            </a>
-        </div>
+    <div class="card mt-4" style="background: linear-gradient(135deg, rgba(0, 229, 229, 0.05) 0%, rgba(16, 185, 129, 0.03) 100%); border: 1px solid var(--border-color); padding: var(--spacing-2xl); text-align: center; border-left: none;">
+        <h3 style="color: var(--color-teal); margin-bottom: var(--spacing-sm); font-size: var(--font-size-xl);">Looking for more programs?</h3>
+        <p class="text-muted" style="margin-bottom: var(--spacing-lg); font-size: 14px;">Browse our complete library of workout guides to find the perfect plan for your goals</p>
+        <a href="{{ url_for('member.browse_guides_library') }}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 10px 24px;">
+            <i class="fas fa-search"></i> Browse Gym Library
+        </a>
     </div>
 </div>
-
-<style>
-.exercise-name {
-    color: var(--neon-purple);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-</style>
 {% endblock %}
