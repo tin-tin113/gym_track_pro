@@ -3,52 +3,53 @@
 {% block title %}My Diet - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="page-container">
+<div class="container-fluid">
+    <!-- Page Header -->
     <div class="page-header">
         <div>
-            <h1 class="page-title">🥗 My Diet Plan</h1>
-            <p class="page-subtitle">Your nutrition program and daily meal tracking</p>
+            <h1>🥗 My Nutrition Plan</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Your active daily dietary plan and nutritional targets</p>
         </div>
     </div>
 
     {% if diet_assignment and diet_plan %}
     <!-- Diet Summary Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5 style="color: var(--neon-orange);">{{ diet_plan.name }}</h5>
-                    <p class="text-muted">{{ diet_plan.description }}</p>
+    <div class="card mb-4" style="border-left-color: var(--color-warning);">
+        <div class="card-body" style="padding: 0;">
+            <div class="row cols-2">
+                <div>
+                    <h2 style="font-size: 20px; color: var(--color-warning); margin-bottom: 4px;">{{ diet_plan.name }}</h2>
+                    <p class="text-muted" style="font-size: 14px; margin-bottom: var(--spacing-md);">{{ diet_plan.description }}</p>
 
-                    <div style="margin-top: var(--spacing-lg);">
-                        <small class="text-muted">Diet Type:</small>
-                        <div style="color: var(--primary-navy); font-weight: 700;">
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Diet Type:</span>
+                        <div style="color: var(--color-teal); font-weight: 700; font-family: var(--font-family-headers); text-transform: uppercase; font-size: 14px; margin-top: 2px;">
                             {{ diet_plan.diet_type|replace('_', ' ')|title }}
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="calorie-tracker">
-                        <div class="calorie-label">Daily Calorie Target</div>
-                        <div class="calorie-value">{{ diet_plan.daily_calories }}</div>
+                <div>
+                    <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: var(--spacing-md); text-align: center; box-shadow: var(--shadow-sm); margin-bottom: var(--spacing-md);">
+                        <div style="font-family: var(--font-family-headers); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Daily Calorie Target</div>
+                        <div style="font-family: var(--font-family-headers); font-size: 32px; font-weight: 800; color: var(--color-teal); line-height: 1.1; margin-top: 4px;">{{ diet_plan.daily_calories }} cal</div>
                     </div>
 
-                    <div style="font-size: 0.9rem; margin-top: var(--spacing-md); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-sm);">
-                        <div>
-                            <small style="color: var(--slate-gray);">Protein</small>
-                            <div style="color: var(--neon-green); font-weight: 700;">
+                    <div style="font-size: 0.9rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-sm); text-align: center;">
+                        <div style="background-color: rgba(16, 185, 129, 0.04); border: 1px solid rgba(16, 185, 129, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                            <small class="text-muted" style="font-size: 10px; text-transform: uppercase;">Protein</small>
+                            <div style="color: var(--color-success); font-weight: 700; font-size: 16px;">
                                 {{ (diet_plan.macro_ratio_protein * 100)|int }}%
                             </div>
                         </div>
-                        <div>
-                            <small style="color: var(--slate-gray);">Carbs</small>
-                            <div style="color: var(--neon-orange); font-weight: 700;">
+                        <div style="background-color: rgba(245, 158, 11, 0.04); border: 1px solid rgba(245, 158, 11, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                            <small class="text-muted" style="font-size: 10px; text-transform: uppercase;">Carbs</small>
+                            <div style="color: var(--color-warning); font-weight: 700; font-size: 16px;">
                                 {{ (diet_plan.macro_ratio_carbs * 100)|int }}%
                             </div>
                         </div>
-                        <div>
-                            <small style="color: var(--slate-gray);">Fats</small>
-                            <div style="color: var(--neon-purple); font-weight: 700;">
+                        <div style="background-color: rgba(0, 229, 229, 0.04); border: 1px solid rgba(0, 229, 229, 0.15); padding: 6px; border-radius: var(--radius-sm);">
+                            <small class="text-muted" style="font-size: 10px; text-transform: uppercase;">Fats</small>
+                            <div style="color: var(--color-teal); font-weight: 700; font-size: 16px;">
                                 {{ (diet_plan.macro_ratio_fats * 100)|int }}%
                             </div>
                         </div>
@@ -59,38 +60,34 @@
     </div>
 
     <!-- Today's Tracking -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="stat-card stat-card-primary">
-                <div class="stat-card-label">Daily Goal</div>
-                <div class="stat-card-value">{{ diet_plan.daily_calories }}</div>
-                <small style="color: var(--slate-gray);">calories</small>
-            </div>
+    <div class="row cols-2 mb-4">
+        <div class="stat-card">
+            <div class="stat-card-title">Daily Calorie Goal</div>
+            <div class="stat-card-value">{{ diet_plan.daily_calories }}</div>
+            <div class="stat-card-subtitle">Recommended daily allowance</div>
         </div>
-        <div class="col-md-6">
-            <div class="stat-card stat-card-secondary">
-                <div class="stat-card-label">Logged Today</div>
-                <div class="stat-card-value">{{ daily_totals.calories or 0 }}</div>
-                <small style="color: var(--slate-gray);">calories</small>
-            </div>
+        <div class="stat-card stat-success">
+            <div class="stat-card-title">Logged Today</div>
+            <div class="stat-card-value" style="color: var(--color-success);">{{ daily_totals.calories or 0 }}</div>
+            <div class="stat-card-subtitle">Calories consumed today</div>
         </div>
     </div>
 
     <!-- Remaining -->
     {% set remaining = diet_plan.daily_calories - (daily_totals.calories or 0) %}
-    <div class="card mb-4">
-        <div class="card-body">
+    <div class="card mb-4" style="border-left-color: var(--color-teal);">
+        <div class="card-body" style="padding: 0;">
             <div style="text-align: center;">
-                <h6 style="color: var(--slate-gray);">Remaining for Today</h6>
-                <div style="font-size: 2.5rem; color: var(--neon-green); font-weight: 800;">
+                <h6 class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); letter-spacing: 0.5px;">Remaining for Today</h6>
+                <div style="font-size: 40px; color: var(--color-success); font-weight: 800; font-family: var(--font-family-headers); line-height: 1.1; margin-top: 4px;">
                     {{ remaining if remaining > 0 else 0 }}
                 </div>
-                <small class="text-muted">calories</small>
+                <small class="text-muted">calories left to consume</small>
 
                 {% if estimated_burn %}
-                <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--light-gray);">
-                    <small style="color: var(--slate-gray);">Estimated Burn from Workouts</small>
-                    <div style="color: var(--neon-orange); font-weight: 700;">{{ estimated_burn }} cal</div>
+                <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);">
+                    <small class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); letter-spacing: 0.5px;">Estimated Burn from Workouts</small>
+                    <div style="color: var(--color-warning); font-weight: 700; font-size: 15px; margin-top: 2px;">{{ estimated_burn }} cal burned</div>
                 </div>
                 {% endif %}
             </div>
@@ -98,49 +95,45 @@
     </div>
 
     <!-- Today's Meals -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Today's Meals</span>
-                <a href="{{ url_for('member.log_meal') }}" class="btn btn-gym-action btn-sm">
-                    <i class="fas fa-plus"></i> Log Meal
-                </a>
-            </div>
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-utensils" style="color: var(--color-teal); margin-right: 8px;"></i> Today's Logged Meals</h3>
+            <a href="{{ url_for('member.log_meal') }}" class="btn btn-small btn-primary">
+                <i class="fas fa-plus"></i> Log Meal
+            </a>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: var(--spacing-lg);">
             {% if meal_logs_today %}
                 <div style="max-height: 400px; overflow-y: auto;">
                     {% for log in meal_logs_today %}
-                    <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--light-gray);">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--spacing-sm);">
-                            <div>
-                                <div style="color: var(--neon-purple); font-weight: 700; text-transform: uppercase;">
-                                    {{ log.meal_name }}
-                                </div>
-                                <small style="color: var(--slate-gray);">
-                                    {{ log.meal_type|title }} • {{ log.created_at.strftime('%l:%M %p') }}
-                                </small>
+                    <div class="mb-3 pb-3" style="border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <div style="color: var(--color-teal); font-weight: 700; text-transform: uppercase; font-family: var(--font-family-headers); font-size: 14px;">
+                                {{ log.meal_name }}
                             </div>
-                            <div style="text-align: right;">
-                                <div style="color: var(--neon-green); font-weight: 700; font-size: 1.1rem;">
-                                    {{ log.calories_actual }} cal
-                                </div>
-                                <small style="color: var(--slate-gray);">
-                                    P: {{ log.protein_g or '—' }}g | C: {{ log.carbs_g or '—' }}g | F: {{ log.fats_g or '—' }}g
-                                </small>
-                            </div>
+                            <small class="text-muted" style="font-size: 12px;">
+                                {{ log.meal_type|title }} • {{ log.created_at.strftime('%l:%M %p') }}
+                            </small>
+                            {% if log.notes %}
+                            <div style="margin-top: 4px;"><small class="text-muted"><em>Note: {{ log.notes }}</em></small></div>
+                            {% endif %}
                         </div>
-                        {% if log.notes %}
-                        <small class="text-muted">{{ log.notes }}</small>
-                        {% endif %}
+                        <div style="text-align: right;">
+                            <div style="color: var(--color-success); font-weight: 700; font-size: 16px; font-family: var(--font-family-headers);">
+                                {{ log.calories_actual }} cal
+                            </div>
+                            <small class="text-muted" style="font-size: 11px;">
+                                Protein: {{ log.protein_g or 0 }}g | Carbs: {{ log.carbs_g or 0 }}g | Fats: {{ log.fats_g or 0 }}g
+                            </small>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
             {% else %}
                 <div style="text-align: center; padding: var(--spacing-lg);">
-                    <i class="fas fa-inbox" style="font-size: 2rem; color: var(--light-gray); margin-bottom: var(--spacing-md);"></i>
-                    <p class="text-muted">No meals logged yet</p>
-                    <a href="{{ url_for('member.log_meal') }}" class="btn btn-success btn-sm mt-2">
+                    <i class="fas fa-inbox" style="font-size: 32px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-sm);"></i>
+                    <p class="text-muted">No meals logged yet today</p>
+                    <a href="{{ url_for('member.log_meal') }}" class="btn btn-primary btn-small mt-2" style="display: inline-flex;">
                         <i class="fas fa-plus"></i> Log Your First Meal
                     </a>
                 </div>
@@ -150,41 +143,37 @@
 
     <!-- macros Summary -->
     {% if daily_totals %}
-    <div class="card mb-4">
-        <div class="card-header">Today's Macros</div>
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <div style="color: var(--neon-green); font-weight: 700; font-size: 1.5rem;">
-                            {{ (daily_totals.protein_g or 0)|int }}g
-                        </div>
-                        <small class="text-muted">Protein</small>
-                        <div style="margin-top: var(--spacing-sm);">
-                            <small style="color: var(--slate-gray);">{{ ((daily_totals.protein_g or 0) * 4 / (daily_totals.calories or 1) * 100)|int }}% of calories</small>
-                        </div>
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-pie" style="color: var(--color-teal); margin-right: 8px;"></i> Today's Macro Totals</h3>
+        </div>
+        <div class="card-body" style="padding: var(--spacing-lg);">
+            <div class="row cols-3 text-center">
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <div style="color: var(--color-success); font-weight: 700; font-size: 24px; font-family: var(--font-family-headers);">
+                        {{ (daily_totals.protein_g or 0)|int }}g
+                    </div>
+                    <span class="text-muted" style="font-size: 12px;">Protein Total</span>
+                    <div style="margin-top: 4px;">
+                        <small class="text-muted" style="font-size: 11px;">{{ ((daily_totals.protein_g or 0) * 4 / (daily_totals.calories or 1) * 100)|int }}% of calorie intake</small>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <div style="color: var(--neon-orange); font-weight: 700; font-size: 1.5rem;">
-                            {{ (daily_totals.carbs_g or 0)|int }}g
-                        </div>
-                        <small class="text-muted">Carbs</small>
-                        <div style="margin-top: var(--spacing-sm);">
-                            <small style="color: var(--slate-gray);">{{ ((daily_totals.carbs_g or 0) * 4 / (daily_totals.calories or 1) * 100)|int }}% of calories</small>
-                        </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <div style="color: var(--color-warning); font-weight: 700; font-size: 24px; font-family: var(--font-family-headers);">
+                        {{ (daily_totals.carbs_g or 0)|int }}g
+                    </div>
+                    <span class="text-muted" style="font-size: 12px;">Carbohydrates Total</span>
+                    <div style="margin-top: 4px;">
+                        <small class="text-muted" style="font-size: 11px;">{{ ((daily_totals.carbs_g or 0) * 4 / (daily_totals.calories or 1) * 100)|int }}% of calorie intake</small>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <div style="color: var(--neon-purple); font-weight: 700; font-size: 1.5rem;">
-                            {{ (daily_totals.fats_g or 0)|int }}g
-                        </div>
-                        <small class="text-muted">Fats</small>
-                        <div style="margin-top: var(--spacing-sm);">
-                            <small style="color: var(--slate-gray);">{{ ((daily_totals.fats_g or 0) * 9 / (daily_totals.calories or 1) * 100)|int }}% of calories</small>
-                        </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <div style="color: var(--color-teal); font-weight: 700; font-size: 24px; font-family: var(--font-family-headers);">
+                        {{ (daily_totals.fats_g or 0)|int }}g
+                    </div>
+                    <span class="text-muted" style="font-size: 12px;">Fats Total</span>
+                    <div style="margin-top: 4px;">
+                        <small class="text-muted" style="font-size: 11px;">{{ ((daily_totals.fats_g or 0) * 9 / (daily_totals.calories or 1) * 100)|int }}% of calorie intake</small>
                     </div>
                 </div>
             </div>
@@ -193,29 +182,25 @@
     {% endif %}
 
     <!-- Action Buttons -->
-    <div class="row">
-        <div class="col-md-6">
-            <a href="{{ url_for('member.log_meal') }}" class="btn btn-gym-action w-100 mb-3">
-                <i class="fas fa-plus"></i> Log New Meal
-            </a>
-        </div>
-        <div class="col-md-6">
-            <a href="{{ url_for('member.diet_progress') }}" class="btn btn-primary w-100 mb-3">
-                <i class="fas fa-chart-line"></i> View 30-Day Progress
-            </a>
-        </div>
+    <div class="row cols-2">
+        <a href="{{ url_for('member.log_meal') }}" class="btn btn-primary" style="padding: 12px 16px;">
+            <i class="fas fa-plus"></i> Log New Meal Entry
+        </a>
+        <a href="{{ url_for('member.diet_progress') }}" class="btn btn-secondary" style="padding: 12px 16px;">
+            <i class="fas fa-chart-line"></i> View 30-Day Nutrition Progress
+        </a>
     </div>
 
     {% else %}
     <!-- No Diet Assigned -->
-    <div class="card">
+    <div class="card" style="border-left-color: var(--color-warning);">
         <div class="card-body" style="text-align: center; padding: var(--spacing-2xl);">
-            <i class="fas fa-inbox" style="font-size: 3rem; color: var(--light-gray); margin-bottom: var(--spacing-lg);"></i>
-            <h5 style="color: var(--primary-navy);">No Diet Plan Assigned</h5>
-            <p class="text-muted mb-4">You don't have an active diet plan yet</p>
-            <p class="text-muted mb-4">Contact your trainer to get assigned a nutrition program tailored to your goals</p>
+            <i class="fas fa-inbox" style="font-size: 40px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-lg);"></i>
+            <h2 style="font-size: 20px; margin-bottom: 8px;">No Nutrition Plan Assigned</h2>
+            <p class="text-muted" style="margin-bottom: 12px;">You don't have an active dietary model assigned yet.</p>
+            <p class="text-muted" style="margin-bottom: var(--spacing-xl);">Please request your personal gym trainer to compile a custom nutrition model structured around your target indicators.</p>
             <a href="{{ url_for('member.member_dashboard') }}" class="btn btn-primary">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Progress Dashboard
             </a>
         </div>
     </div>

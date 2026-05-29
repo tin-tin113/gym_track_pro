@@ -3,6 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('gym-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GymTrack Pro{% endblock %}</title>
 
@@ -25,20 +31,25 @@
 
 <body style="display: flex; flex-direction: column; min-height: 100vh; background-color: var(--bg-primary); color: var(--text-primary);">
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" style="position: relative; z-index: 1015;">
         <div class="navbar-brand">
             <i class="fas fa-dumbbell"></i>
             GymTrack Pro
         </div>
-        <ul class="navbar-nav" style="margin-left: auto;">
+        <ul class="navbar-nav" style="margin-left: auto; display: flex; align-items: center; flex-direction: row; gap: var(--spacing-md);">
+            <li style="display: flex; align-items: center;">
+                <button id="theme-toggle-btn" class="btn btn-small" style="padding: 6px 10px; background: transparent; border: 1px solid var(--border-color); color: var(--color-teal); border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; height: 32px; width: 32px;" title="Toggle Theme">
+                    <i class="fas fa-sun" id="theme-toggle-icon"></i>
+                </button>
+            </li>
             {% if current_user.is_authenticated %}
             <li>
-                <div style="position: relative; display: inline-block;">
+                <div style="position: relative; display: inline-block; z-index: 2000;">
                     <a href="#" class="nav-link" onclick="document.getElementById('user-dropdown').hidden = !document.getElementById('user-dropdown').hidden; return false;">
                         <i class="fas fa-user-circle"></i>
                         {{ current_user.full_name }}
                     </a>
-                    <div id="user-dropdown" hidden style="position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 180px; box-shadow: var(--shadow-lg); z-index: var(--z-dropdown);">
+                    <div id="user-dropdown" hidden style="position: absolute; right: 0; top: 100%; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 180px; box-shadow: var(--shadow-lg); z-index: 2000;">
                         <a href="{{ url_for('auth.profile') }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 14px; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
                             <i class="fas fa-user"></i> Profile
                         </a>
@@ -65,20 +76,12 @@
 
         <div style="flex: 1; padding: var(--spacing-lg);">
 
-                <!-- Flash messages -->
+                <!-- Flash messages metadata (parsed by main.js into premium toasts) -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                <div id="flash-messages" style="margin-bottom: var(--spacing-lg);">
+                <div id="flash-messages" style="display: none;">
                     {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
-                        <div class="alert-icon">
-                            <i class="fas fa-{% if category == 'error' %}circle-exclamation{% elif category == 'success' %}circle-check{% else %}circle-info{% endif %}"></i>
-                        </div>
-                        <div>{{ message }}</div>
-                        <button type="button" class="btn btn-small" onclick="this.parentElement.parentElement.style.display='none';" style="margin-left: auto;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    <span class="flash-message" data-category="{{ 'danger' if category == 'error' else category }}">{{ message }}</span>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -88,6 +91,28 @@
                 {% block content %}{% endblock %}
             </div>
         </div>
+
+    <!-- Global Toast Container -->
+    <div id="global-toast-container" class="toast-container"></div>
+
+    <!-- Reusable Dynamic Confirmation Modal -->
+    <div class="modal fade" id="gymConfirmModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gymConfirmTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="gymConfirmMessage">
+                    Are you sure you want to proceed?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" id="gymConfirmSubmit">Proceed</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer style="background-color: var(--surface); color: var(--text-secondary); padding: var(--spacing-lg); text-align: center; margin-top: auto; width: 100%; border-top: 1px solid var(--border-color);">

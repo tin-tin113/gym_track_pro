@@ -11,7 +11,7 @@ class User(AbstractUser):
 		MEMBER = 'member', 'Member'
 
 	full_name = models.CharField(max_length=120, blank=True)
-	role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER)
+	role = models.CharField(max_length=20, choices=Role.choices, default=Role.MEMBER, db_index=True)
 	setup_token = models.CharField(max_length=255, blank=True, null=True)
 	setup_token_expiry = models.DateTimeField(blank=True, null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -225,6 +225,7 @@ class WorkoutGuide(models.Model):
 	duration_weeks = models.IntegerField(blank=True, null=True)
 	target_goals = models.CharField(max_length=300, blank=True)
 	equipment_needed = models.CharField(max_length=300, blank=True)
+	image = models.CharField(max_length=255, blank=True, null=True)
 	trainer = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.SET_NULL,
@@ -266,39 +267,6 @@ class WorkoutTip(models.Model):
 
 	def __str__(self) -> str:
 		return f"{self.exercise_name} - {self.tip_category}"
-
-
-class GuideRequest(models.Model):
-	"""Track member requests for guide assignments from trainers."""
-	class Status(models.TextChoices):
-		PENDING = 'pending', 'Pending'
-		APPROVED = 'approved', 'Approved'
-		REJECTED = 'rejected', 'Rejected'
-		ASSIGNED = 'assigned', 'Assigned'
-		CANCELLED = 'cancelled', 'Cancelled'
-
-	guide = models.ForeignKey(WorkoutGuide, on_delete=models.CASCADE, related_name='requests')
-	member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='guide_requests')
-	trainer = models.ForeignKey(
-		settings.AUTH_USER_MODEL,
-		on_delete=models.CASCADE,
-		related_name='guide_requests_received',
-		limit_choices_to={'role': 'trainer'}
-	)
-	status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-	request_date = models.DateTimeField(auto_now_add=True)
-	response_date = models.DateTimeField(blank=True, null=True)
-	notes = models.TextField(blank=True, help_text='Member notes with the request')
-	response_notes = models.TextField(blank=True, help_text='Trainer response notes')
-	created_at = models.DateTimeField(auto_now_add=True)
-	updated_at = models.DateTimeField(auto_now=True)
-
-	class Meta:
-		unique_together = ('guide', 'member')
-		ordering = ['-request_date']
-
-	def __str__(self) -> str:
-		return f"{self.member_id} requests {self.guide_id} (status={self.status})"
 
 
 class GuideAssignment(models.Model):

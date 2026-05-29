@@ -3,136 +3,128 @@
 {% block title %}Fitness Progress Report - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Fitness Progress Report</h1>
-        <a href="{{ url_for('reports.fitness_export', member_id=member.id) }}" class="btn btn-outline-success">
-            <i class="fas fa-download"></i> Export CSV
-        </a>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>💪 Fitness Progress Report</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Automated fitness indicators history and measurements report</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{{ url_for('reports.fitness_export', member_id=member.id) }}" class="btn btn-success">
+                <i class="fas fa-download"></i> Export CSV
+            </a>
+        </div>
     </div>
 
     <!-- Member Info -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>{{ member.user.full_name }}</h5>
-                    <p class="text-muted mb-1"><strong>Email:</strong> {{ member.user.email }}</p>
-                    <p class="text-muted"><strong>Membership:</strong>
-                        {% if member.is_membership_active() %}
-                        <span class="badge bg-success">Active</span>
-                        {% else %}
-                        <span class="badge bg-danger">Expired</span>
-                        {% endif %}
-                    </p>
+    <div class="card mb-4" style="border-left: none;">
+        <div class="row cols-2">
+            <div>
+                <h2 style="font-size: 20px; margin-bottom: 4px;">{{ member.user.full_name }}</h2>
+                <p class="text-muted" style="margin-bottom: 8px;"><strong>Email:</strong> {{ member.user.email }}</p>
+                <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                    <span class="text-muted">Membership:</span>
+                    {% if member.is_membership_active() %}
+                    <span class="status-badge status-success">Active</span>
+                    {% else %}
+                    <span class="status-badge status-expired">Expired</span>
+                    {% endif %}
                 </div>
-                <div class="col-md-6 text-right">
-                    <p class="text-muted"><strong>Created:</strong> {{ member.user.created_at.strftime('%Y-%m-%d') }}</p>
-                    <p class="text-muted"><strong>Metrics Available:</strong> {{ metrics|length }}</p>
-                </div>
+            </div>
+            <div style="text-align: right;">
+                <p class="text-muted" style="margin-bottom: 4px;"><strong>Created:</strong> {{ member.user.created_at.strftime('%Y-%m-%d') }}</p>
+                <p class="text-muted" style="margin-bottom: 0;"><strong>Metrics Available:</strong> <span class="badge badge-primary">{{ metrics|length }} entries</span></p>
             </div>
         </div>
     </div>
 
-    <!-- Latest Metrics Card -->
+    <!-- Latest Metrics Summary -->
     {% if metrics %}
     {% set latest = metrics[0] %}
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h6 class="card-title text-muted">Weight</h6>
-                    <h3 class="text-primary">{{ latest.weight|default('-') }} <small>kg</small></h3>
-                    {% if weight_trend and latest.weight %}
-                    <small class="{% if weight_trend['weight_change'] > 0 %}text-danger{% else %}text-success{% endif %}">
-                        {% if weight_trend['weight_change'] > 0 %}↑{% else %}↓{% endif %}
-                        {{ weight_trend['weight_change'] }} kg
-                        ({{ weight_trend['percent_change'] }}%)
-                    </small>
-                    {% endif %}
-                </div>
+    <div class="row cols-4 mb-4">
+        <div class="stat-card">
+            <div class="stat-card-title">Weight</div>
+            <div class="stat-card-value" style="color: var(--color-teal);">{{ latest.weight|default('-') }} <small style="font-size: 14px; color: var(--text-muted);">kg</small></div>
+            <div class="stat-card-subtitle">
+                {% if weight_trend and latest.weight %}
+                <span class="{% if weight_trend['weight_change'] > 0 %}text-danger{% else %}text-success{% endif %}" style="font-weight: 700;">
+                    {% if weight_trend['weight_change'] > 0 %}↑{% else %}↓{% endif %}
+                    {{ weight_trend['weight_change'] }} kg
+                    ({{ weight_trend['percent_change'] }}%)
+                </span>
+                {% else %}
+                Current registered weight
+                {% endif %}
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h6 class="card-title text-muted">BMI</h6>
-                    <h3 class="text-info">{{ latest.bmi|default('-') }}</h3>
-                    <small class="text-muted">
-                        {{ latest.get_bmi_classification()|default('-') }}
-                        {% if bmi_trend and bmi_trend.start_bmi %}
-                        <br>(Change: {% if bmi_trend['change'] > 0 %}+{% endif %}{{ bmi_trend['change'] }})
-                        {% endif %}
-                    </small>
-                </div>
+
+        <div class="stat-card stat-success">
+            <div class="stat-card-title">BMI Indicators</div>
+            <div class="stat-card-value" style="color: var(--color-success);">{{ latest.bmi|default('-') }}</div>
+            <div class="stat-card-subtitle">
+                <span class="status-badge status-success" style="font-size: 10px; padding: 2px 6px;">{{ latest.get_bmi_classification()|default('-') }}</span>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h6 class="card-title text-muted">Height</h6>
-                    <h3 class="text-warning">{{ latest.height|default('-') }} <small>cm</small></h3>
-                </div>
-            </div>
+
+        <div class="stat-card">
+            <div class="stat-card-title">Height</div>
+            <div class="stat-card-value">{{ latest.height|default('-') }} <small style="font-size: 14px; color: var(--text-muted);">cm</small></div>
+            <div class="stat-card-subtitle">Current registered height</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h6 class="card-title text-muted">Last Updated</h6>
-                    <h5 class="text-muted">{{ latest.metric_date.strftime('%Y-%m-%d') }}</h5>
-                    <small class="text-muted">{{ (now - latest.metric_date).days }} days ago</small>
-                </div>
-            </div>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-card-title">Last Updated</div>
+            <div class="stat-card-value" style="font-size: 24px; color: var(--color-warning); padding-top: 8px;">{{ latest.metric_date.strftime('%Y-%m-%d') }}</div>
+            <div class="stat-card-subtitle" style="margin-top: 8px;">{{ (now - latest.metric_date).days }} days ago</div>
         </div>
     </div>
 
     <!-- Body Measurements -->
     {% if latest.chest or latest.waist or latest.hips %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Body Measurements</h5>
+    <div class="card mb-4" style="border-left: none;">
+        <div style="font-size: 15px; font-family: var(--font-family-headers); font-weight: 700; color: var(--color-teal); margin-bottom: var(--spacing-md); text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-ruler-combined" style="margin-right: 8px;"></i> Body Measurements
         </div>
-        <div class="card-body">
-            <div class="row">
-                {% if latest.chest %}
-                <div class="col-md-3">
-                    <p class="text-muted mb-2">Chest</p>
-                    <h5>{{ latest.chest }} cm</h5>
-                </div>
-                {% endif %}
-                {% if latest.waist %}
-                <div class="col-md-3">
-                    <p class="text-muted mb-2">Waist</p>
-                    <h5>{{ latest.waist }} cm</h5>
-                </div>
-                {% endif %}
-                {% if latest.hips %}
-                <div class="col-md-3">
-                    <p class="text-muted mb-2">Hips</p>
-                    <h5>{{ latest.hips }} cm</h5>
-                </div>
-                {% endif %}
-                {% if latest.bicep %}
-                <div class="col-md-3">
-                    <p class="text-muted mb-2">Bicep</p>
-                    <h5>{{ latest.bicep }} cm</h5>
-                </div>
-                {% endif %}
+        <div class="row cols-4 text-center">
+            {% if latest.chest %}
+            <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                <span class="text-muted" style="font-size: 13px;">Chest</span>
+                <h3 style="margin-bottom: 0; font-size: 20px;">{{ latest.chest }} cm</h3>
             </div>
+            {% endif %}
+            {% if latest.waist %}
+            <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                <span class="text-muted" style="font-size: 13px;">Waist</span>
+                <h3 style="margin-bottom: 0; font-size: 20px;">{{ latest.waist }} cm</h3>
+            </div>
+            {% endif %}
+            {% if latest.hips %}
+            <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                <span class="text-muted" style="font-size: 13px;">Hips</span>
+                <h3 style="margin-bottom: 0; font-size: 20px;">{{ latest.hips }} cm</h3>
+            </div>
+            {% endif %}
+            {% if latest.bicep %}
+            <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                <span class="text-muted" style="font-size: 13px;">Bicep</span>
+                <h3 style="margin-bottom: 0; font-size: 20px;">{{ latest.bicep }} cm</h3>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
 
     <!-- Metrics History Table -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Metrics History</h5>
+    <div class="card" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-history" style="color: var(--color-teal); margin-right: 8px;"></i> Metrics History Records</h3>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 0;">
             {% if metrics %}
             <div class="table-responsive">
-                <table class="table table-hover table-sm">
-                    <thead class="table-light">
+                <table class="data-table" style="border-radius: 0;">
+                    <thead>
                         <tr>
                             <th>Date</th>
                             <th>Weight (kg)</th>
@@ -146,37 +138,39 @@
                         {% for metric in metrics %}
                         <tr>
                             <td><strong>{{ metric.metric_date.strftime('%Y-%m-%d') }}</strong></td>
-                            <td>{{ metric.weight|default('-') }}</td>
+                            <td><strong>{{ metric.weight|default('-') }}</strong></td>
                             <td>{{ metric.height|default('-') }}</td>
-                            <td>{{ metric.bmi|default('-') }}</td>
+                            <td><strong style="color: var(--color-teal);">{{ metric.bmi|default('-') }}</strong></td>
                             <td>
                                 {% if metric.bmi %}
                                     {% set classification = metric.get_bmi_classification() %}
                                     {% if classification == 'Underweight' %}
-                                    <span class="badge bg-info">{{ classification }}</span>
+                                    <span class="status-badge status-pending">{{ classification }}</span>
                                     {% elif classification == 'Normal weight' %}
-                                    <span class="badge bg-success">{{ classification }}</span>
+                                    <span class="status-badge status-success">{{ classification }}</span>
                                     {% elif classification == 'Overweight' %}
-                                    <span class="badge bg-warning">{{ classification }}</span>
+                                    <span class="status-badge status-pending" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.4);">{{ classification }}</span>
                                     {% else %}
-                                    <span class="badge bg-danger">{{ classification }}</span>
+                                    <span class="status-badge status-expired">{{ classification }}</span>
                                     {% endif %}
                                 {% else %}
                                 <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
-                            <td>{{ metric.notes|default('-') }}</td>
+                            <td><small class="text-muted">{{ metric.notes|default('—') }}</small></td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             {% else %}
-            <p class="text-muted">No fitness metrics recorded yet</p>
+            <div style="padding: var(--spacing-lg); text-align: center;">
+                <p class="text-muted" style="margin-bottom: 0;">No fitness metrics recorded yet</p>
+            </div>
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
-{% endif %}
 
 {% endblock %}

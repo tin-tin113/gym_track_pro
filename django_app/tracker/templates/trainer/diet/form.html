@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}{% if plan %}Edit{% else %}Create{% endif %} Diet Plan - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            {% if plan %}✏️ Edit Diet Plan{% else %}🥗 Create Diet Plan{% endif %}
+        </h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" id="diet-plan-form">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <!-- Diet Plan Name -->
+                        <div class="form-group mb-3">
+                            <label class="form-label">Diet Plan Name *</label>
+                            <input type="text" class="form-control" name="name" value="{{ plan.name if plan else '' }}" required placeholder="e.g., High-Protein Shred, Lean Bulk Phase 1">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Briefly describe the purpose of this diet plan...">{{ plan.description if plan else '' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <!-- Diet Type -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Diet Type *</label>
+                                <select class="form-control" name="diet_type" required>
+                                    <option value="balanced" {% if plan and plan.diet_type == 'balanced' %}selected{% endif %}>Balanced</option>
+                                    <option value="calorie_deficit" {% if plan and plan.diet_type == 'calorie_deficit' %}selected{% endif %}>Weight Loss / Deficit</option>
+                                    <option value="maintenance" {% if plan and plan.diet_type == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                                    <option value="surplus" {% if plan and plan.diet_type == 'surplus' %}selected{% endif %}>Muscle Gain / Surplus</option>
+                                </select>
+                            </div>
+
+                            <!-- Daily Calories -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Daily Calorie Target *</label>
+                                <input type="number" class="form-control" name="daily_calories" value="{{ plan.daily_calories if plan else '2000' }}" required min="500" max="10000">
+                            </div>
+                        </div>
+
+                        <!-- Macros Ratios -->
+                        <div class="card mb-4" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                            <div class="card-body">
+                                <h6 class="mb-3" style="color: var(--neon-orange);"><i class="fas fa-chart-pie"></i> Macro nutrient Split (Must sum to 100%)</h6>
+                                <div class="row">
+                                    <div class="col-4">
+                                        <label class="form-label">Protein (%)</label>
+                                        <input type="number" class="form-control macro-input" name="macro_ratio_protein" id="macro-protein" value="{{ (plan.macro_ratio_protein * 100)|int if plan else 30 }}" required min="0" max="100">
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">Carbs (%)</label>
+                                        <input type="number" class="form-control macro-input" name="macro_ratio_carbs" id="macro-carbs" value="{{ (plan.macro_ratio_carbs * 100)|int if plan else 45 }}" required min="0" max="100">
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label">Fats (%)</label>
+                                        <input type="number" class="form-control macro-input" name="macro_ratio_fats" id="macro-fats" value="{{ (plan.macro_ratio_fats * 100)|int if plan else 25 }}" required min="0" max="100">
+                                    </div>
+                                </div>
+                                <div class="mt-3 d-flex justify-content-between align-items-center">
+                                    <span style="font-size: 0.9rem;">Total Macro Percentage:</span>
+                                    <span id="macro-total" class="badge" style="font-size: 1rem; padding: 6px 12px;">100%</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 8px; background-color: var(--border-color);">
+                                    <div id="progress-protein" class="progress-bar" style="background-color: var(--neon-green); width: 30%"></div>
+                                    <div id="progress-carbs" class="progress-bar" style="background-color: var(--neon-orange); width: 45%"></div>
+                                    <div id="progress-fats" class="progress-bar" style="background-color: var(--neon-purple); width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">Dietary Notes / Instructions</label>
+                            <textarea class="form-control" name="notes" rows="3" placeholder="e.g., Drink at least 3L of water daily, consume last meal 3 hours before sleep...">{{ plan.notes if plan else '' }}</textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-gym-action flex-grow-1" id="submit-btn">
+                                <i class="fas fa-save"></i> {% if plan %}Update{% else %}Create{% endif %} Diet Plan
+                            </button>
+                            <a href="{{ url_for('trainer.list_diet_plans') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const proteinInput = document.getElementById('macro-protein');
+    const carbsInput = document.getElementById('macro-carbs');
+    const fatsInput = document.getElementById('macro-fats');
+    const totalDisplay = document.getElementById('macro-total');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const barProtein = document.getElementById('progress-protein');
+    const barCarbs = document.getElementById('progress-carbs');
+    const barFats = document.getElementById('progress-fats');
+
+    if (!proteinInput || !carbsInput || !fatsInput || !totalDisplay || !submitBtn) {
+        console.error('Diet plan form macro elements not found!');
+        return;
+    }
+
+    function updateMacros() {
+        const p = parseFloat(proteinInput.value) || 0;
+        const c = parseFloat(carbsInput.value) || 0;
+        const f = parseFloat(fatsInput.value) || 0;
+        const total = p + c + f;
+
+        totalDisplay.innerText = total.toFixed(0) + '%';
+
+        // Update progress bar widths
+        if (total > 0) {
+            if (barProtein) barProtein.style.width = (p / total * 100) + '%';
+            if (barCarbs) barCarbs.style.width = (c / total * 100) + '%';
+            if (barFats) barFats.style.width = (f / total * 100) + '%';
+        } else {
+            if (barProtein) barProtein.style.width = '0%';
+            if (barCarbs) barCarbs.style.width = '0%';
+            if (barFats) barFats.style.width = '0%';
+        }
+
+        if (Math.abs(total - 100.0) < 0.01) {
+            totalDisplay.className = 'badge bg-success text-white';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        } else {
+            totalDisplay.className = 'badge bg-danger text-white';
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+        }
+    }
+
+    [proteinInput, carbsInput, fatsInput].forEach(input => {
+        input.addEventListener('input', updateMacros);
+        input.addEventListener('change', updateMacros);
+    });
+
+    // Run once on load
+    updateMacros();
+})();
+</script>
+{% endblock %}

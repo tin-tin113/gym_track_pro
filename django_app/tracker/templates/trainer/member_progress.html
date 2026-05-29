@@ -11,6 +11,22 @@
     </div>
 </div>
 
+<!-- Member Management Hub Tabs -->
+<div class="member-hub-tabs mb-4" style="display: flex; gap: var(--spacing-sm); border-bottom: 1.5px solid var(--border-color); padding-bottom: var(--spacing-sm); margin-bottom: var(--spacing-lg); overflow-x: auto;">
+    <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-primary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: 2px solid var(--color-teal); background-color: var(--surface); color: var(--color-teal);">
+        <i class="fas fa-chart-bar"></i> Progress & Metrics
+    </a>
+    <a href="{{ url_for('trainer.member_workouts', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+        <i class="fas fa-dumbbell"></i> Workout Plan
+    </a>
+    <a href="{{ url_for('trainer.member_guides', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+        <i class="fas fa-book"></i> Training Guides
+    </a>
+    <a href="{{ url_for('trainer.member_diet', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+        <i class="fas fa-apple-alt"></i> Diet Plan
+    </a>
+</div>
+
 <!-- Member Info Card -->
 <div class="row mb-4">
     <div class="col-md-6">
@@ -19,23 +35,27 @@
                 <h5 class="mb-0">👤 Member Information</h5>
             </div>
             <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-5">Email:</dt>
-                    <dd class="col-sm-7">{{ member.user.email }}</dd>
-
-                    <dt class="col-sm-5">Phone:</dt>
-                    <dd class="col-sm-7">{{ member.phone_number or 'N/A' }}</dd>
-
-                    <dt class="col-sm-5">Membership:</dt>
-                    <dd class="col-sm-7">
-                        <span class="badge bg-info">{{ member.membership_type|title }}</span>
-                        {% if member.is_membership_active() %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-danger">Expired</span>
-                        {% endif %}
-                    </dd>
-                </dl>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Email</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ member.user.email }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Phone</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ member.phone_number or 'N/A' }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Membership</span>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span class="status-badge status-active" style="padding: 2px 8px; font-size: 10px;">{{ member.membership_type|title }}</span>
+                            {% if member.is_membership_active() %}
+                                <span class="status-badge status-success" style="padding: 2px 8px; font-size: 10px;">Active</span>
+                            {% else %}
+                                <span class="status-badge status-expired" style="padding: 2px 8px; font-size: 10px;">Expired</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -47,16 +67,20 @@
                 <h5 class="mb-0">📈 Attendance (30 Days)</h5>
             </div>
             <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-6">Total Visits:</dt>
-                    <dd class="col-sm-6"><strong>{{ attendance_stats.total_visits }}</strong></dd>
-
-                    <dt class="col-sm-6">Avg Duration:</dt>
-                    <dd class="col-sm-6"><strong>{{ attendance_stats.avg_duration }} min</strong></dd>
-
-                    <dt class="col-sm-6">Total Time:</dt>
-                    <dd class="col-sm-6"><strong>{{ attendance_stats.total_duration }} min</strong></dd>
-                </dl>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Total Visits</span>
+                        <strong style="color: var(--text-primary); font-size: 15px;">{{ attendance_stats.total_visits }}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Avg Duration</span>
+                        <strong style="color: var(--text-primary); font-size: 15px;">{{ attendance_stats.avg_duration }} min</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Total Time</span>
+                        <strong style="color: var(--color-teal); font-size: 15px;">{{ attendance_stats.total_duration }} min</strong>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -71,23 +95,29 @@
                 <h5 class="mb-0">💪 Latest Metrics</h5>
             </div>
             <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-5">Date:</dt>
-                    <dd class="col-sm-7">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</dd>
-
-                    <dt class="col-sm-5">Weight:</dt>
-                    <dd class="col-sm-7"><strong>{{ latest_metric.weight }} kg</strong></dd>
-
-                    <dt class="col-sm-5">Height:</dt>
-                    <dd class="col-sm-7">{{ latest_metric.height }} cm</dd>
-
-                    <dt class="col-sm-5">BMI:</dt>
-                    <dd class="col-sm-7">
-                        <span class="badge bg-{% if latest_metric.bmi < 18.5 %}info{% elif latest_metric.bmi < 25 %}success{% elif latest_metric.bmi < 30 %}warning{% else %}danger{% endif %}">
-                            {{ latest_metric.bmi }} - {{ latest_metric.get_bmi_classification() }}
-                        </span>
-                    </dd>
-                </dl>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Date</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Weight</span>
+                        <strong style="color: var(--color-teal); font-size: 16px;">{{ latest_metric.weight }} kg</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Height</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.height }} cm</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">BMI</span>
+                        <div>
+                            {% set bmi_val = latest_metric.bmi %}
+                            <span class="status-badge {% if bmi_val < 18.5 %}status-pending{% elif bmi_val < 25 %}status-success{% elif bmi_val < 30 %}status-pending{% else %}status-expired{% endif %}" style="padding: 2px 8px; font-size: 10px;">
+                                {{ bmi_val }} - {{ latest_metric.get_bmi_classification() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -100,25 +130,28 @@
                 <h5 class="mb-0">📊 90-Day Trend</h5>
             </div>
             <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-6">Start:</dt>
-                    <dd class="col-sm-6">{{ weight_trend.start_weight }} kg</dd>
-
-                    <dt class="col-sm-6">Current:</dt>
-                    <dd class="col-sm-6">{{ weight_trend.current_weight }} kg</dd>
-
-                    <dt class="col-sm-6">Change:</dt>
-                    <dd class="col-sm-6">
-                        <strong>{{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)</strong>
-                    </dd>
-
-                    <dt class="col-sm-6">Direction:</dt>
-                    <dd class="col-sm-6">
-                        <span class="badge bg-{% if weight_trend.trend == 'down' %}success{% elif weight_trend.trend == 'up' %}warning{% else %}secondary{% endif %}">
-                            {{ weight_trend.trend|title }}
-                        </span>
-                    </dd>
-                </dl>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Start Weight</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ weight_trend.start_weight }} kg</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Current Weight</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ weight_trend.current_weight }} kg</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Change</span>
+                        <strong style="color: var(--text-primary); font-size: 14px;">{{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Trend</span>
+                        <div>
+                            <span class="status-badge {% if weight_trend.trend == 'down' %}status-success{% elif weight_trend.trend == 'up' %}status-pending{% else %}status-inactive{% endif %}" style="padding: 2px 8px; font-size: 10px;">
+                                {{ weight_trend.trend|title }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -134,32 +167,41 @@
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-md-4">
-                <dl class="row">
-                    <dt class="col-sm-6">Chest:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.chest or 'N/A' }} cm</dd>
-
-                    <dt class="col-sm-6">Waist:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.waist or 'N/A' }} cm</dd>
-                </dl>
+            <div>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Chest</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.chest or 'N/A' }} cm</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Waist</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.waist or 'N/A' }} cm</span>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <dl class="row">
-                    <dt class="col-sm-6">Hips:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.hips or 'N/A' }} cm</dd>
-
-                    <dt class="col-sm-6">Bicep:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.bicep or 'N/A' }} cm</dd>
-                </dl>
+            <div>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Hips</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.hips or 'N/A' }} cm</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Bicep</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.bicep or 'N/A' }} cm</span>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-4">
-                <dl class="row">
-                    <dt class="col-sm-6">Thigh:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.thigh or 'N/A' }} cm</dd>
-
-                    <dt class="col-sm-6">Body Fat:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.body_fat_percentage or 'N/A' }}%</dd>
-                </dl>
+            <div>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Thigh</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">{{ latest_metric.thigh or 'N/A' }} cm</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; letter-spacing: 0.5px;">Body Fat</span>
+                        <strong style="color: var(--color-teal); font-size: 14px;">{{ latest_metric.body_fat_percentage or 'N/A' }}%</strong>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -208,6 +208,20 @@ class Command(BaseCommand):
 				continue
 
 			try:
+				cat_lower = guide_data['category'].lower()
+				if 'strength' in cat_lower:
+					img_name = 'strength.jpg'
+				elif 'cardio' in cat_lower:
+					img_name = 'cardio.jpg'
+				elif 'flexibility' in cat_lower or 'yoga' in cat_lower or 'pilates' in cat_lower or 'wellness' in cat_lower:
+					img_name = 'yoga.jpg'
+				elif 'hybrid' in cat_lower or 'crossfit' in cat_lower or 'functional' in cat_lower:
+					img_name = 'hybrid.jpg'
+				elif 'core' in cat_lower:
+					img_name = 'core.jpg'
+				else:
+					img_name = 'strength.jpg'
+
 				# Create guide
 				guide = WorkoutGuide.objects.create(
 					name=guide_data['name'],
@@ -217,6 +231,7 @@ class Command(BaseCommand):
 					duration_weeks=guide_data['duration_weeks'],
 					target_goals=guide_data['target_goals'],
 					equipment_needed=guide_data['equipment_needed'],
+					image=img_name,
 					status=WorkoutGuide.Status.APPROVED,
 					trainer=admin_user,
 					created_at=timezone.now(),

@@ -3,12 +3,28 @@
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1 class="page-title" style="color: #ffffff; margin: 0;">{{ member.user.full_name }}'s Assigned Programs</h1>
-            <a href="/trainer/member/{{ member.id }}/guide/assign/" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 class="page-title" style="margin: 0;">{{ member.user.full_name }}'s Assigned Programs</h1>
+            <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;">
                 <i class="fas fa-plus"></i> Assign Guide
             </a>
         </div>
+    </div>
+
+    <!-- Member Management Hub Tabs -->
+    <div class="member-hub-tabs mb-4" style="display: flex; gap: var(--spacing-sm); border-bottom: 1.5px solid var(--border-color); padding-bottom: var(--spacing-sm); margin-bottom: var(--spacing-lg); overflow-x: auto;">
+        <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-chart-bar"></i> Progress & Metrics
+        </a>
+        <a href="{{ url_for('trainer.member_workouts', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-dumbbell"></i> Workout Plan
+        </a>
+        <a href="{{ url_for('trainer.member_guides', member_id=member.id) }}" class="btn btn-primary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: 2px solid var(--color-teal); background-color: var(--surface); color: var(--color-teal);">
+            <i class="fas fa-book"></i> Training Guides
+        </a>
+        <a href="{{ url_for('trainer.member_diet', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-apple-alt"></i> Diet Plan
+        </a>
     </div>
 
     {% if assignments %}
@@ -18,7 +34,7 @@
             <!-- Header -->
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                 <div>
-                    <h5 style="color: #ffffff; margin: 0 0 5px 0;">{{ assignment.guide.name }}</h5>
+                    <h5 style="margin: 0 0 5px 0;">{{ assignment.guide.name }}</h5>
                     <span class="badge" style="background: var(--teal); color: white; font-size: 11px; padding: 4px 8px; border-radius: 3px;">
                         {{ assignment.guide.difficulty_level|upper }}
                     </span>
@@ -67,10 +83,10 @@
 
             <!-- Action Buttons -->
             <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <a href="/member/guides/{{ assignment.guide.id }}" class="btn btn-sm" style="flex: 1; background: var(--navy); border: none; color: white; padding: 6px 12px; border-radius: 4px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.3s ease;">
+                <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide.id) }}" class="btn btn-sm" style="flex: 1; background: var(--navy); border: none; color: white; padding: 6px 12px; border-radius: 4px; text-align: center; font-size: 12px; cursor: pointer; transition: all 0.3s ease;">
                     <i class="fas fa-eye"></i> View
                 </a>
-                <form action="/trainer/member/{{ member.id }}/guide/{{ assignment.guide.id }}/unassign/" method="POST" style="flex: 1;">
+                <form action="{{ url_for('trainer.unassign_guide', member_id=member.id, guide_id=assignment.guide.id) }}" method="POST" style="flex: 1;">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <button type="submit" class="btn btn-sm" style="width: 100%; background: #e74c3c; border: none; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.3s ease;" onclick="return confirm('Unassign this guide?')">
                         <i class="fas fa-trash"></i> Unassign
@@ -83,7 +99,7 @@
     {% else %}
     <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
         <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
-        <p style="color: #7f8c8d; margin: 0;">No guides assigned yet. <a href="/trainer/member/{{ member.id }}/guide/assign/" style="color: var(--teal); font-weight: 500;">Assign one now</a></p>
+        <p style="color: #7f8c8d; margin: 0;">No guides assigned yet. <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" style="color: var(--teal); font-weight: 500;">Assign one now</a></p>
     </div>
     {% endif %}
 </div>

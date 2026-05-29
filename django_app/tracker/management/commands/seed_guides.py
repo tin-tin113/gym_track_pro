@@ -204,12 +204,27 @@ class Command(BaseCommand):
             for guide_data in guides_data:
                 tips_data = guide_data.pop("tips")
 
+                cat_lower = guide_data["category"].lower()
+                if 'strength' in cat_lower:
+                    img_name = 'strength.jpg'
+                elif 'cardio' in cat_lower:
+                    img_name = 'cardio.jpg'
+                elif 'flexibility' in cat_lower or 'yoga' in cat_lower or 'pilates' in cat_lower or 'wellness' in cat_lower:
+                    img_name = 'yoga.jpg'
+                elif 'hybrid' in cat_lower or 'crossfit' in cat_lower or 'functional' in cat_lower:
+                    img_name = 'hybrid.jpg'
+                elif 'core' in cat_lower:
+                    img_name = 'core.jpg'
+                else:
+                    img_name = 'strength.jpg'
+
                 # Create or update guide
                 guide, created = WorkoutGuide.objects.get_or_create(
                     name=guide_data["name"],
                     trainer=trainer,
                     defaults={
                         **guide_data,
+                        "image": img_name,
                         "status": WorkoutGuide.Status.APPROVED,  # Auto-approve for demo
                     }
                 )

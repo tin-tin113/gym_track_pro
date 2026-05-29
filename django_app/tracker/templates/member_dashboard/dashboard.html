@@ -2,39 +2,52 @@
 {% from "components.html" import stat_card %}
 {% block title %}My Progress - GymTrack Pro{% endblock %}
 {% block content %}
-<div class="container-fluid mt-4">
-    <h1 class="mb-4"><i class="fas fa-chart-line"></i> My Progress</h1>
-
-    <div class="row mb-4">
-        <div class="col-md-3">
-            {{ stat_card("Gym Visits (30d)", attendance_count, icon="calendar-check", color="primary") }}
-        </div>
-        <div class="col-md-3">
-            {{ stat_card("Workouts Logged", recent_workouts|length, icon="dumbbell", color="secondary") }}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>📈 My Progress Dashboard</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Overview of your logged gym check-ins and personal training workouts</p>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header"><h3 class="mb-0"><i class="fas fa-list"></i> Recent Workouts</h3></div>
-        <div class="card-body">
+    <div class="row cols-4 mb-4">
+        {{ stat_card("Gym Visits (30d)", attendance_count, icon="calendar-check", color="primary") }}
+        {{ stat_card("Workouts Logged", recent_workouts|length, icon="dumbbell", color="secondary") }}
+    </div>
+
+    <div class="card" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-list" style="color: var(--color-teal); margin-right: 8px;"></i> Recent Workouts</h3>
+        </div>
+        <div class="card-body" style="padding: var(--spacing-lg);">
             {% if recent_workouts %}
-            <table class="data-table">
-                <thead>
-                    <tr><th>Date</th><th>Exercise</th><th>Category</th></tr>
-                </thead>
-                <tbody>
-                    {% for w in recent_workouts %}
-                    <tr>
-                        <td>{{ w.workout_date }}</td>
-                        <td>{{ w.exercise_name }}</td>
-                        <td>{{ w.exercise_category }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <a href="{{ url_for('member.list_workouts') }}" class="btn btn-small btn-primary mt-3"><i class="fas fa-eye"></i> View All</a>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Exercise</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in recent_workouts %}
+                        <tr>
+                            <td><strong>{{ w.workout_date }}</strong></td>
+                            <td><strong>{{ w.exercise_name }}</strong></td>
+                            <td><span class="badge badge-primary">{{ w.exercise_category }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <a href="{{ url_for('member.list_workouts') }}" class="btn btn-small btn-primary mt-3" style="margin-top: var(--spacing-md); display: inline-flex;"><i class="fas fa-eye"></i> View All Workouts</a>
             {% else %}
-            <p>No workouts yet. <a href="{{ url_for('member.create_workout') }}">Log one now!</a></p>
+            <div style="text-align: center; padding: var(--spacing-lg);">
+                <p class="text-muted">No workouts recorded yet.</p>
+                <a href="{{ url_for('member.create_workout') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Log a Workout Now</a>
+            </div>
             {% endif %}
         </div>
     </div>

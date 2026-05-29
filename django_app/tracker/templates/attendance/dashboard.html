@@ -204,9 +204,6 @@
     </div>
 </div>
 
-<!-- Toast container -->
-<div id="toast-container-dashboard" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-
 <script>
 // Real-time updates (every 5 seconds) for elapsed active time
 function updateActiveDurations() {
@@ -245,53 +242,25 @@ function attachCheckoutListeners() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    showToast(data.message, 'success');
 
                     // Refresh table to reflect checkout cleanly
                     setTimeout(() => {
                         location.reload();
                     }, 800);
                 } else {
-                    showNotification('Failed to check out: ' + data.error, 'danger');
+                    showToast('Failed to check out: ' + data.error, 'danger');
                 }
             })
             .catch(error => {
                 console.error('Check-out error:', error);
-                showNotification('Error checking out member', 'danger');
+                showToast('Error checking out member', 'danger');
             });
         });
     });
 }
 
-// Simple notification toast
-function showNotification(message, type = 'info') {
-    const variant = (type === 'danger') ? 'danger' : type;
-    const id = 'td' + Math.random().toString(36).slice(2, 9);
-    const toastHtml = `
-        <div id="${id}" class="toast text-bg-${variant} mb-2" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-inner">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>`;
-    const container = document.getElementById('toast-container-dashboard');
-    if (!container) return;
-    container.insertAdjacentHTML('beforeend', toastHtml);
-    const toastEl = document.getElementById(id);
-    const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
-    toast.show();
-}
-
 document.addEventListener('DOMContentLoaded', function () {
-    // Convert base flash alerts to toasts on this page
-    document.querySelectorAll('#flash-messages .alert').forEach(function (alertEl) {
-        const category = alertEl.className.match(/alert-([a-z]+)/);
-        const variant = (category && category[1] === 'danger') ? 'danger' : (category ? category[1] : 'info');
-        const body = alertEl.querySelector('div') ? alertEl.querySelector('div').innerHTML : alertEl.innerHTML;
-        showNotification(body, variant);
-        alertEl.remove();
-    });
-
     attachCheckoutListeners();
     // Update active member duration badges every 10 seconds
     setInterval(updateActiveDurations, 10000);

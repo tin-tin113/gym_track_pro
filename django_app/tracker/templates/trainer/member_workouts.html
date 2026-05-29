@@ -7,10 +7,26 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>{{ member.user.full_name }}'s Workouts</h1>
-            <p class="text-muted">Member since {{ member.membership_start_date.strftime('%B %Y') }}</p>
+            <p class="text-muted" style="margin-bottom: 0;">Member since {{ member.membership_start_date.strftime('%B %Y') }}</p>
         </div>
         <a href="{{ url_for('trainer.assign_workout', member_id=member.id) }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Assign Workout
+        </a>
+    </div>
+
+    <!-- Member Management Hub Tabs -->
+    <div class="member-hub-tabs mb-4" style="display: flex; gap: var(--spacing-sm); border-bottom: 1.5px solid var(--border-color); padding-bottom: var(--spacing-sm); margin-bottom: var(--spacing-lg); overflow-x: auto;">
+        <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-chart-bar"></i> Progress & Metrics
+        </a>
+        <a href="{{ url_for('trainer.member_workouts', member_id=member.id) }}" class="btn btn-primary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: 2px solid var(--color-teal); background-color: var(--surface); color: var(--color-teal);">
+            <i class="fas fa-dumbbell"></i> Workout Plan
+        </a>
+        <a href="{{ url_for('trainer.member_guides', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-book"></i> Training Guides
+        </a>
+        <a href="{{ url_for('trainer.member_diet', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-apple-alt"></i> Diet Plan
         </a>
     </div>
 
@@ -102,53 +118,25 @@
 
         <!-- Pagination -->
         {% if pagination.pages > 1 %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if pagination.has_prev %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ url_for('trainer.member_workouts', member_id=member.id, page=pagination.prev_num) }}">
-                                Previous
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">Previous</span>
-                        </li>
-                    {% endif %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('trainer.member_workouts', member_id=member.id, page=pagination.prev_num) }}">Previous</a>
+            {% endif %}
 
-                    {% for page_num in pagination.iter_pages() %}
-                        {% if page_num %}
-                            {% if page_num == pagination.page %}
-                                <li class="page-item active">
-                                    <span class="page-link">{{ page_num }}</span>
-                                </li>
-                            {% else %}
-                                <li class="page-item">
-                                    <a class="page-link" href="{{ url_for('trainer.member_workouts', member_id=member.id, page=page_num) }}">
-                                        {{ page_num }}
-                                    </a>
-                                </li>
-                            {% endif %}
-                        {% else %}
-                            <li class="page-item disabled">
-                                <span class="page-link">...</span>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if pagination.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="{{ url_for('trainer.member_workouts', member_id=member.id, page=pagination.next_num) }}">
-                                Next
-                            </a>
-                        </li>
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                    <span class="active">{{ page_num }}</span>
                     {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">Next</span>
-                        </li>
+                    <a href="{{ url_for('trainer.member_workouts', member_id=member.id, page=page_num) }}">{{ page_num }}</a>
                     {% endif %}
-                </ul>
-            </nav>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('trainer.member_workouts', member_id=member.id, page=pagination.next_num) }}">Next</a>
+            {% endif %}
+        </div>
         {% endif %}
     {% else %}
         <div class="alert alert-info" role="alert">

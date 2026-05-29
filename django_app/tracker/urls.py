@@ -41,7 +41,6 @@ urlpatterns = [
 
     path('member/guides/library', views.member_guides_library, name='member.browse_guides_library'),
     path('member/guides/<int:guide_id>', views.member_view_assigned_guide, name='member.view_assigned_guide'),
-    path('member/guides/<int:guide_id>/request', views.member_request_guide_assignment, name='member.request_guide_assignment'),
 
     # Attendance
     path('attendance/', views.attendance_dashboard, name='attendance_routes.dashboard'),
@@ -91,14 +90,23 @@ urlpatterns = [
     path('trainer/members/<int:member_id>/guides', views.trainer_member_guides, name='trainer.member_guides'),
     path('trainer/members/<int:member_id>/guides/assign', views.trainer_assign_guide_to_member, name='trainer.assign_guide_to_member'),
     path('trainer/members/<int:member_id>/guides/<int:guide_id>/unassign', views.trainer_unassign_guide, name='trainer.unassign_guide'),
+    path('trainer/member/<int:member_id>/guide/assign/', views.trainer_assign_guide_to_member),
+    path('trainer/member/<int:member_id>/guide/<int:guide_id>/unassign/', views.trainer_unassign_guide),
     path('member/guides/<int:assignment_id>/complete', views.member_complete_guide, name='member.complete_guide'),
     path('trainer/guides/<int:assignment_id>/complete', views.trainer_complete_member_guide, name='trainer.complete_member_guide'),
 
     # Diets
+    path('trainer/diets/new', views.trainer_create_diet_plan, name='trainer.create_diet_plan'),
     path('trainer/diets/<int:plan_id>', views.trainer_view_diet_plan, name='trainer.view_diet_plan'),
+    path('trainer/diets/<int:plan_id>/edit', views.trainer_edit_diet_plan, name='trainer.edit_diet_plan'),
+    path('trainer/diets/<int:plan_id>/delete', views.trainer_delete_diet_plan, name='trainer.delete_diet_plan'),
+    path('trainer/diets/<int:plan_id>/meals/new', views.trainer_add_meal, name='trainer.add_meal'),
+    path('trainer/diets/<int:plan_id>/meals/<int:meal_id>/delete', views.trainer_delete_meal, name='trainer.delete_meal'),
     path('trainer/members/<int:member_id>/diet', views.trainer_member_diet, name='trainer.member_diet'),
     path('trainer/members/<int:member_id>/diet/assign', views.trainer_assign_diet_to_member, name='trainer.assign_diet_to_member'),
     path('trainer/members/<int:member_id>/diet/remove', views.trainer_remove_member_diet, name='trainer.remove_member_diet'),
+    path('trainer/member/<int:member_id>/diet/assign/', views.trainer_assign_diet_to_member),
+    path('trainer/member/<int:member_id>/diet/remove/', views.trainer_remove_member_diet),
 
     # Staff
     path('staff/', views.staff_list, name='staff.list_staff'),

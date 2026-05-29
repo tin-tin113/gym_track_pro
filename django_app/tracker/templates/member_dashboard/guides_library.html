@@ -5,7 +5,7 @@
     <!-- My Assigned Programs Section -->
     <div class="mb-5">
         <div class="page-header">
-            <h2 class="page-title" style="color: #ffffff; margin-bottom: 20px;">
+            <h2 class="page-title" style="margin-bottom: 20px;">
                 <i class="fas fa-tasks"></i> My Assigned Programs
             </h2>
         </div>
@@ -15,7 +15,7 @@
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="program-card" style="border-left: 4px solid var(--teal); background: var(--surface); border: 1px solid var(--border-color); box-shadow: var(--shadow-md);">
                     <div style="margin-bottom: 10px;">
-                        <h5 style="color: #ffffff; margin-bottom: 5px;">{{ assignment.guide.name }}</h5>
+                        <h5 style="margin-bottom: 5px;">{{ assignment.guide.name }}</h5>
                         <span class="badge" style="background: var(--teal); color: white; font-size: 12px;">
                             {{ assignment.guide.difficulty_level }}
                         </span>
@@ -73,7 +73,7 @@
     <div>
         <div class="page-header">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 class="page-title" style="color: #ffffff; margin: 0;">
+                <h2 class="page-title" style="margin: 0;">
                     <i class="fas fa-book"></i> Browse Workout Guides
                 </h2>
                 <p style="color: #7f8c8d; margin: 0; font-size: 14px;">
@@ -86,32 +86,41 @@
         {% if guides %}
         <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px;">
             {% for guide in guides %}
-            <div class="guide-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; background: var(--surface); transition: all 0.3s ease;" onmouseover="this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';">
-                <!-- Guide Header -->
-                <div style="margin-bottom: 12px;">
-                    <h5 style="color: #ffffff; margin: 0 0 8px 0; font-size: 15px;">
-                        <a href="/member/guides/{{ guide.id }}" style="color: #ffffff; text-decoration: none; cursor: pointer;" onmouseover="this.style.textDecoration='underline'; this.style.color='var(--color-teal)';" onmouseout="this.style.textDecoration='none'; this.style.color='#ffffff';">
-                            {{ guide.name }}
-                        </a>
-                    </h5>
-                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                        <span class="badge" style="background: var(--teal); color: white; font-size: 11px; padding: 4px 8px; font-weight: 500; display: inline-block;">
-                            {{ guide.difficulty_level|upper }}
-                        </span>
-                        <span style="font-size: 11px; color: #7f8c8d;">{{ guide.category }}</span>
-                    </div>
+            <div class="guide-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 0; overflow: hidden; background: var(--surface); transition: all 0.3s ease; display: flex; flex-direction: column;" onmouseover="this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)';" title="View guide details">
+                {% if guide.image %}
+                <div style="height: 160px; overflow: hidden; position: relative;">
+                    <img src="{{ url_for('static', filename='images/' + guide.image) }}" alt="{{ guide.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
+                {% endif %}
+                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <!-- Guide Header -->
+                        <div style="margin-bottom: 12px;">
+                            <h5 style="margin: 0 0 8px 0; font-size: 15px;">
+                                <a href="/member/guides/{{ guide.id }}" style="color: var(--text-primary); text-decoration: none; cursor: pointer;" onmouseover="this.style.textDecoration='underline'; this.style.color='var(--color-teal)';" onmouseout="this.style.textDecoration='none'; this.style.color='var(--text-primary)';">
+                                    {{ guide.name }}
+                                </a>
+                            </h5>
+                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                <span class="badge" style="background: var(--teal); color: white; font-size: 11px; padding: 4px 8px; font-weight: 500; display: inline-block;">
+                                    {{ guide.difficulty_level|upper }}
+                                </span>
+                                <span style="font-size: 11px; color: #7f8c8d;">{{ guide.category }}</span>
+                            </div>
+                        </div>
 
-                <!-- Description -->
-                <p style="color: #7f8c8d; font-size: 13px; margin: 12px 0; line-height: 1.5;">
-                    {{ guide.description[:100] }}{% if guide.description|length > 100 %}...{% endif %}
-                </p>
+                        <!-- Description -->
+                        <p style="color: #7f8c8d; font-size: 13px; margin: 12px 0; line-height: 1.5;">
+                            {{ guide.description[:100] }}{% if guide.description|length > 100 %}...{% endif %}
+                        </p>
+                    </div>
 
-                <!-- Action Buttons -->
-                <div style="display: flex; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                    <a href="/member/guides/{{ guide.id }}" style="flex: 1; background: var(--color-teal); border: 2px solid var(--color-teal); color: #000000; padding: 14px 18px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s ease; text-decoration: none; text-align: center; display: inline-block; box-shadow: var(--shadow-teal); opacity: 1; visibility: visible;" onmouseover="this.style.background='var(--color-teal-light)'; this.style.boxShadow='0 6px 16px rgba(0,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--color-teal)'; this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(0)';" title="View guide content">
-                        <i class="fas fa-eye" style="margin-right: 6px;"></i> VIEW GUIDE
-                    </a>
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <a href="/member/guides/{{ guide.id }}" style="flex: 1; background: var(--color-teal); border: 2px solid var(--color-teal); color: #000000; padding: 14px 18px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s ease; text-decoration: none; text-align: center; display: inline-block; box-shadow: var(--shadow-teal); opacity: 1; visibility: visible;" onmouseover="this.style.background='var(--color-teal-light)'; this.style.boxShadow='0 6px 16px rgba(0,255,255,0.6)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='var(--color-teal)'; this.style.boxShadow='var(--shadow-teal)'; this.style.transform='translateY(0)';" title="View guide content">
+                            <i class="fas fa-eye" style="margin-right: 6px;"></i> VIEW GUIDE
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}

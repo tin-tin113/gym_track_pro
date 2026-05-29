@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+from .base import (
+    home,
+    api_health,
+)
+
+from .auth import (
+    auth_login,
+    auth_logout,
+    auth_profile,
+    auth_signup,
+    auth_register,
+    auth_pending_status,
+    auth_setup_password,
+)
+
+from .member import (
+    member_list_members,
+    member_create_member,
+    member_import_csv,
+    member_detail,
+    member_edit,
+    member_assign_trainer,
+    member_dashboard,
+    member_profile,
+    member_profile_edit,
+    member_workouts,
+    member_workout_form,
+    member_edit_workout,
+    member_delete_workout,
+    member_programs,
+    member_current_diet,
+    member_log_meal,
+    member_diet_progress,
+    member_diet_history,
+    member_guides_library,
+    member_view_assigned_guide,
+    member_complete_guide,
+)
+
+from .attendance import (
+    attendance_dashboard,
+    attendance_check_in,
+    attendance_undo_check_in,
+    attendance_history,
+    attendance_stats,
+    attendance_check_out,
+    attendance_api_active_today,
+    attendance_api_check_out,
+    attendance_api_stats,
+)
+
+from .fitness import (
+    fitness_metrics,
+)
+
+from .reports import (
+    reports_dashboard,
+    reports_daily_attendance,
+    reports_attendance_report,
+    reports_fitness_report,
+    reports_fitness_export,
+)
+
+from .trainer import (
+    trainer_dashboard,
+    trainer_members,
+    trainer_list,
+    trainer_guides,
+    trainer_diets,
+    trainer_create_diet_plan,
+    trainer_edit_diet_plan,
+    trainer_delete_diet_plan,
+    trainer_add_meal,
+    trainer_delete_meal,
+    trainer_member_progress,
+    trainer_member_workouts,
+    trainer_assign_workout,
+    trainer_edit_assigned_workout,
+    trainer_delete_assigned_workout,
+    trainer_create_trainer,
+    trainer_edit_trainer,
+    trainer_resend_setup_link,
+    trainer_delete_trainer,
+    trainer_manage_assignments,
+    trainer_browse_guides,
+    trainer_create_guide,
+    trainer_edit_guide,
+    trainer_view_guide,
+    trainer_delete_guide,
+    trainer_submit_guide,
+    trainer_add_guide_tip,
+    trainer_delete_guide_tip,
+    trainer_member_guides,
+    trainer_assign_guide_to_member,
+    trainer_unassign_guide,
+    trainer_complete_member_guide,
+    trainer_view_diet_plan,
+    trainer_member_diet,
+    trainer_assign_diet_to_member,
+    trainer_remove_member_diet,
+    admin_dashboard,
+    admin_pending_approvals,
+    admin_pending_guides,
+    admin_all_guides,
+    admin_review_guide,
+    admin_approve_guide,
+    admin_reject_guide,
+    admin_approve_member,
+    admin_reject_member,
+    staff_list,
+    staff_dashboard,
+    staff_create_staff,
+    staff_edit_staff,
+    staff_delete_staff,
+)

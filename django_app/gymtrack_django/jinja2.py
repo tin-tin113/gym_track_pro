@@ -41,10 +41,38 @@ def environment(**options: Any) -> Environment:
             filename = values.get("filename")
             return static(filename) if filename else static("")
 
+        from django.urls import get_resolver
+        from urllib.parse import urlencode
+
+        resolver = get_resolver()
+        path_params = set()
         try:
-            return reverse(endpoint, kwargs=values)
+            entry = resolver.reverse_dict.get(endpoint)
+            if entry and isinstance(entry, tuple) and entry[0]:
+                for possibility in entry[0]:
+                    if len(possibility) > 1:
+                        path_params.update(possibility[1])
+        except Exception:
+            pass
+
+        path_kwargs = {}
+        query_params = {}
+        for k, v in values.items():
+            if k in path_params:
+                path_kwargs[k] = v
+            else:
+                query_params[k] = v
+
+        try:
+            url = reverse(endpoint, kwargs=path_kwargs)
+            if query_params:
+                url += "?" + urlencode(query_params)
+            return url
         except NoReverseMatch:
-            return "#"
+            try:
+                return reverse(endpoint, kwargs=values)
+            except NoReverseMatch:
+                return "#"
 
     env.globals.update(
         url_for=url_for,

@@ -3,103 +3,115 @@
 {% block title %}Attendance Report - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <h1 class="mb-4">Attendance Report</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>📋 Attendance Report</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Generate and export gym check-in activity history records</p>
+        </div>
+    </div>
 
     <!-- Filter Form -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Report Filters</h5>
+    <div class="card mb-4" style="border-left: none;">
+        <div style="font-size: 15px; font-family: var(--font-family-headers); font-weight: 700; color: var(--color-teal); margin-bottom: var(--spacing-md); text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-filter" style="margin-right: 8px;"></i> Report Filters
         </div>
-        <div class="card-body">
-            <form method="POST">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label>Member (optional)</label>
-                        <select name="member_id" class="form-control">
-                            <option value="">All Members</option>
-                            {% for member in members %}
-                            <option value="{{ member.id }}" {% if member and member.id == request.form.get('member_id')|int %}selected{% endif %}>
-                                {{ member.user.full_name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label>Start Date</label>
-                        <input type="date" name="start_date" class="form-control" required value="{{ request.form.get('start_date', (now - timedelta(days=30))|strftime('%Y-%m-%d')) }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label>End Date</label>
-                        <input type="date" name="end_date" class="form-control" required value="{{ request.form.get('end_date', now|strftime('%Y-%m-%d')) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label>&nbsp;</label>
-                        <button type="submit" class="btn btn-primary btn-block">Generate</button>
-                    </div>
+        <form method="POST">
+            <div class="row cols-4">
+                <div class="form-group">
+                    <label class="form-label">Member (optional)</label>
+                    <select name="member_id">
+                        <option value="">All Members</option>
+                        {% for member in members %}
+                        <option value="{{ member.id }}" {% if member and member.id == request.form.get('member_id')|int %}selected{% endif %}>
+                            {{ member.user.full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <select name="format" class="form-control mr-2" style="width: 150px; display: inline-block;">
-                            <option value="html">View HTML</option>
-                            <option value="csv">Export CSV</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" required value="{{ request.form.get('start_date', (now - timedelta(days=30))|strftime('%Y-%m-%d')) }}">
                 </div>
-            </form>
-        </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" required value="{{ request.form.get('end_date', now|strftime('%Y-%m-%d')) }}">
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-end;">
+                    <button type="submit" class="btn btn-primary w-100" style="padding: 10px 16px;">
+                        <i class="fas fa-arrows-spin"></i> Generate
+                    </button>
+                </div>
+            </div>
+            <div class="row cols-4 mt-3" style="margin-top: var(--spacing-md);">
+                <div class="form-group">
+                    <label class="form-label">Output Format</label>
+                    <select name="format" style="width: 180px;">
+                        <option value="html">View in Dashboard</option>
+                        <option value="csv">Export to CSV File</option>
+                    </select>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- Results -->
     {% if records %}
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Attendance Records ({{ records|length }} entries)</h5>
-            {% if member %}
-            <span class="badge badge-info">{{ member.user.full_name }}</span>
-            {% endif %}
-            {% if start_date %}
-            <span class="badge badge-secondary">{{ start_date }} to {{ end_date }}</span>
-            {% endif %}
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-list" style="color: var(--color-teal); margin-right: 8px;"></i> Attendance Records ({{ records|length }} entries)</h3>
+            <div style="display: flex; gap: var(--spacing-xs);">
+                {% if member %}
+                <span class="badge badge-primary">{{ member.user.full_name }}</span>
+                {% endif %}
+                {% if start_date %}
+                <span class="badge badge-primary" style="background-color: rgba(0, 229, 229, 0.05);">{{ start_date }} to {{ end_date }}</span>
+                {% endif %}
+            </div>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="padding: 0;">
             {% if records %}
-            <table class="table table-hover table-sm">
-                <thead class="table-light">
-                    <tr>
-                        <th>Member</th>
-                        <th>Email</th>
-                        <th>Date</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Duration (min)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in records %}
-                    <tr>
-                        <td>
-                            <a href="{{ url_for('member.view_member', member_id=record.member.id) }}">
-                                {{ record.member.user.full_name }}
-                            </a>
-                        </td>
-                        <td>{{ record.member.user.email }}</td>
-                        <td>{{ record.check_in_time.date() }}</td>
-                        <td>{{ record.check_in_time.strftime('%H:%M') if record.check_in_time else '-' }}</td>
-                        <td>{{ record.check_out_time.strftime('%H:%M') if record.check_out_time else '-' }}</td>
-                        <td>
-                            {% if record.duration_minutes %}
-                            <span class="badge bg-info">{{ record.duration_minutes }}</span>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="data-table" style="border-radius: 0;">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Email</th>
+                            <th>Date</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Duration (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('member.view_member', member_id=record.member.id) }}" style="font-weight: 600;">
+                                    {{ record.member.user.full_name }}
+                                </a>
+                            </td>
+                            <td><span class="text-muted">{{ record.member.user.email }}</span></td>
+                            <td>{{ record.check_in_time.date() }}</td>
+                            <td><strong>{{ record.check_in_time.strftime('%H:%M') if record.check_in_time else '-' }}</strong></td>
+                            <td><strong>{{ record.check_out_time.strftime('%H:%M') if record.check_out_time else '-' }}</strong></td>
+                            <td>
+                                {% if record.duration_minutes %}
+                                <span class="badge badge-primary">{{ record.duration_minutes }} mins</span>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <p class="text-muted">No attendance records found</p>
+            <div style="padding: var(--spacing-lg); text-align: center;">
+                <p class="text-muted" style="margin-bottom: 0;">No attendance records found for this period</p>
+            </div>
             {% endif %}
         </div>
     </div>

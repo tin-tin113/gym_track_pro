@@ -4,350 +4,25 @@
 {% block title %}Trainer Management - GymTrack Pro{% endblock %}
 
 {% block content %}
-<style>
-    .page-title-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-        padding-bottom: 16px;
-        border-bottom: 3px solid var(--color-teal);
-    }
-
-    .page-title-bar h1 {
-        margin: 0;
-        font-size: 32px;
-        font-weight: 700;
-        color: #ffffff;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .page-title-actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .filter-section {
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        padding: 20px;
-        margin-bottom: 24px;
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .filter-group {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .filter-group label {
-        font-weight: 700;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-secondary);
-        white-space: nowrap;
-    }
-
-    .filter-group input {
-        flex: 1;
-        padding: 10px 12px;
-        border: 1px solid var(--border-color);
-        background-color: var(--bg-secondary);
-        color: #ffffff;
-        border-radius: var(--radius-sm);
-        font-size: 14px;
-        transition: all var(--duration-fast) var(--easing-smooth);
-    }
-
-    .filter-group input:focus {
-        outline: none;
-        border-color: var(--color-teal);
-        box-shadow: 0 0 0 3px rgba(0, 217, 217, 0.1);
-    }
-
-    .filter-group button {
-        padding: 10px 16px;
-        background-color: var(--color-teal);
-        color: #000000;
-        border: 2px solid var(--color-teal);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all var(--duration-fast) var(--easing-smooth);
-        white-space: nowrap;
-    }
-
-    .filter-group button:hover {
-        background-color: var(--color-teal-light);
-        color: #000000;
-        border-color: var(--color-teal-light);
-        transform: translateY(-2px);
-        box-shadow: 0 0 12px rgba(0, 217, 217, 0.2);
-    }
-
-    .table-card {
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .table-card .data-table {
-        margin-bottom: 0;
-    }
-
-    .trainer-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .trainer-name {
-        font-weight: 700;
-        color: #ffffff;
-        font-size: 14px;
-    }
-
-    .trainer-email {
-        font-size: 12px;
-        color: var(--text-secondary);
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        padding: 6px 11px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        border: 1px solid;
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        transition: all var(--duration-fast) var(--easing-smooth);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        white-space: nowrap;
-    }
-
-    .action-btn-primary {
-        background-color: var(--color-navy);
-        color: var(--color-teal);
-        border-color: var(--color-teal);
-    }
-
-    .action-btn-primary:hover {
-        background-color: var(--color-navy);
-        color: var(--color-teal-light);
-        border-color: var(--color-teal-light);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(0, 217, 217, 0.15);
-    }
-
-    .action-btn-danger {
-        background-color: var(--color-danger);
-        color: white;
-        border-color: var(--color-danger);
-    }
-
-    .action-btn-danger:hover {
-        background-color: #DC2626;
-        border-color: #DC2626;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
-    }
-
-    .empty-state-container {
-        text-align: center;
-        padding: 60px 20px;
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-    }
-
-    .empty-state-icon {
-        font-size: 48px;
-        color: var(--color-teal);
-        margin-bottom: 16px;
-        opacity: 0.25;
-    }
-
-    .empty-state-text {
-        color: var(--text-secondary);
-        font-size: 16px;
-        margin-bottom: 24px;
-    }
-
-    @media (max-width: 768px) {
-        .page-title-bar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-        }
-
-        .page-title-actions {
-            width: 100%;
-        }
-
-        .page-title-actions .btn {
-            flex: 1;
-        }
-
-        .filter-section {
-            flex-direction: column;
-        }
-
-        .filter-group {
-            width: 100%;
-        }
-
-        .action-buttons {
-            flex-wrap: wrap;
-        }
-    }
-        color: var(--text-secondary);
-    }
-
-    .capacity-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background-color: rgba(0, 217, 217, 0.1);
-        border: 1px solid var(--color-teal);
-        border-radius: var(--radius-md);
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .capacity-badge.at-capacity {
-        background-color: rgba(245, 158, 11, 0.1);
-        border-color: var(--color-warning);
-        color: #B45309;
-    }
-
-    .setup-cell {
-        font-size: 13px;
-    }
-
-    .setup-link {
-        display: inline-block;
-        padding: 4px 8px;
-        background-color: rgba(0, 217, 217, 0.1);
-        border: 1px solid var(--color-teal);
-        border-radius: var(--radius-sm);
-        cursor: pointer;
-        font-size: 11px;
-        font-weight: 600;
-        transition: all var(--duration-fast) var(--easing-smooth);
-    }
-
-    .setup-link:hover {
-        background-color: var(--color-teal);
-        color: white;
-    }
-
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 5px 10px;
-        border-radius: var(--radius-md);
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        border: 1px solid;
-    }
-
-    .status-active {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: #059669;
-        border-color: var(--color-success);
-    }
-
-    .status-inactive {
-        background-color: rgba(239, 68, 68, 0.1);
-        color: #DC2626;
-        border-color: var(--color-danger);
-    }
-
-    .status-pending {
-        background-color: rgba(245, 158, 11, 0.1);
-        color: #B45309;
-        border-color: var(--color-warning);
-    }
-
-    .status-expired {
-        background-color: rgba(239, 68, 68, 0.1);
-        color: #DC2626;
-        border-color: var(--color-danger);
-    }
-
-    .pagination {
-        margin-top: 24px;
-        justify-content: center;
-    }
-
-    @media (max-width: 768px) {
-        .page-title-bar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-        }
-
-        .filter-section {
-            flex-direction: column;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .action-btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-</style>
-
-<div class="page-section">
+<div class="container-fluid">
     <!-- Page Header -->
-    <div class="page-title-bar">
-        <h1><i class="fas fa-dumbbell"></i> Trainers</h1>
-        <a href="{{ url_for('trainer.create_trainer') }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Trainer
-        </a>
+    <div class="page-header">
+        <div>
+            <h1><i class="fas fa-dumbbell"></i> Trainer Management</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Manage your gym's personal trainers, specializations, and client capacities</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{{ url_for('trainer.create_trainer') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Trainer
+            </a>
+        </div>
     </div>
 
     <!-- Search Section -->
-    <div class="filter-section">
-        <form method="GET" action="{{ url_for('trainer.list_trainers') }}" class="filter-group">
-            <input type="text" name="search" placeholder="Search by name or email..." value="{{ search }}">
-            <button type="submit">
+    <div class="list-filter-section">
+        <form method="GET" action="{{ url_for('trainer.list_trainers') }}" class="filter-field" style="max-width: 500px; display: flex; gap: var(--spacing-sm); margin-bottom: 0;">
+            <input type="text" name="search" placeholder="Search by name or email..." value="{{ search }}" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+            <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">
                 <i class="fas fa-search"></i> Find
             </button>
         </form>
@@ -355,7 +30,7 @@
 
     <!-- Trainers Table -->
     {% if trainers %}
-    <div class="table-card">
+    <div class="table-responsive">
         <table class="data-table">
             <thead>
                 <tr>
@@ -364,7 +39,7 @@
                     <th>Specialization</th>
                     <th>Capacity</th>
                     <th>Status</th>
-                    <th>Setup</th>
+                    <th>Setup Link</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
@@ -372,23 +47,29 @@
                 {% for trainer_data in trainers %}
                 <tr>
                     <td>
-                        <div class="trainer-info">
-                            <div class="trainer-name">{{ trainer_data.trainer.user.full_name }}</div>
-                            <div class="trainer-email">{{ trainer_data.trainer.user.email }}</div>
+                        <div style="display: flex; flex-direction: column;">
+                            <strong>{{ trainer_data.trainer.user.full_name }}</strong>
+                            <span class="text-muted" style="font-size: 12px;">{{ trainer_data.trainer.user.email }}</span>
                         </div>
                     </td>
                     <td>{{ trainer_data.trainer.phone_number or '—' }}</td>
                     <td>
                         {% if trainer_data.trainer.specialization %}
-                            <small>{{ trainer_data.trainer.specialization|truncate(25) }}</small>
+                            <span style="font-size: 13px;">{{ trainer_data.trainer.specialization|truncate(35) }}</span>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
                     </td>
                     <td>
-                        <div class="capacity-badge {% if trainer_data.at_capacity %}at-capacity{% endif %}">
-                            {{ trainer_data.member_count }}/{{ trainer_data.trainer.max_clients }}
-                        </div>
+                        {% if trainer_data.at_capacity %}
+                            <span class="badge badge-warning">
+                                <i class="fas fa-exclamation-triangle"></i> {{ trainer_data.member_count }}/{{ trainer_data.trainer.max_clients }}
+                            </span>
+                        {% else %}
+                            <span class="badge badge-primary">
+                                <i class="fas fa-users"></i> {{ trainer_data.member_count }}/{{ trainer_data.trainer.max_clients }}
+                            </span>
+                        {% endif %}
                     </td>
                     <td>
                         {% if trainer_data.trainer.user.is_active %}
@@ -402,44 +83,47 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="setup-cell">
+                        <div style="font-size: 13px;">
                             {% if trainer_data.setup_status == 'active' %}
                                 <span class="status-badge status-active">
                                     <i class="fas fa-check-circle"></i> Complete
                                 </span>
                             {% elif trainer_data.setup_status == 'pending' %}
-                                <span class="status-badge status-pending">
-                                    <i class="fas fa-hourglass-half"></i> Pending
-                                </span>
-                                <br>
-                                <div style="margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
-                                    <button class="setup-link" onclick="copyToClipboard('{{ trainer_data.setup_link }}', this)">
-                                        <i class="fas fa-copy"></i> Copy
-                                    </button>
-                                    <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer_data.trainer.id) }}" style="display: inline;">
-                                        <button type="submit" class="setup-link"><i class="fas fa-redo"></i> Resend</button>
-                                    </form>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <span class="status-badge status-pending" style="align-self: flex-start;">
+                                        <i class="fas fa-hourglass-half"></i> Pending
+                                    </span>
+                                    <div style="display: flex; gap: 4px;">
+                                        <button class="btn btn-small btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="copyToClipboard('{{ trainer_data.setup_link }}', this)">
+                                            <i class="fas fa-copy"></i> Copy
+                                        </button>
+                                        <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer_data.trainer.id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-small btn-secondary" style="padding: 3px 8px; font-size: 11px;"><i class="fas fa-redo"></i> Resend</button>
+                                        </form>
+                                    </div>
                                 </div>
                             {% elif trainer_data.setup_status == 'expired' %}
-                                <span class="status-badge status-expired">
-                                    <i class="fas fa-exclamation-circle"></i> Expired
-                                </span>
-                                <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer_data.trainer.id) }}" style="display: block; margin-top: 6px;">
-                                    <button type="submit" class="setup-link"><i class="fas fa-redo"></i> Regenerate</button>
-                                </form>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <span class="status-badge status-expired" style="align-self: flex-start;">
+                                        <i class="fas fa-exclamation-circle"></i> Expired
+                                    </span>
+                                    <form method="POST" action="{{ url_for('trainer.resend_setup_link', trainer_id=trainer_data.trainer.id) }}">
+                                        <button type="submit" class="btn btn-small btn-secondary" style="padding: 3px 8px; font-size: 11px;"><i class="fas fa-redo"></i> Regenerate</button>
+                                    </form>
+                                </div>
                             {% endif %}
                         </div>
                     </td>
                     <td>
-                        <div class="action-buttons">
-                            <a href="{{ url_for('trainer.edit_trainer', trainer_id=trainer_data.trainer.id) }}" class="action-btn action-btn-primary">
+                        <div class="row-actions">
+                            <a href="{{ url_for('trainer.edit_trainer', trainer_id=trainer_data.trainer.id) }}" class="btn btn-small btn-primary">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
-                            <a href="{{ url_for('trainer.manage_assignments', trainer_id=trainer_data.trainer.id) }}" class="action-btn action-btn-primary">
+                            <a href="{{ url_for('trainer.manage_assignments', trainer_id=trainer_data.trainer.id) }}" class="btn btn-small btn-primary">
                                 <i class="fas fa-users"></i> Members
                             </a>
                             <form method="POST" action="{{ url_for('trainer.delete_trainer', trainer_id=trainer_data.trainer.id) }}" style="display: inline;">
-                                <button type="submit" class="action-btn action-btn-danger" onclick="return confirm('Deactivate this trainer?');">
+                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this trainer?');">
                                     <i class="fas fa-trash"></i> Remove
                                 </button>
                             </form>
@@ -453,7 +137,8 @@
     {% else %}
     <div class="empty-state">
         <div class="empty-state-icon"><i class="fas fa-inbox"></i></div>
-        <p class="empty-state-text">No trainers found</p>
+        <h3>No trainers found</h3>
+        <p class="text-muted" style="margin-bottom: var(--spacing-lg);">Add a gym trainer to assign members to personal programs.</p>
         <a href="{{ url_for('trainer.create_trainer') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Add First Trainer
         </a>
@@ -462,27 +147,27 @@
 
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
-    <ul class="pagination">
+    <div class="pagination">
         {% if pagination.has_prev %}
-        <li><a href="{{ url_for('trainer.list_trainers', page=1, search=search) }}">First</a></li>
-        <li><a href="{{ url_for('trainer.list_trainers', page=pagination.prev_num, search=search) }}">Previous</a></li>
+        <a href="{{ url_for('trainer.list_trainers', page=1, search=search) }}">First</a>
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.prev_num, search=search) }}"><i class="fas fa-chevron-left"></i></a>
         {% endif %}
 
         {% for page_num in pagination.iter_pages() %}
             {% if page_num %}
                 {% if page_num == pagination.page %}
-                <li><span class="active">{{ page_num }}</span></li>
+                <span class="active">{{ page_num }}</span>
                 {% else %}
-                <li><a href="{{ url_for('trainer.list_trainers', page=page_num, search=search) }}">{{ page_num }}</a></li>
+                <a href="{{ url_for('trainer.list_trainers', page=page_num, search=search) }}">{{ page_num }}</a>
                 {% endif %}
             {% endif %}
         {% endfor %}
 
         {% if pagination.has_next %}
-        <li><a href="{{ url_for('trainer.list_trainers', page=pagination.next_num, search=search) }}">Next</a></li>
-        <li><a href="{{ url_for('trainer.list_trainers', page=pagination.pages, search=search) }}">Last</a></li>
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.next_num, search=search) }}"><i class="fas fa-chevron-right"></i></a>
+        <a href="{{ url_for('trainer.list_trainers', page=pagination.pages, search=search) }}">Last</a>
         {% endif %}
-    </ul>
+    </div>
     {% endif %}
 </div>
 

@@ -8,10 +8,10 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="btn-group" role="group">
-                <a href="{{ url_for('admin.all_guides') }}" class="btn btn-sm btn-outline-secondary">All</a>
-                <a href="{{ url_for('admin.all_guides', status='approved') }}" class="btn btn-sm btn-success">Approved</a>
-                <a href="{{ url_for('admin.all_guides', status='pending') }}" class="btn btn-sm btn-outline-warning">Pending</a>
-                <a href="{{ url_for('admin.all_guides', status='rejected') }}" class="btn btn-sm btn-outline-danger">Rejected</a>
+                <a href="{{ url_for('admin.all_guides') }}" class="btn btn-sm {% if not status %}btn-primary{% else %}btn-secondary{% endif %}">All</a>
+                <a href="{{ url_for('admin.all_guides', status='approved') }}" class="btn btn-sm {% if status == 'approved' %}btn-success{% else %}btn-secondary{% endif %}">Approved</a>
+                <a href="{{ url_for('admin.all_guides', status='pending') }}" class="btn btn-sm {% if status == 'pending' %}btn-warning{% else %}btn-secondary{% endif %}">Pending</a>
+                <a href="{{ url_for('admin.all_guides', status='rejected') }}" class="btn btn-sm {% if status == 'rejected' %}btn-danger{% else %}btn-secondary{% endif %}">Rejected</a>
             </div>
         </div>
     </div>

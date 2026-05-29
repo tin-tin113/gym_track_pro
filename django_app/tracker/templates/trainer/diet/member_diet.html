@@ -3,10 +3,10 @@
 {% block content %}
 <div class="page-container">
     <div class="page-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1 class="page-title" style="color: #ffffff; margin: 0;">{{ member.user.full_name }}'s Diet Plan</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 class="page-title" style="margin: 0;">{{ member.user.full_name }}'s Diet Plan</h1>
             {% if diet_assignment %}
-            <form action="/trainer/member/{{ member.id }}/diet/remove/" method="POST" style="display: inline;">
+            <form action="{{ url_for('trainer.remove_member_diet', member_id=member.id) }}" method="POST" style="display: inline;">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <button type="submit" class="btn" style="background: #e74c3c; border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500;" onclick="return confirm('Remove this diet plan?')">
                     <i class="fas fa-trash"></i> Remove Diet
@@ -16,29 +16,45 @@
         </div>
     </div>
 
+    <!-- Member Management Hub Tabs -->
+    <div class="member-hub-tabs mb-4" style="display: flex; gap: var(--spacing-sm); border-bottom: 1.5px solid var(--border-color); padding-bottom: var(--spacing-sm); margin-bottom: var(--spacing-lg); overflow-x: auto;">
+        <a href="{{ url_for('trainer.member_progress', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-chart-bar"></i> Progress & Metrics
+        </a>
+        <a href="{{ url_for('trainer.member_workouts', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-dumbbell"></i> Workout Plan
+        </a>
+        <a href="{{ url_for('trainer.member_guides', member_id=member.id) }}" class="btn btn-secondary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: none;">
+            <i class="fas fa-book"></i> Training Guides
+        </a>
+        <a href="{{ url_for('trainer.member_diet', member_id=member.id) }}" class="btn btn-primary" style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: -1.5px; border-bottom: 2px solid var(--color-teal); background-color: var(--surface); color: var(--color-teal);">
+            <i class="fas fa-apple-alt"></i> Diet Plan
+        </a>
+    </div>
+
     {% if diet_assignment %}
     <div style="background: var(--surface); border: 1px solid var(--border-color); border-left: 4px solid var(--teal); padding: 20px; border-radius: 6px; box-shadow: var(--shadow-md); margin-top: 20px;">
         <!-- Diet Plan Info -->
-        <h5 style="color: #ffffff; margin: 0 0 12px 0;">{{ diet_assignment.diet_plan.name }}</h5>
+        <h5 style="margin: 0 0 12px 0;">{{ diet_assignment.diet_plan.name }}</h5>
         <p style="color: var(--text-secondary); margin: 0 0 15px 0; line-height: 1.5;">{{ diet_assignment.diet_plan.description }}</p>
 
         <!-- Calories & Macros -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0; padding: 15px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px;">
             <div style="text-align: center;">
                 <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Daily Calories</div>
-                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.daily_calories }}</div>
+                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.daily_calories }}</div>
             </div>
             <div style="text-align: center;">
                 <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Protein</div>
-                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
+                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
             </div>
             <div style="text-align: center;">
                 <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Carbs</div>
-                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
+                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
             </div>
             <div style="text-align: center;">
                 <div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 5px;">Fats</div>
-                <div style="color: #ffffff; font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
+                <div style="color: var(--text-primary); font-size: 20px; font-weight: 600;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
             </div>
         </div>
 
@@ -73,10 +89,10 @@
 
         <!-- Action Buttons -->
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <a href="/trainer/member/{{ member.id }}/diet/assign/" class="btn" style="flex: 1; background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+            <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn" style="flex: 1; background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
                 <i class="fas fa-edit"></i> Change Diet
             </a>
-            <a href="/member/diet/current/" class="btn" style="flex: 1; background: var(--navy); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
+            <a href="{{ url_for('member.current_diet') }}" class="btn" style="flex: 1; background: var(--navy); border: none; color: white; padding: 8px 16px; border-radius: 4px; text-align: center; font-weight: 500; cursor: pointer; transition: all 0.3s ease;">
                 <i class="fas fa-eye"></i> View for Member
             </a>
         </div>
@@ -86,7 +102,7 @@
     <div style="text-align: center; padding: 40px; background: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; margin-top: 20px;">
         <i class="fas fa-inbox" style="font-size: 32px; color: var(--teal); margin-bottom: 10px; display: block;"></i>
         <p style="color: #7f8c8d; margin-bottom: 20px;">No diet plan assigned yet</p>
-        <a href="/trainer/member/{{ member.id }}/diet/assign/" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">
+        <a href="{{ url_for('trainer.assign_diet_to_member', member_id=member.id) }}" class="btn" style="background: var(--teal); border: none; color: white; padding: 8px 16px; border-radius: 4px; font-weight: 500; cursor: pointer;">
             <i class="fas fa-plus"></i> Assign Diet Plan
         </a>
     </div>

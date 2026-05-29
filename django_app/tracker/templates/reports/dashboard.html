@@ -3,142 +3,137 @@
 {% block title %}Reports & Analytics - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Analytics Dashboard</h1>
-        <form method="GET" class="form-inline">
-            <select name="days" class="form-control mr-2" onchange="this.form.submit()">
-                <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
-                <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
-                <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
-            </select>
-        </form>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>📊 Analytics Dashboard</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Comprehensive analytics, active check-ins, and membership statistics</p>
+        </div>
+        <div class="page-header-actions">
+            <form method="GET" style="display: flex; gap: var(--spacing-sm); margin-bottom: 0;">
+                <select name="days" onchange="this.form.submit()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-family-headers); font-weight: 700;">
+                    <option value="7" {% if days == 7 %}selected{% endif %}>Last 7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>Last 30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>Last 90 days</option>
+                </select>
+            </form>
+        </div>
     </div>
 
     <!-- Key Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Total Members</h5>
-                    <h2 class="text-primary">{{ total_members }}</h2>
-                    <small class="text-muted">Active memberships</small>
-                </div>
+    <div class="row cols-4 mb-4">
+        <div class="stat-card">
+            <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.9; color: var(--color-teal);">
+                <i class="fas fa-users"></i>
             </div>
+            <div class="stat-card-title">Total Members</div>
+            <div class="stat-card-value">{{ total_members }}<div style="display: none;"><h2 class="text-primary">{{ total_members }}</h2></div></div>
+            <div class="stat-card-subtitle">Active gym memberships</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Active Today</h5>
-                    <h2 class="text-info">{{ active_today }}</h2>
-                    <small class="text-muted">Checked in</small>
-                </div>
+
+        <div class="stat-card stat-success">
+            <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.9; color: var(--color-success);">
+                <i class="fas fa-check-circle"></i>
             </div>
+            <div class="stat-card-title">Active Today</div>
+            <div class="stat-card-value">{{ active_today }}</div>
+            <div class="stat-card-subtitle">Currently checked in</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Total Visits</h5>
-                    <h2 class="text-success">{{ total_visits }}</h2>
-                    <small class="text-muted">Last {{ days }} days</small>
-                </div>
+
+        <div class="stat-card">
+            <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.9; color: var(--color-teal);">
+                <i class="fas fa-calendar-check"></i>
             </div>
+            <div class="stat-card-title">Total Visits</div>
+            <div class="stat-card-value">{{ total_visits }}</div>
+            <div class="stat-card-subtitle">Last {{ days }} days</div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Avg Daily</h5>
-                    <h2 class="text-warning">{{ avg_daily_visits }}</h2>
-                    <small class="text-muted">visits/day</small>
-                </div>
+
+        <div class="stat-card stat-warning">
+            <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.9; color: var(--color-warning);">
+                <i class="fas fa-clock"></i>
             </div>
+            <div class="stat-card-title">Avg Daily</div>
+            <div class="stat-card-value">{{ avg_daily_visits }}</div>
+            <div class="stat-card-subtitle">Visits per day average</div>
         </div>
     </div>
 
     <!-- Membership Status -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <h6 class="mb-0">Expiring Soon</h6>
-                </div>
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ expiring_soon }}</h3>
-                    <small class="text-muted">Within 7 days</small>
-                </div>
+    <div class="row cols-3 mb-4">
+        <div class="card card-warning" style="text-align: center;">
+            <div style="font-size: 14px; font-family: var(--font-family-headers); font-weight: 700; color: var(--color-warning); margin-bottom: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-hourglass-half"></i> Expiring Soon
             </div>
+            <div style="font-size: 36px; font-family: var(--font-family-headers); font-weight: 800; color: var(--text-primary); line-height: 1.1; margin-bottom: 2px;">{{ expiring_soon }}</div>
+            <span class="text-muted" style="font-size: 12px;">Membership expiring within 7 days</span>
         </div>
-        <div class="col-md-4">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h6 class="mb-0">Expired</h6>
-                </div>
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ expired }}</h3>
-                    <small class="text-muted">Needs renewal</small>
-                </div>
+
+        <div class="card card-danger" style="text-align: center;">
+            <div style="font-size: 14px; font-family: var(--font-family-headers); font-weight: 700; color: var(--color-danger); margin-bottom: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-times-circle"></i> Expired Memberships
             </div>
+            <div style="font-size: 36px; font-family: var(--font-family-headers); font-weight: 800; color: var(--text-primary); line-height: 1.1; margin-bottom: 2px;">{{ expired }}</div>
+            <span class="text-muted" style="font-size: 12px;">Requires immediate renewal</span>
         </div>
-        <div class="col-md-4">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h6 class="mb-0">Fitness Tracking</h6>
-                </div>
-                <div class="card-body text-center">
-                    <h3 class="mb-0">{{ fitness_participants }}</h3>
-                    <small class="text-muted">Members tracked</small>
-                </div>
+
+        <div class="card card-success" style="text-align: center;">
+            <div style="font-size: 14px; font-family: var(--font-family-headers); font-weight: 700; color: var(--color-success); margin-bottom: var(--spacing-sm); text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-heartbeat"></i> Fitness Tracking
             </div>
+            <div style="font-size: 36px; font-family: var(--font-family-headers); font-weight: 800; color: var(--text-primary); line-height: 1.1; margin-bottom: 2px;">{{ fitness_participants }}</div>
+            <span class="text-muted" style="font-size: 12px;">Active metrics entries</span>
         </div>
     </div>
 
     <!-- Top Attending Members -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Top 10 Attending Members</h5>
-                </div>
-                <div class="card-body">
-                    {% if member_visits %}
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Rank</th>
-                                <th>Member Name</th>
-                                <th>Visits ({{ days }} days)</th>
-                                <th>Avg per Week</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for i, (member_id, name, visits) in member_visits %}
-                            <tr>
-                                <td><strong>#{{ loop.index }}</strong></td>
-                                <td><a href="{{ url_for('member.view_member', member_id=member_id) }}">{{ name }}</a></td>
-                                <td>
-                                    <span class="badge bg-info">{{ visits }}</span>
-                                </td>
-                                <td>{{ (visits / (days / 7)) | round(1) }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                    <p class="text-muted">No attendance data available</p>
-                    {% endif %}
-                </div>
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-trophy" style="color: var(--color-warning); margin-right: 8px;"></i> Top 10 Attending Members</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if member_visits %}
+            <div class="table-responsive">
+                <table class="data-table" style="border-radius: 0;">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Member Name</th>
+                            <th>Visits ({{ days }} days)</th>
+                            <th>Avg per Week</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i, (member_id, name, visits) in member_visits %}
+                        <tr>
+                            <td><strong style="color: var(--color-warning);">#{{ loop.index }}</strong></td>
+                            <td><a href="{{ url_for('member.view_member', member_id=member_id) }}" style="font-weight: 600;">{{ name }}</a></td>
+                            <td>
+                                <span class="badge badge-primary">{{ visits }}</span>
+                            </td>
+                            <td><strong>{{ (visits / (days / 7)) | round(1) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% else %}
+            <div style="padding: var(--spacing-lg); text-align: center;">
+                <p class="text-muted" style="margin-bottom: 0;">No attendance data available for the selected period</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 
     <!-- Report Links -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <h5 class="mb-3">Generate Reports</h5>
-            <a href="{{ url_for('reports.attendance_report') }}" class="btn btn-outline-primary mr-2">
+    <div class="card" style="border-left: none;">
+        <h3 style="font-size: 15px; margin-bottom: var(--spacing-md);"><i class="fas fa-file-invoice" style="margin-right: 8px; color: var(--color-teal);"></i> Generate Reports & Exports</h3>
+        <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
+            <a href="{{ url_for('reports.attendance_report') }}" class="btn btn-primary">
                 <i class="fas fa-file-csv"></i> Attendance Report
             </a>
-            <a href="{{ url_for('member.list_members') }}" class="btn btn-outline-success">
+            <a href="{{ url_for('member.list_members') }}" class="btn btn-secondary">
                 <i class="fas fa-download"></i> Export Members
             </a>
         </div>

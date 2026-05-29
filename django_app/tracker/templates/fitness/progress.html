@@ -3,192 +3,207 @@
 {% block title %}{{ member.user.full_name }} - Fitness Progress{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>💪 {{ member.user.full_name }}'s Fitness Progress</h2>
-    <div>
-        <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-success">➕ Add Metrics</a>
-        <a href="{{ url_for('fitness.fitness_report', member_id=member.id) }}" class="btn btn-primary">📄 Print Report</a>
-    </div>
-</div>
-
-<!-- Latest Metrics Summary -->
-{% if latest_metric %}
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">📊 Latest Measurements</h5>
-            </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-6">Date:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</dd>
-
-                    <dt class="col-sm-6">Weight:</dt>
-                    <dd class="col-sm-6"><strong>{{ latest_metric.weight }} kg</strong></dd>
-
-                    <dt class="col-sm-6">Height:</dt>
-                    <dd class="col-sm-6">{{ latest_metric.height }} cm</dd>
-
-                    <dt class="col-sm-6">BMI:</dt>
-                    <dd class="col-sm-6">
-                        <span class="badge bg-{% if latest_metric.bmi < 18.5 %}info{% elif latest_metric.bmi < 25 %}success{% elif latest_metric.bmi < 30 %}warning{% else %}danger{% endif %}">
-                            {{ latest_metric.bmi }} - {{ latest_metric.get_bmi_classification() }}
-                        </span>
-                    </dd>
-                </dl>
-            </div>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1>💪 {{ member.user.full_name }}'s Fitness Progress</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Track weight logs, BMI classification indices, body fat trends, and measurements history</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add Metrics
+            </a>
+            <a href="{{ url_for('fitness.fitness_report', member_id=member.id) }}" class="btn btn-primary">
+                <i class="fas fa-file-invoice"></i> View Report
+            </a>
         </div>
     </div>
 
-    <!-- Weight Trend -->
-    {% if weight_trend %}
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">📈 30-Day Weight Trend</h5>
+    <!-- Latest Metrics Summary -->
+    {% if latest_metric %}
+    <div class="row cols-2 mb-4">
+        <div class="card" style="border-left-color: var(--color-teal);">
+            <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+                <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-scale-balanced" style="color: var(--color-teal); margin-right: 8px;"></i> Latest Measurements</h3>
             </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-6">Start Weight:</dt>
-                    <dd class="col-sm-6">{{ weight_trend.start_weight }} kg</dd>
-
-                    <dt class="col-sm-6">Current Weight:</dt>
-                    <dd class="col-sm-6">{{ weight_trend.current_weight }} kg</dd>
-
-                    <dt class="col-sm-6">Change:</dt>
-                    <dd class="col-sm-6">
-                        <span class="badge bg-{% if weight_trend.weight_change < 0 %}success{% elif weight_trend.weight_change > 0 %}warning{% else %}secondary{% endif %}">
-                            {% if weight_trend.weight_change < 0 %}↓{% elif weight_trend.weight_change > 0 %}↑{% else %}→{% endif %}
-                            {{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)
-                        </span>
-                    </dd>
-
-                    <dt class="col-sm-6">Trend:</dt>
-                    <dd class="col-sm-6">{{ weight_trend.trend|title }}</dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Charts -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">📊 Weight Trend (90 Days)</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="weightChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0">📈 BMI Progression (90 Days)</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="bmiChart"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Body Measurements -->
-{% if latest_metric %}
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0">📐 Body Measurements (Latest)</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <dl class="row">
-                            <dt class="col-sm-6">Chest:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.chest or 'N/A' }} cm</dd>
-
-                            <dt class="col-sm-6">Waist:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.waist or 'N/A' }} cm</dd>
-                        </dl>
+            <div class="card-body" style="padding: 0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); font-size: 14px;">
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Recorded Date:</span>
+                        <div style="font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ latest_metric.metric_date.strftime('%Y-%m-%d') }}</div>
                     </div>
-                    <div class="col-md-3">
-                        <dl class="row">
-                            <dt class="col-sm-6">Hips:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.hips or 'N/A' }} cm</dd>
-
-                            <dt class="col-sm-6">Bicep:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.bicep or 'N/A' }} cm</dd>
-                        </dl>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Weight:</span>
+                        <div style="font-weight: 800; color: var(--color-teal); font-size: 18px; margin-top: 2px;">{{ latest_metric.weight }} kg</div>
                     </div>
-                    <div class="col-md-3">
-                        <dl class="row">
-                            <dt class="col-sm-6">Thigh:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.thigh or 'N/A' }} cm</dd>
-
-                            <dt class="col-sm-6">Body Fat:</dt>
-                            <dd class="col-sm-6">{{ latest_metric.body_fat_percentage or 'N/A' }}%</dd>
-                        </dl>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Height:</span>
+                        <div style="font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ latest_metric.height }} cm</div>
+                    </div>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">BMI Index:</span>
+                        <div style="margin-top: 4px;">
+                            {% set bmi = latest_metric.bmi %}
+                            {% set classification = latest_metric.get_bmi_classification() %}
+                            <span class="status-badge {% if bmi < 18.5 %}status-pending{% elif bmi < 25 %}status-success{% elif bmi < 30 %}status-pending{% else %}status-expired{% endif %}">
+                                {{ bmi }} - {{ classification }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-{% endif %}
 
-<!-- Metrics History Table -->
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">📋 Measurement History</h5>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Date</th>
-                    <th>Weight (kg)</th>
-                    <th>Height (cm)</th>
-                    <th>BMI</th>
-                    <th>Classification</th>
-                    <th>Recorded By</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if metrics %}
-                    {% for metric in metrics %}
-                    <tr>
-                        <td>{{ metric.metric_date.strftime('%Y-%m-%d') }}</td>
-                        <td>{{ metric.weight }}</td>
-                        <td>{{ metric.height }}</td>
-                        <td>{{ metric.bmi }}</td>
-                        <td>
-                            <span class="badge bg-{% if metric.bmi < 18.5 %}info{% elif metric.bmi < 25 %}success{% elif metric.bmi < 30 %}warning{% else %}danger{% endif %}">
-                                {{ metric.get_bmi_classification() }}
+        <!-- Weight Trend -->
+        {% if weight_trend %}
+        <div class="card" style="border-left-color: var(--color-success);">
+            <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+                <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-line" style="color: var(--color-success); margin-right: 8px;"></i> 30-Day Weight Trend</h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); font-size: 14px;">
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Start Weight:</span>
+                        <div style="font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ weight_trend.start_weight }} kg</div>
+                    </div>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Current Weight:</span>
+                        <div style="font-weight: 700; color: var(--text-primary); margin-top: 4px;">{{ weight_trend.current_weight }} kg</div>
+                    </div>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">Weight Change:</span>
+                        <div style="margin-top: 4px;">
+                            <span class="status-badge {% if weight_trend.weight_change < 0 %}status-success{% elif weight_trend.weight_change > 0 %}status-pending{% else %}status-inactive{% endif %}">
+                                {% if weight_trend.weight_change < 0 %}↓{% elif weight_trend.weight_change > 0 %}↑{% else %}→{% endif %}
+                                {{ weight_trend.weight_change }} kg ({{ weight_trend.percent_change }}%)
                             </span>
-                        </td>
-                        <td><small>{{ metric.created_by.full_name if metric.created_by else 'N/A' }}</small></td>
-                        <td>
-                            <a href="{{ url_for('fitness.edit_metric', metric_id=metric.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                            <form method="POST" action="{{ url_for('fitness.delete_metric', metric_id=metric.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this metric?');">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No metrics recorded yet</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-muted" style="font-size: 12px; text-transform: uppercase;">General Trend:</span>
+                        <div style="font-weight: 700; color: var(--color-success); margin-top: 4px;">{{ weight_trend.trend|title }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Charts -->
+    <div class="row cols-2 mb-4">
+        <div class="card" style="border-left: none; padding: 0; overflow: hidden;">
+            <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+                <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-area" style="color: var(--color-teal); margin-right: 8px;"></i> Weight Trend (90 Days)</h3>
+            </div>
+            <div class="card-body" style="padding: var(--spacing-lg);">
+                <canvas id="weightChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: none; padding: 0; overflow: hidden;">
+            <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+                <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-heartbeat" style="color: var(--color-warning); margin-right: 8px;"></i> BMI Progression (90 Days)</h3>
+            </div>
+            <div class="card-body" style="padding: var(--spacing-lg);">
+                <canvas id="bmiChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Body Measurements -->
+    {% if latest_metric %}
+    <div class="card mb-4" style="border-left-color: var(--color-teal);">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-ruler-combined" style="color: var(--color-teal); margin-right: 8px;"></i> Body Measurements (Latest Summary)</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="row cols-4 text-center">
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Chest</span>
+                    <h4 style="margin-bottom: 0; font-size: 18px;">{{ latest_metric.chest or '—' }} <small style="font-size: 11px;">cm</small></h4>
+                </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Waist</span>
+                    <h4 style="margin-bottom: 0; font-size: 18px;">{{ latest_metric.waist or '—' }} <small style="font-size: 11px;">cm</small></h4>
+                </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Hips</span>
+                    <h4 style="margin-bottom: 0; font-size: 18px;">{{ latest_metric.hips or '—' }} <small style="font-size: 11px;">cm</small></h4>
+                </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Body Fat</span>
+                    <h4 style="margin-bottom: 0; color: var(--color-success); font-size: 18px;">{{ latest_metric.body_fat_percentage or '—' }} <small style="font-size: 11px;">%</small></h4>
+                </div>
+            </div>
+            <div class="row cols-4 text-center" style="margin-top: var(--spacing-md);">
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Bicep</span>
+                    <h4 style="margin-bottom: 0; font-size: 18px;">{{ latest_metric.bicep or '—' }} <small style="font-size: 11px;">cm</small></h4>
+                </div>
+                <div class="card" style="background-color: var(--bg-secondary); border-left: none; margin-bottom: 0;">
+                    <span class="text-muted" style="font-size: 13px;">Thigh</span>
+                    <h4 style="margin-bottom: 0; font-size: 18px;">{{ latest_metric.thigh or '—' }} <small style="font-size: 11px;">cm</small></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metrics History Table -->
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-history" style="color: var(--color-teal); margin-right: 8px;"></i> Measurement History</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="data-table" style="border-radius: 0;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Weight (kg)</th>
+                            <th>Height (cm)</th>
+                            <th>BMI</th>
+                            <th>Classification</th>
+                            <th>Recorded By</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if metrics %}
+                            {% for metric in metrics %}
+                            <tr>
+                                <td><strong>{{ metric.metric_date.strftime('%Y-%m-%d') }}</strong></td>
+                                <td><strong>{{ metric.weight }}</strong></td>
+                                <td>{{ metric.height }}</td>
+                                <td><strong style="color: var(--color-teal);">{{ metric.bmi }}</strong></td>
+                                <td>
+                                    {% set mbmi = metric.bmi %}
+                                    <span class="status-badge {% if mbmi < 18.5 %}status-pending{% elif mbmi < 25 %}status-success{% elif mbmi < 30 %}status-pending{% else %}status-expired{% endif %}">
+                                        {{ metric.get_bmi_classification() }}
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">{{ metric.created_by.full_name if metric.created_by else 'Trainer' }}</small></td>
+                                <td>
+                                    <div class="row-actions">
+                                        <a href="{{ url_for('fitness.edit_metric', metric_id=metric.id) }}" class="btn btn-small btn-secondary" style="padding: 3px 8px; font-size: 11px;">Edit</a>
+                                        <form method="POST" action="{{ url_for('fitness.delete_metric', metric_id=metric.id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-small btn-danger" style="padding: 3px 8px; font-size: 11px;" onclick="return confirm('Delete this metric?');">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted p-lg">No metrics recorded yet</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 

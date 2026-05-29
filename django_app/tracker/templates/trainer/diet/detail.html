@@ -1,34 +1,351 @@
 {% extends "base.html" %}
+
 {% block title %}{{ plan.name }} - GymTrack Pro{% endblock %}
+
 {% block content %}
 <div class="page-container">
-    <div class="page-header">
-        <h1 class="page-title">🥗 {{ plan.name }}</h1>
+    <!-- Header with Actions -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-0">🥗 {{ plan.name }}</h1>
+            <p class="page-subtitle mb-0">
+                <span class="badge" style="background-color: rgba(255, 107, 53, 0.15); color: var(--neon-orange); margin-right: 8px;">
+                    {{ plan.diet_type|replace('_', ' ')|title }}
+                </span>
+                Daily Target: <strong class="text-white">{{ plan.daily_calories }} kcal</strong>
+            </p>
+        </div>
+        <div class="page-header-actions d-flex gap-2">
+            <button type="button" class="btn btn-gym-action" data-bs-toggle="modal" data-bs-target="#addMealModal">
+                <i class="fas fa-plus"></i> Add Meal
+            </button>
+            <a href="{{ url_for('trainer.edit_diet_plan', plan_id=plan.id) }}" class="btn btn-secondary">
+                <i class="fas fa-edit"></i> Edit Plan
+            </a>
+            <form action="{{ url_for('trainer.delete_diet_plan', plan_id=plan.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to deactivate/delete this diet plan?');" style="display: inline;">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash-alt"></i> Delete Plan
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 style="color: var(--neon-orange);">{{ plan.name }}</h5>
-            <p>{{ plan.description }}</p>
-            <div class="calorie-tracker mt-3">
-                <div class="calorie-label">Daily Calories</div>
-                <div class="calorie-value">{{ plan.daily_calories }}</div>
+
+    <!-- Diet Plan Info Card -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--neon-orange);">Plan Description & Instructions</h5>
+                    <p class="text-light" style="font-size: 1rem; line-height: 1.6;">
+                        {{ plan.description if plan.description else 'No description provided.' }}
+                    </p>
+                    
+                    {% if plan.notes %}
+                    <div class="mt-4 p-3 rounded" style="background-color: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--neon-purple);">
+                        <small style="color: var(--slate-gray); font-weight: 600; text-transform: uppercase;">Dietary Instructions / Notes</small>
+                        <p class="mb-0 text-muted mt-1" style="font-size: 0.95rem;">{{ plan.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-            <div style="margin-top: var(--spacing-lg); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-md);">
-                <div><strong>Protein:</strong> {{ (plan.macro_ratio_protein * 100)|int }}%</div>
-                <div><strong>Carbs:</strong> {{ (plan.macro_ratio_carbs * 100)|int }}%</div>
-                <div><strong>Fats:</strong> {{ (plan.macro_ratio_fats * 100)|int }}%</div>
+        </div>
+
+        <!-- Macro Stats Card -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: var(--neon-orange);">Macro Ratios</h5>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                            <span>Protein</span>
+                            <strong style="color: var(--neon-green);">{{ (plan.macro_ratio_protein * 100)|int }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                            <div class="progress-bar" style="background-color: var(--neon-green); width: {{ (plan.macro_ratio_protein * 100)|int }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                            <span>Carbohydrates</span>
+                            <strong style="color: var(--neon-orange);">{{ (plan.macro_ratio_carbs * 100)|int }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                            <div class="progress-bar" style="background-color: var(--neon-orange); width: {{ (plan.macro_ratio_carbs * 100)|int }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                            <span>Fats</span>
+                            <strong style="color: var(--neon-purple);">{{ (plan.macro_ratio_fats * 100)|int }}%</strong>
+                        </div>
+                        <div class="progress" style="height: 6px; background-color: var(--border-color);">
+                            <div class="progress-bar" style="background-color: var(--neon-purple); width: {{ (plan.macro_ratio_fats * 100)|int }}%"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Meals Schedule -->
+    <h3 class="mb-3" style="color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-weight: 700;">📅 Meals Schedule</h3>
+    
     {% if meals %}
-    <div class="card">
-        <div class="card-header">Meal Plan</div>
-        <div class="card-body">
-            {% for meal in meals[:10] %}
-            <div class="mb-2"><strong>{{ meal.meal_name }}</strong> - {{ meal.calories }} cal</div>
+        <!-- Day Tabs navigation -->
+        <div class="card mb-4">
+            <div class="card-body p-2">
+                <ul class="nav nav-pills d-flex justify-content-between text-center" id="dayTabs" role="tablist" style="border: none;">
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                    <li class="nav-item flex-fill" role="presentation">
+                        <button class="nav-link w-100 {% if loop.first %}active{% endif %}" 
+                                id="{{ day|lower }}-tab" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#{{ day|lower }}" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="{{ day|lower }}" 
+                                aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+                                style="border-radius: var(--radius-sm); font-weight: 600; padding: 10px;">
+                            {{ day }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Day Tab Contents -->
+        <div class="tab-content" id="dayTabsContent">
+            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                 id="{{ day|lower }}" 
+                 role="tabpanel" 
+                 aria-labelledby="{{ day|lower }}-tab">
+                
+                <!-- Filter meals for current day -->
+                {% set day_meals = [] %}
+                {% for m in meals %}
+                    {% if m.day_name == day %}
+                        {% set _ = day_meals.append(m) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if day_meals %}
+                    <div class="row">
+                        {% for meal in day_meals %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="program-card h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="mb-0" style="color: var(--neon-orange); font-size: 1.1rem; font-weight: 700;">
+                                            {{ meal.meal_name }}
+                                        </h5>
+                                        <span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); font-size: 0.75rem;">
+                                            {{ meal.meal_type }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="calorie-tracker my-2" style="padding: 6px var(--spacing-md);">
+                                        <div class="calorie-label" style="font-size: 0.75rem;">Calories</div>
+                                        <div class="calorie-value" style="font-size: 1.25rem;">{{ meal.calories if meal.calories else '—' }} <span style="font-size: 0.8rem; font-weight: 400; color: var(--text-secondary);">kcal</span></div>
+                                    </div>
+
+                                    <!-- Macros table -->
+                                    <div class="row text-center mt-2" style="font-size: 0.8rem; background: rgba(0,0,0,0.1); padding: 8px 0; border-radius: var(--radius-sm); margin: 8px 0;">
+                                        <div class="col-4" style="border-right: 1px solid var(--border-color);">
+                                            <span class="text-muted d-block">Protein</span>
+                                            <strong class="text-white">{{ meal.protein_g if meal.protein_g else '0' }}g</strong>
+                                        </div>
+                                        <div class="col-4" style="border-right: 1px solid var(--border-color);">
+                                            <span class="text-muted d-block">Carbs</span>
+                                            <strong class="text-white">{{ meal.carbs_g if meal.carbs_g else '0' }}g</strong>
+                                        </div>
+                                        <div class="col-4">
+                                            <span class="text-muted d-block">Fats</span>
+                                            <strong class="text-white">{{ meal.fats_g if meal.fats_g else '0' }}g</strong>
+                                        </div>
+                                    </div>
+
+                                    {% if meal.notes %}
+                                    <p class="text-muted mt-2 mb-0" style="font-size: 0.85rem; font-style: italic;">
+                                        <i class="fas fa-info-circle"></i> {{ meal.notes }}
+                                    </p>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mt-3 pt-2 border-top border-secondary-subtle d-flex justify-content-end">
+                                    <form action="{{ url_for('trainer.delete_meal', plan_id=plan.id, meal_id=meal.id) }}" method="POST" onsubmit="return confirm('Delete this meal from the schedule?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash-alt"></i> Remove Meal
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card p-5 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-utensils mb-3" style="font-size: 2.5rem; color: var(--border-color);"></i>
+                            <p class="text-muted mb-3">No meals scheduled for {{ day }}.</p>
+                            <button type="button" class="btn btn-sm btn-gym-action" data-bs-toggle="modal" data-bs-target="#addMealModal" onclick="document.getElementById('meal-day-select').value='{{ day }}';">
+                                <i class="fas fa-plus"></i> Add Meal for {{ day }}
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
             {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="card p-5 text-center">
+            <div class="card-body">
+                <i class="fas fa-utensils mb-4" style="font-size: 4rem; color: var(--border-color);"></i>
+                <h4 class="text-white mb-2">No Meals in this Plan Yet</h4>
+                <p class="text-muted mb-4">Start by adding meals for different days of the week to complete this nutrition program.</p>
+                <button type="button" class="btn btn-gym-action btn-lg" data-bs-toggle="modal" data-bs-target="#addMealModal">
+                    <i class="fas fa-plus"></i> Add Your First Meal
+                </button>
+            </div>
+        </div>
     {% endif %}
+
+    <!-- Add Meal Modal -->
+    <div class="modal fade" id="addMealModal" tabindex="-1" aria-labelledby="addMealModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: var(--surface); border: 1px solid var(--border-color); color: var(--text-primary);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="addMealModalLabel" style="color: var(--neon-orange); font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.3rem;">
+                        🥗 Add Meal to Plan
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ url_for('trainer.add_meal', plan_id=plan.id) }}" method="POST">
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Day Selection -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Day of Week *</label>
+                                <select class="form-control" name="day_name" id="meal-day-select" required>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                    <option value="Saturday">Saturday</option>
+                                    <option value="Sunday">Sunday</option>
+                                </select>
+                            </div>
+
+                            <!-- Meal Type -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Meal Type *</label>
+                                <select class="form-control" name="meal_type" required>
+                                    <option value="Breakfast">Breakfast</option>
+                                    <option value="Morning Snack">Morning Snack</option>
+                                    <option value="Lunch">Lunch</option>
+                                    <option value="Afternoon Snack">Afternoon Snack</option>
+                                    <option value="Dinner">Dinner</option>
+                                    <option value="Evening Snack">Evening Snack</option>
+                                    <option value="Pre-Workout">Pre-Workout</option>
+                                    <option value="Post-Workout">Post-Workout</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Meal Name -->
+                        <div class="form-group mb-3">
+                            <label class="form-label">Meal Name *</label>
+                            <input type="text" class="form-control" name="meal_name" required placeholder="e.g., Oatmeal with Berries & Whey">
+                        </div>
+
+                        <div class="row">
+                            <!-- Calories -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Calories (kcal)</label>
+                                <input type="number" class="form-control" name="calories" placeholder="e.g., 450">
+                            </div>
+                            
+                            <!-- Protein -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Protein (g)</label>
+                                <input type="number" step="0.1" class="form-control" name="protein_g" placeholder="e.g., 35">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Carbs -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Carbs (g)</label>
+                                <input type="number" step="0.1" class="form-control" name="carbs_g" placeholder="e.g., 50">
+                            </div>
+                            
+                            <!-- Fats -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fats (g)</label>
+                                <input type="number" step="0.1" class="form-control" name="fats_g" placeholder="e.g., 12">
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group mb-0">
+                            <label class="form-label">Special Notes / Ingredients</label>
+                            <textarea class="form-control" name="notes" rows="2" placeholder="e.g., Add 1tbsp peanut butter, mix with water or almond milk..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-gym-action">
+                            <i class="fas fa-plus"></i> Add Meal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+/* Day Tabs Pill Styling to match unified premium dark design */
+#dayTabs .nav-link {
+    color: var(--text-secondary);
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid transparent;
+}
+
+#dayTabs .nav-link:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#dayTabs .nav-link.active {
+    color: var(--bg-primary) !important;
+    background-color: var(--neon-orange) !important;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.4);
+}
+
+/* Modal form controls */
+.modal-content .form-control {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.modal-content .form-control:focus {
+    border-color: var(--neon-orange);
+    box-shadow: 0 0 0 0.25rem rgba(255, 107, 53, 0.25);
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(1) brightness(2);
+}
+</style>
 {% endblock %}
