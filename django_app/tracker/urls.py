@@ -23,6 +23,7 @@ urlpatterns = [
     path('members/<int:member_id>', views.member_detail, name='member.view_member'),
     path('members/<int:member_id>/edit', views.member_edit, name='member.edit_member'),
     path('members/<int:member_id>/assign-trainer', views.member_assign_trainer, name='member.assign_trainer'),
+    path('members/<int:member_id>/change-password', views.member_change_password, name='member.change_password'),
 
     # Member dashboard
     path('member/dashboard', views.member_dashboard, name='member.member_dashboard'),

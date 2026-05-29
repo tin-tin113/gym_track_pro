@@ -935,3 +935,39 @@ def member_complete_guide(request: HttpRequest, assignment_id: int) -> HttpRespo
 		messages.error(request, f'Error completing guide: {str(e)}')
 
 	return redirect('member.member_programs')
+
+
+def member_change_password(request: HttpRequest, member_id: int) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if not _require_roles(request, {'admin', 'staff'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	member = Member.objects.select_related('user').filter(id=member_id).first()
+	if member is None:
+		messages.error(request, 'Member not found.')
+		return redirect('member.list_members')
+
+	if request.method == 'POST':
+		password = (request.POST.get('password') or '').strip()
+		confirm_password = (request.POST.get('confirm_password') or '').strip()
+
+		if not password or not confirm_password:
+			messages.error(request, 'Please fill in all required fields.')
+			return redirect('member.view_member', member_id=member.id)
+
+		if len(password) < 6:
+			messages.error(request, 'Password must be at least 6 characters.')
+			return redirect('member.view_member', member_id=member.id)
+
+		if password != confirm_password:
+			messages.error(request, 'Passwords do not match.')
+			return redirect('member.view_member', member_id=member.id)
+
+		member.user.set_password(password)
+		member.user.save(update_fields=['password'])
+		messages.success(request, f"Password updated successfully for {member.user.full_name}.")
+		return redirect('member.view_member', member_id=member.id)
+
+	return redirect('member.view_member', member_id=member.id)

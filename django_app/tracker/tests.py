@@ -455,3 +455,29 @@ class TrainerModuleSmokeTests(TestCase):
 		self.assertEqual(guide.status, WorkoutGuide.Status.REJECTED)
 		self.assertEqual(guide.rejection_reason, 'Incorrect form tip.')
 
+	def test_admin_change_member_password(self):
+		# 1. Admin logs in and changes member's password successfully
+		self.client.force_login(self.admin)
+		resp = self.client.post(
+			reverse('member.change_password', kwargs={'member_id': self.member.id}),
+			data={'password': 'NewSecurePassword123', 'confirm_password': 'NewSecurePassword123'},
+		)
+		self.assertEqual(resp.status_code, 302)
+		self.member.user.refresh_from_db()
+		self.assertTrue(self.member.user.check_password('NewSecurePassword123'))
+
+		# 2. Admin enters mismatching passwords
+		resp = self.client.post(
+			reverse('member.change_password', kwargs={'member_id': self.member.id}),
+			data={'password': 'Password123', 'confirm_password': 'MismatchingPassword'},
+		)
+		self.assertEqual(resp.status_code, 302)
+
+		# 3. Trainer (non-admin/staff) is blocked
+		self.client.force_login(self.trainer_user)
+		resp = self.client.post(
+			reverse('member.change_password', kwargs={'member_id': self.member.id}),
+			data={'password': 'Password123', 'confirm_password': 'Password123'},
+		)
+		self.assertEqual(resp.status_code, 302)
+

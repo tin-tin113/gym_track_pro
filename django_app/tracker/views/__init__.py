@@ -37,6 +37,7 @@ from .member import (
     member_guides_library,
     member_view_assigned_guide,
     member_complete_guide,
+    member_change_password,
 )
 
 from .attendance import (

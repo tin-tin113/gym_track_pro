@@ -195,6 +195,55 @@ dl.row {
   flex-wrap: wrap !important;
 }
 
+dl.row dt {
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-sm);
+  display: block !important;
+}
+
+dl.row dd {
+  margin-inline-start: 0;
+  margin-bottom: var(--spacing-sm);
+  color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  display: block !important;
+}
+
+/* Col-sm-* classes for flex layouts like dl.row when Bootstrap CSS is not loaded */
+.col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8 {
+  width: 100%;
+}
+
+@media (min-width: 576px) {
+  .col-sm-4 {
+    flex: 0 0 33.333333% !important;
+    width: 33.333333% !important;
+    max-width: 33.333333% !important;
+  }
+  .col-sm-5 {
+    flex: 0 0 41.666667% !important;
+    width: 41.666667% !important;
+    max-width: 41.666667% !important;
+  }
+  .col-sm-6 {
+    flex: 0 0 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+  }
+  .col-sm-7 {
+    flex: 0 0 58.333333% !important;
+    width: 58.333333% !important;
+    max-width: 58.333333% !important;
+  }
+  .col-sm-8 {
+    flex: 0 0 66.666667% !important;
+    width: 66.666667% !important;
+    max-width: 66.666667% !important;
+  }
+}
+
 .row.cols-1 { grid-template-columns: 1fr; }
 .row.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .row.cols-3 { grid-template-columns: repeat(3, 1fr); }
