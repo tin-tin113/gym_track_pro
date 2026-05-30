@@ -16,7 +16,7 @@
 POST /auth/login
 Content-Type: application/x-www-form-urlencoded
 
-email=admin@gym.local&password=password123&remember=on
+email=admin@gym.local&password=password123&remember=on      
 ```
 
 **Response**:
