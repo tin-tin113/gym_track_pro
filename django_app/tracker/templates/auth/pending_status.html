@@ -3,68 +3,374 @@
 {% block title %}Account Pending Approval - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card border">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <i class="fas fa-hourglass-end fa-3x text-warning"></i>
-                </div>
+<style>
+    /* Premium Pending Status Styling */
+    .pending-status-container {
+        max-width: 760px;
+        margin: 20px auto 40px auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xl);
+        animation: fadeIn 0.6s var(--easing-smooth);
+    }
 
-                <h2 class="card-title text-center mb-4">Account Pending Approval</h2>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-                <div class="alert alert-warning" role="alert">
-                    <strong>Thank you for signing up!</strong>
-                    <p class="mb-0 mt-2">Your account has been created and is awaiting admin approval. This typically takes 24-48 hours.</p>
-                </div>
+    .status-hero-card {
+        background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--color-warning);
+        border-radius: var(--radius-md);
+        padding: 32px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
 
-                <div class="card bg-light mb-4">
-                    <div class="card-body">
-                        <h6 class="card-title">Account Information</h6>
-                        <dl class="row">
-                            <dt class="col-sm-5">Name:</dt>
-                            <dd class="col-sm-7">{{ current_user.full_name }}</dd>
+    .status-hero-card::after {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+        top: -50px;
+        right: -50px;
+        pointer-events: none;
+    }
 
-                            <dt class="col-sm-5">Email:</dt>
-                            <dd class="col-sm-7">{{ current_user.email }}</dd>
+    .pulse-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: rgba(245, 158, 11, 0.1);
+        border: 2px solid var(--color-warning);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        color: var(--color-warning);
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+        position: relative;
+    }
 
-                            <dt class="col-sm-5">Signup Date:</dt>
-                            <dd class="col-sm-7">
-                                {% if member.created_at %}
-                                    {{ member.created_at.strftime('%B %d, %Y at %I:%M %p') }}
-                                {% else %}
-                                    Today
-                                {% endif %}
-                            </dd>
+    .pulse-icon-wrapper i {
+        font-size: 32px;
+        animation: rotateHourglass 2.5s infinite ease-in-out;
+    }
 
-                            <dt class="col-sm-5">Status:</dt>
-                            <dd class="col-sm-7">
-                                <span class="badge badge-warning"><i class="fas fa-hourglass-end"></i> Pending Approval</span>
-                            </dd>
-                        </dl>
-                    </div>
-                </div>
+    @keyframes rotateHourglass {
+        0%, 90% { transform: rotate(0deg); }
+        45%, 55% { transform: rotate(180deg); }
+        100% { transform: rotate(360deg); }
+    }
 
-                <div class="alert alert-info" role="alert">
-                    <h6 class="alert-heading"><i class="fas fa-info-circle"></i> What Happens Next?</h6>
-                    <ul class="mb-0">
-                        <li>An admin will review your membership application</li>
-                        <li>You'll receive an email confirmation once approved</li>
-                        <li>You can then login and start tracking your fitness</li>
-                    </ul>
-                </div>
+    .status-title {
+        font-family: var(--font-family-headers);
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+    }
 
-                <form action="{{ url_for('auth.logout') }}" method="POST" class="text-center">
-                    <button type="submit" class="btn btn-secondary">Logout</button>
-                </form>
+    .status-alert {
+        background: rgba(245, 158, 11, 0.06);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: var(--radius-sm);
+        padding: 16px 20px;
+        margin-top: 8px;
+        max-width: 580px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
 
-                <hr>
+    .status-alert strong {
+        color: #ffffff;
+        font-weight: 700;
+    }
 
-                <div class="text-center text-muted small">
-                    <p>Have questions? Contact admin@gymtrack.local for more information.</p>
+    /* Account Details Section */
+    .details-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 24px 28px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .section-title {
+        font-family: var(--font-family-headers);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: var(--color-teal);
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        font-size: 16px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 576px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .info-label {
+        font-family: var(--font-family-headers);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-muted);
+    }
+
+    .info-value {
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .badge-pending {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid var(--color-warning);
+        color: var(--color-warning);
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-family: var(--font-family-headers);
+        letter-spacing: 0.5px;
+    }
+
+    /* Steps Section (Timeline) */
+    .steps-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 24px 28px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        position: relative;
+        margin-top: 10px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 10px;
+        bottom: 10px;
+        width: 2px;
+        background: var(--border-color);
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 20px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .timeline-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 16px;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+    .timeline-item.active .timeline-badge {
+        border-color: var(--color-teal);
+        color: var(--color-teal);
+        background: rgba(0, 229, 229, 0.1);
+        box-shadow: 0 0 10px rgba(0, 229, 229, 0.2);
+    }
+
+    .timeline-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-top: 8px;
+    }
+
+    .timeline-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+    }
+
+    .timeline-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Actions Section */
+    .actions-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .contact-info {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    .contact-info a {
+        color: var(--color-teal);
+        font-weight: 600;
+        text-decoration: underline;
+    }
+
+    .contact-info a:hover {
+        color: var(--color-teal-light);
+    }
+</style>
+
+<div class="pending-status-container">
+    <!-- Status Hero Card -->
+    <div class="status-hero-card">
+        <div class="pulse-icon-wrapper">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        <h2 class="status-title">Account Awaiting Review</h2>
+        <div class="status-alert">
+            <strong>Thank you for signing up!</strong>
+            <p class="mb-0 mt-1">Your member profile has been registered and is currently under admin validation. We will verify your membership details and activate your portal shortly (usually within 24-48 hours).</p>
+        </div>
+    </div>
+
+    <!-- Account Information -->
+    <div class="details-card">
+        <h3 class="section-title"><i class="fas fa-user-gear"></i> Account Information</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">Member Name</span>
+                <span class="info-value">{{ current_user.full_name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email Address</span>
+                <span class="info-value">{{ current_user.email }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Signup Date</span>
+                <span class="info-value">
+                    {% if member.created_at %}
+                        {{ member.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    {% else %}
+                        Today
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Approval Status</span>
+                <div>
+                    <span class="badge-pending">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 11px;"></i> Pending Approval
+                    </span>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- What Happens Next Timeline -->
+    <div class="steps-card">
+        <h3 class="section-title"><i class="fas fa-route"></i> What Happens Next?</h3>
+        <div class="timeline">
+            <div class="timeline-item active">
+                <div class="timeline-badge">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="timeline-content">
+                    <h4 class="timeline-title">1. Application Review</h4>
+                    <p class="timeline-desc">An administrator will review your membership details and verify your account credentials against active gym registration plans.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-badge">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <div class="timeline-content">
+                    <h4 class="timeline-title">2. Verification Confirmation</h4>
+                    <p class="timeline-desc">Once approved, you'll receive a confirmation email indicating that your portal has been activated and is ready to use.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-badge">
+                    <i class="fas fa-dumbbell"></i>
+                </div>
+                <div class="timeline-content">
+                    <h4 class="timeline-title">3. Start Your Fitness Journey</h4>
+                    <p class="timeline-desc">Log back into your GymTrack Pro account to start tracking your daily workouts, following custom nutrition plans, and interacting with certified trainers.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
+        <form action="{{ url_for('auth.logout') }}" method="POST" style="margin: 0;">
+            <button type="submit" class="btn btn-secondary" style="padding: 10px 32px;">
+                <i class="fas fa-sign-out-alt" style="margin-right: 6px;"></i> Logout Securely
+            </button>
+        </form>
+
+        <p class="contact-info">
+            Have urgent questions? Contact support at <a href="mailto:admin@gymtrack.local">admin@gymtrack.local</a> for fast-tracked review.
+        </p>
     </div>
 </div>
 {% endblock %}

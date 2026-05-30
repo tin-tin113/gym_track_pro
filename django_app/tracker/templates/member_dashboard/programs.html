@@ -49,7 +49,7 @@
                     <div class="card" style="border-left-color: var(--color-teal); background: var(--bg-secondary); display: flex; flex-direction: column; justify-content: space-between; height: 100%; margin-bottom: 0;">
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
-                                <h4 style="font-size: 16px; color: #ffffff; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ assignment.guide.name }}">
+                                <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ assignment.guide.name }}">
                                     <i class="fas fa-dumbbell" style="color: var(--color-teal); margin-right: 6px;"></i>
                                     {{ assignment.guide.name }}
                                 </h4>
@@ -256,7 +256,7 @@
                 {% for assignment in completed_guides %}
                 <div class="card" style="background: var(--bg-secondary); border-left-color: var(--color-success); padding: var(--spacing-md); display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
                     <div>
-                        <h4 style="font-size: 14px; color: #ffffff; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ assignment.guide.name }}">
+                        <h4 style="font-size: 14px; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ assignment.guide.name }}">
                             <i class="fas fa-award" style="color: var(--color-success);"></i>
                             {{ assignment.guide.name }}
                         </h4>

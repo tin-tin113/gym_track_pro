@@ -25,7 +25,7 @@
                 <div class="card" style="border-left-color: var(--color-teal); background: var(--bg-secondary); display: flex; flex-direction: column; justify-content: space-between; height: 100%; margin-bottom: 0;">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
-                          <h4 style="font-size: 16px; color: #ffffff; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ assignment.guide.name }}">
+                          <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ assignment.guide.name }}">
                               {{ assignment.guide.name }}
                           </h4>
                           {% set diff = assignment.guide.difficulty_level|lower %}
@@ -104,7 +104,7 @@
                           {% endif %}
 
                           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
-                              <h4 style="font-size: 15px; color: #ffffff; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ guide.name }}">
+                              <h4 style="font-size: 15px; color: var(--text-primary); margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;" title="{{ guide.name }}">
                                   {{ guide.name }}
                               </h4>
                               {% set diff = guide.difficulty_level|lower %}
