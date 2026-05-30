@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import base64
+from functools import wraps
 from io import BytesIO
 from typing import Any
+from datetime import datetime
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -32,12 +36,55 @@ def _require_member_access(request: HttpRequest) -> Member | None:
 	return member
 
 
+def _validate_date_range(start_str: str, end_str: str) -> tuple[datetime | None, datetime | None, str | None]:
+	"""
+	Validate date range inputs in YYYY-MM-DD format.
+	Returns (start_date, end_date, error_message) tuple.
+	error_message is None if validation succeeds.
+	"""
+	start_date = None
+	end_date = None
+	error_msg = None
+
+	try:
+		if start_str:
+			start_date = datetime.strptime(start_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+		if end_str:
+			end_date = datetime.strptime(end_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+
+		if start_date and end_date and end_date <= start_date:
+			error_msg = 'End date must be after start date.'
+
+	except (ValueError, TypeError):
+		error_msg = 'Invalid date format. Please use YYYY-MM-DD format.'
+
+	return start_date, end_date, error_msg
+
+
 def _safe_next_redirect(request: HttpRequest, default_route_name: str) -> HttpResponse:
 	"""Redirect to a user-provided next path if it's a safe relative path."""
 	next_url = (request.POST.get('next') or request.GET.get('next') or '').strip()
 	if next_url.startswith('/') and not next_url.startswith('//'):
 		return redirect(next_url)
 	return redirect(default_route_name)
+
+
+def require_active(view_func):
+	"""
+	Decorator that ensures user is both logged in AND has an active account.
+
+	Purpose: Additional protection for critical staff/trainer views.
+	The middleware provides primary protection, but this decorator can be used
+	for specific sensitive views as an extra layer of security.
+	"""
+	@wraps(view_func)
+	@login_required
+	def wrapper(request, *args, **kwargs):
+		if not request.user.is_active:
+			messages.error(request, 'Your account has been deactivated. Please contact the administrator.')
+			return redirect('auth.login')
+		return view_func(request, *args, **kwargs)
+	return wrapper
 
 
 class _PaginationAdapter:

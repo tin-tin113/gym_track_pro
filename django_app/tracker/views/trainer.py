@@ -28,7 +28,7 @@ from tracker.models import (
 	MealPlan,
 	DietAssignment,
 )
-from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter
+from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range
 
 
 # --- Helpers ---
@@ -271,11 +271,17 @@ def staff_list(request: HttpRequest) -> HttpResponse:
 		page_number = 1
 
 	User = get_user_model()
-	qs = User.objects.filter(role=User.Role.STAFF).order_by('full_name', 'id')
-	if search:
-		qs = qs.filter(Q(full_name__icontains=search) | Q(email__icontains=search) | Q(username__icontains=search))
+	# Separate active and inactive staff
+	qs_active = User.objects.filter(role=User.Role.STAFF, is_active=True).order_by('full_name', 'id')
+	qs_inactive = User.objects.filter(role=User.Role.STAFF, is_active=False).order_by('full_name', 'id')
 
-	paginator = Paginator(qs, 10)
+	if search:
+		qs_active = qs_active.filter(Q(full_name__icontains=search) | Q(email__icontains=search) | Q(username__icontains=search))
+		qs_inactive = qs_inactive.filter(Q(full_name__icontains=search) | Q(email__icontains=search) | Q(username__icontains=search))
+
+	# Combine for pagination
+	all_staff = list(qs_active) + list(qs_inactive)
+	paginator = Paginator(all_staff, 10)
 	page_obj = paginator.get_page(page_number)
 	pagination = _PaginationAdapter(paginator, page_obj)
 
@@ -397,7 +403,37 @@ def staff_delete_staff(request: HttpRequest, staff_id: int) -> HttpResponse:
 
 	staff_user.is_active = False
 	staff_user.save(update_fields=['is_active'])
-	messages.info(request, 'Staff member deactivated.')
+
+	# Invalidate all existing sessions for this user
+	from django.contrib.sessions.models import Session
+	for session in Session.objects.all():
+		session_data = session.get_decoded()
+		if session_data.get('_auth_user_id') == str(staff_user.id):
+			session.delete()
+
+	messages.info(request, f'Staff member "{staff_user.full_name}" deactivated.')
+	return redirect('staff.list_staff')
+
+
+def staff_reactivate_staff(request: HttpRequest, staff_id: int) -> HttpResponse:
+	"""Reactivate a deactivated staff account."""
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if getattr(request.user, 'role', None) != 'admin':
+		messages.error(request, 'Admin access required.')
+		return redirect('home')
+	if request.method != 'POST':
+		return redirect('staff.list_staff')
+
+	User = get_user_model()
+	staff_user = User.objects.filter(id=staff_id, role=User.Role.STAFF).first()
+	if staff_user is None:
+		messages.error(request, 'Staff member not found.')
+		return redirect('staff.list_staff')
+
+	staff_user.is_active = True
+	staff_user.save(update_fields=['is_active'])
+	messages.success(request, f'Staff member "{staff_user.full_name}" reactivated.')
 	return redirect('staff.list_staff')
 
 
@@ -529,11 +565,17 @@ def trainer_list(request: HttpRequest) -> HttpResponse:
 	except ValueError:
 		page_number = 1
 
-	qs = Trainer.objects.select_related('user').all().order_by('user__full_name', 'id')
-	if search:
-		qs = qs.filter(Q(user__full_name__icontains=search) | Q(user__email__icontains=search))
+	# Separate active and inactive trainers
+	qs_active = Trainer.objects.select_related('user').filter(user__is_active=True).order_by('user__full_name', 'id')
+	qs_inactive = Trainer.objects.select_related('user').filter(user__is_active=False).order_by('user__full_name', 'id')
 
-	paginator = Paginator(qs, 10)
+	if search:
+		qs_active = qs_active.filter(Q(user__full_name__icontains=search) | Q(user__email__icontains=search))
+		qs_inactive = qs_inactive.filter(Q(user__full_name__icontains=search) | Q(user__email__icontains=search))
+
+	# Combine for pagination
+	all_trainers = list(qs_active) + list(qs_inactive)
+	paginator = Paginator(all_trainers, 10)
 	page_obj = paginator.get_page(page_number)
 	pagination = _PaginationAdapter(paginator, page_obj)
 
@@ -857,7 +899,7 @@ def trainer_assign_guide_to_member(request: HttpRequest, member_id: int) -> Http
 	guides = list(WorkoutGuide.objects.filter(status=WorkoutGuide.Status.APPROVED).order_by('category', 'name', 'id'))
 	if request.method == 'POST':
 		guide_id = (request.POST.get('guide_id') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:1000].strip()
 		start_date_str = (request.POST.get('start_date') or '').strip()
 		target_completion_str = (request.POST.get('target_completion_date') or '').strip()
 
@@ -866,25 +908,9 @@ def trainer_assign_guide_to_member(request: HttpRequest, member_id: int) -> Http
 			messages.error(request, 'Please select a valid guide.')
 			return redirect('trainer.assign_guide_to_member', member_id=member.id)
 
-		start_date = None
-		target_completion_date = None
-		date_error = False
-
-		try:
-			if start_date_str:
-				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-			if target_completion_str:
-				target_completion_date = datetime.strptime(target_completion_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-
-			if start_date and target_completion_date and target_completion_date <= start_date:
-				messages.error(request, 'Completion date must be after start date.')
-				date_error = True
-
-		except (ValueError, TypeError):
-			messages.error(request, 'Invalid date format. Please use YYYY-MM-DD format.')
-			date_error = True
-
+		start_date, target_completion_date, date_error = _validate_date_range(start_date_str, target_completion_str)
 		if date_error:
+			messages.error(request, date_error)
 			return redirect('trainer.assign_guide_to_member', member_id=member.id)
 
 		try:
@@ -999,7 +1025,7 @@ def trainer_create_diet_plan(request: HttpRequest) -> HttpResponse:
 		description = (request.POST.get('description') or '').strip()
 		diet_type = (request.POST.get('diet_type') or 'balanced').strip()
 		daily_calories_str = (request.POST.get('daily_calories') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:1000].strip()
 
 		protein_pct = float(request.POST.get('macro_ratio_protein') or '30')
 		carbs_pct = float(request.POST.get('macro_ratio_carbs') or '45')
@@ -1052,7 +1078,7 @@ def trainer_edit_diet_plan(request: HttpRequest, plan_id: int) -> HttpResponse:
 		description = (request.POST.get('description') or '').strip()
 		diet_type = (request.POST.get('diet_type') or 'balanced').strip()
 		daily_calories_str = (request.POST.get('daily_calories') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:1000].strip()
 
 		protein_pct = float(request.POST.get('macro_ratio_protein') or '30')
 		carbs_pct = float(request.POST.get('macro_ratio_carbs') or '45')
@@ -1125,7 +1151,7 @@ def trainer_add_meal(request: HttpRequest, plan_id: int) -> HttpResponse:
 		protein_g_str = (request.POST.get('protein_g') or '').strip()
 		carbs_g_str = (request.POST.get('carbs_g') or '').strip()
 		fats_g_str = (request.POST.get('fats_g') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:500].strip()
 
 		if not meal_name:
 			messages.error(request, 'Meal Name is required.')
@@ -1212,7 +1238,7 @@ def trainer_assign_diet_to_member(request: HttpRequest, member_id: int) -> HttpR
 	plans = list(DietPlan.objects.filter(is_active=True).order_by('name', 'id'))
 	if request.method == 'POST':
 		plan_id = (request.POST.get('diet_plan_id') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:1000].strip()
 		start_date_str = (request.POST.get('start_date') or '').strip()
 		target_end_str = (request.POST.get('target_end_date') or '').strip()
 
@@ -1221,25 +1247,9 @@ def trainer_assign_diet_to_member(request: HttpRequest, member_id: int) -> HttpR
 			messages.error(request, 'Please select a valid diet plan.')
 			return redirect('trainer.assign_diet_to_member', member_id=member.id)
 
-		start_date = None
-		target_end_date = None
-		date_error = False
-
-		try:
-			if start_date_str:
-				start_date = datetime.strptime(start_date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-			if target_end_str:
-				target_end_date = datetime.strptime(target_end_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-
-			if start_date and target_end_date and target_end_date <= start_date:
-				messages.error(request, 'End date must be after start date.')
-				date_error = True
-
-		except (ValueError, TypeError):
-			messages.error(request, f'Invalid date format. Please use YYYY-MM-DD format.')
-			date_error = True
-
+		start_date, target_end_date, date_error = _validate_date_range(start_date_str, target_end_str)
 		if date_error:
+			messages.error(request, date_error)
 			return redirect('trainer.assign_diet_to_member', member_id=member.id)
 
 		try:
@@ -1400,7 +1410,7 @@ def trainer_assign_workout(request: HttpRequest, member_id: int) -> HttpResponse
 		exercise_name = (request.POST.get('exercise_name') or '').strip()
 		exercise_category = (request.POST.get('exercise_category') or '').strip()
 		intensity = (request.POST.get('intensity') or Workout.Intensity.MODERATE).strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:500].strip()
 
 		if not workout_date_str or not exercise_name or not exercise_category:
 			messages.error(request, 'Please fill in all required fields.')
@@ -1462,7 +1472,7 @@ def trainer_edit_assigned_workout(request: HttpRequest, member_id: int, workout_
 		exercise_name = (request.POST.get('exercise_name') or '').strip()
 		exercise_category = (request.POST.get('exercise_category') or '').strip()
 		intensity = (request.POST.get('intensity') or Workout.Intensity.MODERATE).strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:500].strip()
 
 		if not workout_date_str or not exercise_name or not exercise_category:
 			messages.error(request, 'Please fill in all required fields.')
@@ -1688,9 +1698,46 @@ def trainer_delete_trainer(request: HttpRequest, trainer_id: int) -> HttpRespons
 		messages.error(request, 'Trainer not found.')
 		return redirect('trainer.list_trainers')
 
+	# Count assigned members before deactivation
+	member_count = Member.objects.filter(assigned_trainer=trainer.user, is_active=True, is_approved=True).count()
+
 	trainer.user.is_active = False
 	trainer.user.save(update_fields=['is_active'])
-	messages.info(request, 'Trainer deactivated.')
+
+	# Invalidate all existing sessions for this user
+	from django.contrib.sessions.models import Session
+	for session in Session.objects.all():
+		session_data = session.get_decoded()
+		if session_data.get('_auth_user_id') == str(trainer.user.id):
+			session.delete()
+
+	# Show detailed message with member count
+	if member_count > 0:
+		messages.warning(request, f'Trainer "{trainer.user.full_name}" deactivated. {member_count} member(s) remain assigned—consider reassigning them.')
+	else:
+		messages.info(request, f'Trainer "{trainer.user.full_name}" deactivated.')
+
+	return redirect('trainer.list_trainers')
+
+
+def trainer_reactivate_trainer(request: HttpRequest, trainer_id: int) -> HttpResponse:
+	"""Reactivate a deactivated trainer account."""
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if getattr(request.user, 'role', None) != 'admin':
+		messages.error(request, 'Admin access required.')
+		return redirect('home')
+	if request.method != 'POST':
+		return redirect('trainer.list_trainers')
+
+	trainer = Trainer.objects.select_related('user').filter(id=trainer_id).first()
+	if trainer is None:
+		messages.error(request, 'Trainer not found.')
+		return redirect('trainer.list_trainers')
+
+	trainer.user.is_active = True
+	trainer.user.save(update_fields=['is_active'])
+	messages.success(request, f'Trainer "{trainer.user.full_name}" reactivated.')
 	return redirect('trainer.list_trainers')
 
 

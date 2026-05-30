@@ -260,7 +260,8 @@ def member_detail(request: HttpRequest, member_id: int) -> HttpResponse:
 		.order_by('-start_date', '-id')
 		.first()
 	)
-	trainers = Trainer.objects.select_related('user').all().order_by('user__full_name', 'id')
+	# Only show active trainers for new assignments
+	trainers = Trainer.objects.select_related('user').filter(user__is_active=True).order_by('user__full_name', 'id')
 
 	thirty_days_ago = timezone.now() - timedelta(days=30)
 	attendance_qs = Attendance.objects.filter(member=member, check_in_time__gte=thirty_days_ago)
@@ -713,7 +714,7 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 		protein_str = (request.POST.get('protein_g') or '').strip()
 		carbs_str = (request.POST.get('carbs_g') or '').strip()
 		fats_str = (request.POST.get('fats_g') or '').strip()
-		notes = (request.POST.get('notes') or '').strip()
+		notes = (request.POST.get('notes') or '')[:500].strip()
 
 		if not meal_date_str or not meal_type or not meal_name or not calories_str:
 			messages.error(request, 'Please fill in all required fields.')

@@ -116,7 +116,7 @@
     .login-form-header h2 {
         font-size: 46px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--text-primary);
         margin: 0 0 8px 0;
         letter-spacing: -0.5px;
     }
@@ -151,7 +151,7 @@
         line-height: 1.6;
         transition: all var(--duration-fast) var(--easing-smooth);
         background-color: var(--bg-secondary);
-        color: #ffffff;
+        color: var(--text-primary);
         min-height: 60px;
         box-sizing: border-box;
     }
@@ -341,7 +341,7 @@
     }
 
     .demo-credentials strong {
-        color: #ffffff;
+        color: var(--text-primary);
         font-weight: 700;
         display: flex;
         align-items: center;
@@ -425,6 +425,33 @@
             font-size: 12px;
             padding: 12px 14px;
         }
+    }
+
+    /* Light mode overrides */
+    [data-theme="light"] .login-hero {
+        background: linear-gradient(135deg, #F1F5F9 0%, #CBD5E1 100%);
+        background-image:
+            radial-gradient(circle at 100% 100%, rgba(13, 148, 136, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at 0% 0%, rgba(13, 148, 136, 0.08) 0%, transparent 50%),
+            linear-gradient(135deg, #F1F5F9, #CBD5E1);
+    }
+
+    [data-theme="light"] .login-logo {
+        color: var(--text-primary);
+    }
+
+    [data-theme="light"] .login-logo .icon {
+        background: rgba(13, 148, 136, 0.1);
+        border-color: var(--color-teal);
+        color: var(--color-teal);
+    }
+
+    [data-theme="light"] .login-tagline {
+        color: var(--text-secondary);
+    }
+
+    [data-theme="light"] .login-footer-text {
+        color: var(--text-muted);
     }
 </style>
 

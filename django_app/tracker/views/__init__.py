@@ -84,6 +84,7 @@ from .trainer import (
     trainer_edit_trainer,
     trainer_resend_setup_link,
     trainer_delete_trainer,
+    trainer_reactivate_trainer,
     trainer_manage_assignments,
     trainer_browse_guides,
     trainer_create_guide,
@@ -115,4 +116,5 @@ from .trainer import (
     staff_create_staff,
     staff_edit_staff,
     staff_delete_staff,
+    staff_reactivate_staff,
 )

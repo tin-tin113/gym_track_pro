@@ -36,7 +36,11 @@ def auth_login(request: HttpRequest) -> HttpResponse:
 				return redirect('auth.pending_status')
 			return redirect('home')
 
-		messages.error(request, 'Invalid credentials.')
+		# Check if user exists but account is deactivated
+		if user and not user.is_active:
+			messages.error(request, 'Your account has been deactivated. Please contact the administrator.')
+		else:
+			messages.error(request, 'Invalid username or password.')
 		return redirect('auth.login')
 
 	return render(request, "auth/login.html")

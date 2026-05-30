@@ -43,7 +43,7 @@
             </thead>
             <tbody>
                 {% for staff_member in staff %}
-                <tr>
+                <tr {% if not staff_member.is_active %}style="opacity: 0.65; background-color: rgba(0,0,0,0.02);"{% endif %}>
                     <td>
                         <strong>{{ staff_member.full_name }}</strong>
                     </td>
@@ -60,21 +60,29 @@
                             </span>
                         {% else %}
                             <span class="status-badge status-inactive">
-                                <i class="fas fa-times-circle"></i> Inactive
+                                <i class="fas fa-ban"></i> Inactive
                             </span>
                         {% endif %}
                     </td>
                     <td>{{ staff_member.created_at.strftime('%b %d, %Y') }}</td>
                     <td>
                         <div class="row-actions">
+                            {% if staff_member.is_active %}
                             <a href="{{ url_for('staff.edit_staff', staff_id=staff_member.id) }}" class="btn btn-small btn-primary">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <form method="POST" action="{{ url_for('staff.delete_staff', staff_id=staff_member.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this staff member?');">
-                                    <i class="fas fa-trash"></i> Remove
+                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this staff member?\n\nStaff cannot log in. Historical records remain accessible.');">
+                                    <i class="fas fa-ban"></i> Deactivate
                                 </button>
                             </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('staff.reactivate_staff', staff_id=staff_member.id) }}" style="display: inline;">
+                                <button type="submit" class="btn btn-small btn-success">
+                                    <i class="fas fa-redo"></i> Reactivate
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric
+from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric, GuideAssignment, DietAssignment
 
 class MemberForm(forms.ModelForm):
     class Meta:
@@ -121,3 +121,40 @@ class FitnessMetricForm(forms.ModelForm):
         widgets = {
             'metric_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+
+class GuideAssignmentForm(forms.Form):
+    """Form for assigning workout guides to members with validation."""
+    guide_id = forms.IntegerField(required=True)
+    notes = forms.CharField(max_length=1000, required=False, widget=forms.Textarea(attrs={'rows': 3}))
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    target_completion_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        target_completion_date = cleaned_data.get('target_completion_date')
+
+        if start_date and target_completion_date and target_completion_date <= start_date:
+            raise forms.ValidationError('Target completion date must be after start date.')
+
+        return cleaned_data
+
+
+class DietAssignmentForm(forms.Form):
+    """Form for assigning diet plans to members with validation."""
+    diet_plan_id = forms.IntegerField(required=True)
+    notes = forms.CharField(max_length=1000, required=False, widget=forms.Textarea(attrs={'rows': 3}))
+    start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+    target_end_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        target_end_date = cleaned_data.get('target_end_date')
+
+        if start_date and target_end_date and target_end_date <= start_date:
+            raise forms.ValidationError('End date must be after start date.')
+
+        return cleaned_data
+

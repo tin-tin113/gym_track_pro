@@ -321,6 +321,14 @@ class GuideAssignment(models.Model):
 			return None
 		return (self.target_completion_date.date() - timezone.localdate()).days
 
+	def get_start_date_as_date(self):
+		"""Convert start_date to date object for template convenience."""
+		return self.start_date.date() if self.start_date else None
+
+	def get_target_completion_as_date(self):
+		"""Convert target_completion_date to date object for template convenience."""
+		return self.target_completion_date.date() if self.target_completion_date else None
+
 
 class Workout(models.Model):
 	class Intensity(models.TextChoices):
@@ -444,6 +452,14 @@ class DietAssignment(models.Model):
 		if not self.target_end_date:
 			return None
 		return (self.target_end_date.date() - timezone.localdate()).days
+
+	def get_start_date_as_date(self):
+		"""Convert start_date to date object for template convenience."""
+		return self.start_date.date() if self.start_date else None
+
+	def get_target_end_as_date(self):
+		"""Convert target_end_date to date object for template convenience."""
+		return self.target_end_date.date() if self.target_end_date else None
 
 
 class MealLog(models.Model):

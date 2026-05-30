@@ -69,6 +69,7 @@ urlpatterns = [
     path('trainer/<int:trainer_id>/edit', views.trainer_edit_trainer, name='trainer.edit_trainer'),
     path('trainer/<int:trainer_id>/assignments', views.trainer_manage_assignments, name='trainer.manage_assignments'),
     path('trainer/<int:trainer_id>/delete', views.trainer_delete_trainer, name='trainer.delete_trainer'),
+    path('trainer/<int:trainer_id>/reactivate', views.trainer_reactivate_trainer, name='trainer.reactivate_trainer'),
     path('trainer/<int:trainer_id>/resend-setup', views.trainer_resend_setup_link, name='trainer.resend_setup_link'),
 
     # Trainer member details
@@ -91,8 +92,6 @@ urlpatterns = [
     path('trainer/members/<int:member_id>/guides', views.trainer_member_guides, name='trainer.member_guides'),
     path('trainer/members/<int:member_id>/guides/assign', views.trainer_assign_guide_to_member, name='trainer.assign_guide_to_member'),
     path('trainer/members/<int:member_id>/guides/<int:guide_id>/unassign', views.trainer_unassign_guide, name='trainer.unassign_guide'),
-    path('trainer/member/<int:member_id>/guide/assign/', views.trainer_assign_guide_to_member),
-    path('trainer/member/<int:member_id>/guide/<int:guide_id>/unassign/', views.trainer_unassign_guide),
     path('member/guides/<int:assignment_id>/complete', views.member_complete_guide, name='member.complete_guide'),
     path('trainer/guides/<int:assignment_id>/complete', views.trainer_complete_member_guide, name='trainer.complete_member_guide'),
 
@@ -106,8 +105,6 @@ urlpatterns = [
     path('trainer/members/<int:member_id>/diet', views.trainer_member_diet, name='trainer.member_diet'),
     path('trainer/members/<int:member_id>/diet/assign', views.trainer_assign_diet_to_member, name='trainer.assign_diet_to_member'),
     path('trainer/members/<int:member_id>/diet/remove', views.trainer_remove_member_diet, name='trainer.remove_member_diet'),
-    path('trainer/member/<int:member_id>/diet/assign/', views.trainer_assign_diet_to_member),
-    path('trainer/member/<int:member_id>/diet/remove/', views.trainer_remove_member_diet),
 
     # Staff
     path('staff/', views.staff_list, name='staff.list_staff'),
@@ -115,6 +112,7 @@ urlpatterns = [
     path('staff/new', views.staff_create_staff, name='staff.create_staff'),
     path('staff/<int:staff_id>/edit', views.staff_edit_staff, name='staff.edit_staff'),
     path('staff/<int:staff_id>/delete', views.staff_delete_staff, name='staff.delete_staff'),
+    path('staff/<int:staff_id>/reactivate', views.staff_reactivate_staff, name='staff.reactivate_staff'),
 
     # Admin (custom dashboard pages, separate from Django admin site)
     path('admin/dashboard', views.admin_dashboard, name='admin.dashboard'),

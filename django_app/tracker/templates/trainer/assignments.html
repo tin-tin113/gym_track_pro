@@ -47,7 +47,7 @@
                                     <small class="text-muted">{{ assignment.member.user.email }}</small>
                                 </td>
                                 <td style="width: 80px;">
-                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline">
+                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Unassign {{ assignment.member.user.full_name }} from {{ trainer.user.full_name }}?\n\nThis member will no longer have an assigned trainer.')">
                                         <input type="hidden" name="member_id" value="{{ assignment.member_id }}">
                                         <input type="hidden" name="action" value="unassign">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Remove assignment">✕</button>
@@ -91,7 +91,7 @@
                                     <small class="text-muted">{{ member.user.email }}</small>
                                 </td>
                                 <td style="width: 80px;">
-                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline">
+                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Assign {{ member.user.full_name }} to {{ trainer.user.full_name }}?\n\nPrevious trainer assignment will be unassigned.')">
                                         <input type="hidden" name="member_id" value="{{ member.id }}">
                                         <input type="hidden" name="action" value="assign">
                                         <button type="submit" class="btn btn-sm btn-success"
