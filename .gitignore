@@ -42,6 +42,8 @@ instance/
 
 # Uploads
 app/static/uploads/
+django_app/media/
+*.pdf
 
 # Testing
 .pytest_cache/
