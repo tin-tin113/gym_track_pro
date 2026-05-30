@@ -130,7 +130,7 @@
             {% for page_num in pagination.iter_pages() %}
                 {% if page_num %}
                     {% if page_num == pagination.page %}
-                    <span class="pagination-item active" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-teal); color: #0B0F19; font-weight: 700; border-radius: var(--radius-sm);">{{ page_num }}</span>
+                    <span class="pagination-item active" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-teal); color: var(--bg-primary); font-weight: 700; border-radius: var(--radius-sm);">{{ page_num }}</span>
                     {% else %}
                     <a href="{{ url_for('trainer.member_workouts', member_id=member.id, page=page_num) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-secondary); text-decoration: none;">{{ page_num }}</a>
                     {% endif %}

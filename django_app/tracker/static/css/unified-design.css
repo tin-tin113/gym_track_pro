@@ -289,6 +289,9 @@ body.has-sidebar {
   height: 100vh;
   overflow-y: auto;
   z-index: var(--z-sticky);
+  width: 240px;
+  min-width: 240px;
+  flex-shrink: 0;
 }
 
 /* High-tech active page kicker */
@@ -462,6 +465,7 @@ body.has-sidebar {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
     box-shadow: var(--shadow-md);
+    min-width: 0 !important;
   }
   .sidebar-current-page, .sidebar-section-header, .sidebar-nav-text {
     display: none !important;
@@ -1412,6 +1416,12 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Light Mode Specific Component Styling Adjustments */
+[data-theme="light"] .navbar,
+[data-theme="light"] .sidebar {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: var(--border-color) !important;
+}
+
 [data-theme="light"] h1, 
 [data-theme="light"] h2, 
 [data-theme="light"] h3, 
@@ -1429,8 +1439,26 @@ input:focus, textarea:focus, select:focus {
 [data-theme="light"] .stat-value,
 [data-theme="light"] .text-white,
 [data-theme="light"] .premium-toast,
-[data-theme="light"] .premium-toast-close:hover {
+[data-theme="light"] .premium-toast-close:hover,
+[data-theme="light"] [style*="color: #ffffff" i],
+[data-theme="light"] [style*="color:#ffffff" i],
+[data-theme="light"] [style*="color: #fff" i],
+[data-theme="light"] [style*="color:#fff" i] {
   color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .navbar-brand i {
+  color: var(--color-teal) !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .nav-link:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="light"] .btn:hover,
+[data-theme="light"] .btn-primary:hover {
+  color: #ffffff !important;
 }
 
 [data-theme="light"] .sidebar-nav-link {
@@ -1440,6 +1468,11 @@ input:focus, textarea:focus, select:focus {
 [data-theme="light"] .sidebar-nav-link.active {
   color: var(--color-teal) !important;
   background-color: rgba(13, 148, 136, 0.08) !important;
+}
+
+[data-theme="light"] .sidebar-nav-link.active:hover {
+  background-color: rgba(13, 148, 136, 0.15) !important;
+  color: var(--color-teal-dark) !important;
 }
 
 [data-theme="light"] .sidebar-section-header {
@@ -1514,6 +1547,12 @@ input:focus, textarea:focus, select:focus {
 }
 
 [data-theme="light"] .sidebar-current-page-title {
+  color: var(--text-primary) !important;
+}
+
+/* User Dropdown Premium Hover Effect (Generic & Adaptive) */
+#user-dropdown a:hover {
+  background-color: var(--bg-secondary) !important;
   color: var(--text-primary) !important;
 }
 

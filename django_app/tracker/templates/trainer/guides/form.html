@@ -14,7 +14,7 @@
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
                         <!-- Guide Name -->
                         <div class="form-group mb-3">
                             <label class="form-label">Guide Name *</label>
@@ -66,9 +66,30 @@
                         </div>
 
                         <!-- Equipment -->
-                        <div class="form-group mb-4">
+                        <div class="form-group mb-3">
                             <label class="form-label">Equipment Needed (comma separated)</label>
                             <input type="text" class="form-control" name="equipment_needed" value="{{ guide.equipment_needed if guide else '' }}" placeholder="Dumbbells, Barbell, Treadmill">
+                        </div>
+
+                        <!-- Guide Photo Upload -->
+                        <div class="form-group mb-4">
+                            <label class="form-label">Guide Photo</label>
+                            {% if guide and guide.image %}
+                            <div class="mb-2" id="current-image-preview">
+                                <img src="{{ guide.image.url }}" alt="Current guide photo"
+                                     style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <p class="text-muted mt-1" style="font-size: 0.8rem;">Current photo — upload a new one to replace it.</p>
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" name="image" id="guide-image-input"
+                                   accept="image/jpeg,image/png,image/webp,image/gif"
+                                   onchange="previewGuideImage(this)">
+                            <div id="new-image-preview" style="display:none; margin-top: 10px;">
+                                <img id="new-image-preview-img" src="" alt="New photo preview"
+                                     style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 2px solid var(--neon-green);">
+                                <p class="text-muted mt-1" style="font-size: 0.8rem; color: var(--neon-green) !important;">✓ New photo ready to upload</p>
+                            </div>
+                            <small class="text-muted">Accepted: JPG, PNG, WebP, GIF. Recommended: 800×450px or wider.</small>
                         </div>
 
                         <!-- Buttons -->
@@ -94,8 +115,8 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    {% if guide.tips %}
-                        {% for tip in guide.tips|sort(attribute='exercise_name') %}
+                    {% if tips %}
+                        {% for tip in tips %}
                         <div class="tip-box mb-3">
                             <div style="display: flex; justify-content: space-between; align-items: start;">
                                 <div>
@@ -157,4 +178,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function previewGuideImage(input) {
+    const preview = document.getElementById('new-image-preview');
+    const previewImg = document.getElementById('new-image-preview-img');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

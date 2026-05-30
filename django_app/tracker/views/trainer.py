@@ -656,6 +656,10 @@ def trainer_create_guide(request: HttpRequest) -> HttpResponse:
 			trainer=request.user,
 			status=WorkoutGuide.Status.DRAFT,
 		)
+		# Handle optional image upload
+		if 'image' in request.FILES:
+			guide.image = request.FILES['image']
+			guide.save(update_fields=['image'])
 		messages.success(request, 'Guide created (draft).')
 		return redirect('trainer.edit_guide', guide_id=guide.id)
 
@@ -704,12 +708,20 @@ def trainer_edit_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 		guide.duration_weeks = duration_weeks
 		guide.target_goals = target_goals
 		guide.equipment_needed = equipment_needed
+		# Handle image upload — delete old file if a new one is provided
+		if 'image' in request.FILES:
+			if guide.image:
+				try:
+					guide.image.delete(save=False)
+				except Exception:
+					pass
+			guide.image = request.FILES['image']
 		guide.save()
 		messages.success(request, 'Guide updated.')
 		return redirect('trainer.edit_guide', guide_id=guide.id)
 
-	setattr(guide, 'tips', list(guide.tips.all().order_by('exercise_name', 'id')))
-	return render(request, 'trainer/guides/form.html', {'guide': guide})
+	tips = list(guide.tips.all().order_by('exercise_name', 'id'))
+	return render(request, 'trainer/guides/form.html', {'guide': guide, 'tips': tips})
 
 
 def trainer_view_guide(request: HttpRequest, guide_id: int) -> HttpResponse:

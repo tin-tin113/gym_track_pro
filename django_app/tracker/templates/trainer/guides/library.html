@@ -11,7 +11,7 @@
             <div class="program-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100%; border: 1px solid var(--border-color); background: var(--surface);">
                 {% if guide.image %}
                 <div style="height: 160px; overflow: hidden; position: relative;">
-                    <img src="{{ url_for('static', filename='images/' + guide.image) }}" alt="{{ guide.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    <img src="{{ guide.image.url }}" alt="{{ guide.name }}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 {% endif %}
                 <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">

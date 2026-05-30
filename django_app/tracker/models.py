@@ -225,7 +225,7 @@ class WorkoutGuide(models.Model):
 	duration_weeks = models.IntegerField(blank=True, null=True)
 	target_goals = models.CharField(max_length=300, blank=True)
 	equipment_needed = models.CharField(max_length=300, blank=True)
-	image = models.CharField(max_length=255, blank=True, null=True)
+	image = models.ImageField(upload_to='guide_images/', blank=True, null=True)
 	trainer = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.SET_NULL,
