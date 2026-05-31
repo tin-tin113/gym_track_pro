@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Assignments - {{ trainer.user.full_name }}{% endblock %}
+{% block title %}Manage Assignments - {{ trainer.user.full_name or trainer.user.username }}{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -11,7 +11,7 @@
 <!-- Trainer Info -->
 <div class="card mb-4">
     <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">{{ trainer.user.full_name }}</h5>
+        <h5 class="mb-0">{{ trainer.user.full_name or trainer.user.username }}</h5>
     </div>
     <div class="card-body">
         <dl class="row">
@@ -43,11 +43,11 @@
                             {% for assignment in assignments %}
                             <tr>
                                 <td>
-                                    <strong>{{ assignment.member.user.full_name }}</strong><br>
+                                    <strong>{{ assignment.member.user.full_name or assignment.member.user.username }}</strong><br>
                                     <small class="text-muted">{{ assignment.member.user.email }}</small>
                                 </td>
                                 <td style="width: 80px;">
-                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Unassign {{ assignment.member.user.full_name }} from {{ trainer.user.full_name }}?\n\nThis member will no longer have an assigned trainer.')">
+                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Unassign {{ assignment.member.user.full_name or assignment.member.user.username }} from {{ trainer.user.full_name or trainer.user.username }}?\n\nThis member will no longer have an assigned trainer.')">
                                         <input type="hidden" name="member_id" value="{{ assignment.member_id }}">
                                         <input type="hidden" name="action" value="unassign">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Remove assignment">✕</button>
@@ -87,11 +87,11 @@
                             {% for member in unassigned_members %}
                             <tr>
                                 <td>
-                                    <strong>{{ member.user.full_name }}</strong><br>
+                                    <strong>{{ member.user.full_name or member.user.username }}</strong><br>
                                     <small class="text-muted">{{ member.user.email }}</small>
                                 </td>
                                 <td style="width: 80px;">
-                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Assign {{ member.user.full_name }} to {{ trainer.user.full_name }}?\n\nPrevious trainer assignment will be unassigned.')">
+                                    <form method="POST" action="{{ url_for('trainer.manage_assignments', trainer_id=trainer.id) }}" class="d-inline" onsubmit="return confirm('Assign {{ member.user.full_name or member.user.username }} to {{ trainer.user.full_name or trainer.user.username }}?\n\nPrevious trainer assignment will be unassigned.')">
                                         <input type="hidden" name="member_id" value="{{ member.id }}">
                                         <input type="hidden" name="action" value="assign">
                                         <button type="submit" class="btn btn-sm btn-success"
@@ -114,9 +114,11 @@
 </div>
 
 <!-- Info Box -->
-<div class="alert alert-info mt-4" role="alert">
-    <strong>💡 Instructions:</strong>
-    <ul class="mb-0 mt-2">
+<div class="instruction-card mt-4">
+    <div class="instruction-card-title">
+        <i class="fas fa-info-circle"></i> Instructions
+    </div>
+    <ul class="instruction-card-list">
         <li>Click ✓ button to assign a member to this trainer</li>
         <li>Click ✕ button to remove an assignment</li>
         <li>Once assigned, trainers can view and update member metrics</li>

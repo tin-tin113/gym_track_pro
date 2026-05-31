@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
         hiddenFlashContainer.remove(); // Clean up from DOM
     }
 
-    // Auto-dismiss alerts after 5 seconds (legacy fallback for block alerts)
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+    // Auto-dismiss temporary alerts after 5 seconds (explicitly marked with .auto-dismiss)
+    const alerts = document.querySelectorAll('.alert.auto-dismiss');
     alerts.forEach(alert => {
         setTimeout(() => {
             const bsAlert = new bootstrap.Alert(alert);

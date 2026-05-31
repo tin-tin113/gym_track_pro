@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}{{ member.user.full_name }} - Progress{% endblock %}
+{% block title %}{{ member.user.full_name or member.user.username }} - GymTrack Pro{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📊 {{ member.user.full_name }}'s Progress</h2>
+    <h2>📊 {{ member.user.full_name or member.user.username }}'s Progress</h2>
     <div>
         <a href="{{ url_for('fitness.add_metrics') }}" class="btn btn-success">➕ Add Metrics</a>
         <a href="{{ url_for('trainer.members') }}" class="btn btn-secondary">← Back</a>

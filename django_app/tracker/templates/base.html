@@ -96,7 +96,7 @@
     <div id="global-toast-container" class="toast-container"></div>
 
     <!-- Reusable Dynamic Confirmation Modal -->
-    <div class="modal fade" id="gymConfirmModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal fade {% if current_user.is_authenticated %}modal-shifted{% endif %}" id="gymConfirmModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

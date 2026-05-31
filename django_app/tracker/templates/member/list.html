@@ -61,7 +61,7 @@
                 {% for member in members %}
                 <tr>
                     <td>
-                        <strong>{{ member.user.full_name }}</strong>
+                        <strong>{{ member.user.full_name or member.user.username }}</strong>
                     </td>
                     <td>
                         <span class="text-muted" style="font-size: 13px;">{{ member.user.email }}</span>

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ member.user.full_name }}'s Assigned Programs - GymTrack Pro{% endblock %}
+{% block title %}{{ member.user.full_name or member.user.username }}'s Assigned Programs - GymTrack Pro{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -8,7 +8,7 @@
     <div class="page-header d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1>📖 Assigned Programs</h1>
-            <p class="text-muted" style="margin-bottom: 0;">Manage and track training guides and workout programs assigned to {{ member.user.full_name }}</p>
+            <p class="text-muted" style="margin-bottom: 0;">Manage and track training guides and workout programs assigned to {{ member.user.full_name or member.user.username }}</p>
         </div>
         <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn btn-success">
             <i class="fas fa-plus"></i> Assign Guide
@@ -107,7 +107,7 @@
             </div>
             <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: var(--text-primary);">No programs active</h3>
             <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
-                There are currently no training guides or programs assigned to {{ member.user.full_name }}. Assign a guide to begin!
+                There are currently no training guides or programs assigned to {{ member.user.full_name or member.user.username }}. Assign a guide to begin!
             </p>
             <a href="{{ url_for('trainer.assign_guide_to_member', member_id=member.id) }}" class="btn btn-success" style="padding: 10px 24px; font-size: 13px;">
                 <i class="fas fa-plus"></i> Assign Guide

@@ -403,12 +403,50 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 		.order_by('-workout_date', '-id')[:5]
 	)
 
+	# Fetch timezone-aware attendance history over the last 14 days
+	grid_start_datetime = timezone.make_aware(timezone.datetime.combine(today - timedelta(days=13), timezone.datetime.min.time()))
+	check_in_datetimes = Attendance.objects.filter(
+		member=member,
+		check_in_time__gte=grid_start_datetime
+	).values_list('check_in_time', flat=True)
+	check_in_dates = {timezone.localdate(dt) for dt in check_in_datetimes}
+
+	attendance_grid = []
+	for i in range(13, -1, -1):
+		date = today - timedelta(days=i)
+		attendance_grid.append({
+			"date": date,
+			"day_name": date.strftime('%a'),
+			"day_num": date.day,
+			"checked_in": date in check_in_dates
+		})
+
+	# Calculate membership subscription countdown metrics
+	days_total = 30
+	days_left = 0
+	progress_percent = 0
+	is_expiring_soon = False
+
+	if member.membership_start_date and member.membership_expiry_date:
+		days_total = (member.membership_expiry_date - member.membership_start_date).days
+		days_left = (member.membership_expiry_date - today).days
+		if days_total > 0:
+			progress_percent = int(max(0, min(100, (days_left / days_total) * 100)))
+		else:
+			progress_percent = 0
+		is_expiring_soon = 0 <= days_left <= 7
+
 	return render(
 		request,
 		"member_dashboard/dashboard.html",
 		{
 			"attendance_count": attendance_count,
 			"recent_workouts": recent_workouts,
+			"attendance_grid": attendance_grid,
+			"days_total": days_total,
+			"days_left": max(0, days_left),
+			"progress_percent": progress_percent,
+			"is_expiring_soon": is_expiring_soon,
 		},
 	)
 
