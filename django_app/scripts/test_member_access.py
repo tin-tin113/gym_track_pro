@@ -9,13 +9,14 @@ django.setup()
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-u, created = User.objects.get_or_create(username='testmember', defaults={'email': 'testmember@example.com', 'role': 'member'})
+u, created = User.objects.get_or_create(username='testmember', defaults={'email': 'testmember@example.com', 'role': 'member', 'full_name': 'Test Member'})
 if created:
     u.set_password('Testpass123')
     u.save()
 else:
     u.set_password('Testpass123')
     u.role = 'member'
+    u.full_name = 'Test Member'
     u.save()
 
 from tracker.models import Member

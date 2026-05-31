@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import csv
 from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from tracker.models import Member, Attendance
+from tracker.models import Member, Attendance, GuestVisit
+from tracker.forms import GuestVisitForm
 from .base import _require_roles, _safe_next_redirect, _PaginationAdapter, _qr_data_uri
 
 
@@ -46,6 +48,11 @@ def attendance_dashboard(request: HttpRequest) -> HttpResponse:
 
 	active_count = sum(1 for s in all_sessions if s.check_out_time is None)
 
+	# Fetch Guest pass stats for today
+	guests_today = list(GuestVisit.objects.filter(visit_date=today).order_by('-created_at', '-id'))
+	guest_count = len(guests_today)
+	guest_revenue = sum(g.amount_paid for g in guests_today)
+
 	return render(
 		request,
 		"attendance/dashboard.html",
@@ -55,6 +62,9 @@ def attendance_dashboard(request: HttpRequest) -> HttpResponse:
 			"members": members,
 			"all_sessions": all_sessions,
 			"active_count": active_count,
+			"guests_today": guests_today,
+			"guest_count": guest_count,
+			"guest_revenue": guest_revenue,
 		},
 	)
 
@@ -98,7 +108,13 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 	qr_payload = f"GymTrackPro Attendance Check-In {today.isoformat()}"
 	qr_image = _qr_data_uri(qr_payload)
 	countdown = {"minutes": 23, "seconds": 59}
-	return render(request, "attendance/check_in.html", {"qr_image": qr_image, "countdown": countdown, "members": members})
+	guest_form = GuestVisitForm()
+	return render(request, "attendance/check_in.html", {
+		"qr_image": qr_image,
+		"countdown": countdown,
+		"members": members,
+		"guest_form": guest_form
+	})
 
 
 @login_required
@@ -135,6 +151,7 @@ def attendance_history(request: HttpRequest) -> HttpResponse:
 		messages.error(request, 'Access denied.')
 		return redirect('home')
 
+	active_tab = request.GET.get('tab') or 'members'
 	members = list(
 		Member.objects.select_related('user')
 		.filter(is_active=True, is_approved=True)
@@ -148,35 +165,88 @@ def attendance_history(request: HttpRequest) -> HttpResponse:
 	except ValueError:
 		page_number = 1
 
-	qs = Attendance.objects.select_related('member', 'member__user').all().order_by('-check_in_time', '-id')
-	if selected_member_id:
-		qs = qs.filter(member_id=selected_member_id)
-	if selected_date:
-		try:
-			day = timezone.datetime.fromisoformat(selected_date).date()
-			start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
-			end = start + timedelta(days=1)
-			qs = qs.filter(check_in_time__gte=start, check_in_time__lt=end)
-		except ValueError:
-			messages.error(request, 'Invalid date filter.')
-			return redirect('attendance_routes.history')
+	guest_search = (request.GET.get('guest_search') or '').strip()
+	date_from = (request.GET.get('date_from') or '').strip()
+	date_to = (request.GET.get('date_to') or '').strip()
 
-	paginator = Paginator(qs, 15)
-	page_obj = paginator.get_page(page_number)
-	pagination = _PaginationAdapter(paginator, page_obj)
+	if active_tab == 'guests':
+		qs = GuestVisit.objects.all().order_by('-visit_date', '-id')
 
-	selected_member_int = int(selected_member_id) if selected_member_id.isdigit() else None
-	return render(
-		request,
-		"attendance/history.html",
-		{
-			"members": members,
-			"attendance_records": list(page_obj.object_list),
-			"pagination": pagination,
-			"selected_member_id": selected_member_int,
-			"selected_date": selected_date,
-		},
-	)
+		# Name search
+		if guest_search:
+			qs = qs.filter(full_name__icontains=guest_search)
+
+		# Date range filter
+		if date_from:
+			try:
+				day_from = timezone.datetime.fromisoformat(date_from).date()
+				qs = qs.filter(visit_date__gte=day_from)
+			except ValueError:
+				pass
+		if date_to:
+			try:
+				day_to = timezone.datetime.fromisoformat(date_to).date()
+				qs = qs.filter(visit_date__lte=day_to)
+			except ValueError:
+				pass
+
+		# Single-date backward compat
+		if selected_date and not date_from and not date_to:
+			try:
+				day = timezone.datetime.fromisoformat(selected_date).date()
+				qs = qs.filter(visit_date=day)
+			except ValueError:
+				messages.error(request, 'Invalid date filter.')
+				return redirect('attendance_routes.history')
+
+		paginator = Paginator(qs, 15)
+		page_obj = paginator.get_page(page_number)
+		pagination = _PaginationAdapter(paginator, page_obj)
+
+		return render(
+			request,
+			"attendance/history.html",
+			{
+				"active_tab": 'guests',
+				"guest_records": list(page_obj.object_list),
+				"pagination": pagination,
+				"selected_date": selected_date,
+				"guest_search": guest_search,
+				"date_from": date_from,
+				"date_to": date_to,
+			},
+		)
+	else:
+		qs = Attendance.objects.select_related('member', 'member__user').all().order_by('-check_in_time', '-id')
+		if selected_member_id:
+			qs = qs.filter(member_id=selected_member_id)
+		if selected_date:
+			try:
+				day = timezone.datetime.fromisoformat(selected_date).date()
+				start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
+				end = start + timedelta(days=1)
+				qs = qs.filter(check_in_time__gte=start, check_in_time__lt=end)
+			except ValueError:
+				messages.error(request, 'Invalid date filter.')
+				return redirect('attendance_routes.history')
+
+		paginator = Paginator(qs, 15)
+		page_obj = paginator.get_page(page_number)
+		pagination = _PaginationAdapter(paginator, page_obj)
+
+		selected_member_int = int(selected_member_id) if selected_member_id.isdigit() else None
+		return render(
+			request,
+			"attendance/history.html",
+			{
+				"active_tab": 'members',
+				"members": members,
+				"attendance_records": list(page_obj.object_list),
+				"pagination": pagination,
+				"selected_member_id": selected_member_int,
+				"selected_date": selected_date,
+			},
+		)
 
 
 def attendance_stats(request: HttpRequest) -> HttpResponse:
@@ -209,6 +279,15 @@ def attendance_stats(request: HttpRequest) -> HttpResponse:
 	)
 	stats["inactive_members"] = inactive_qs.count()
 	stats["inactive_members_list"] = list(inactive_qs[:10])
+
+	# Walk-in guest stats
+	stats["guest_today"] = GuestVisit.objects.filter(visit_date=today).count()
+	stats["guest_week"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=7)).count()
+	stats["guest_month"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=30)).count()
+
+	stats["revenue_today"] = GuestVisit.objects.filter(visit_date=today).aggregate(total=Sum('amount_paid'))['total'] or 0
+	stats["revenue_week"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=7)).aggregate(total=Sum('amount_paid'))['total'] or 0
+	stats["revenue_month"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=30)).aggregate(total=Sum('amount_paid'))['total'] or 0
 
 	return render(request, "attendance/stats.html", {"stats": stats})
 
@@ -300,3 +379,69 @@ def attendance_api_stats(request: HttpRequest) -> JsonResponse:
 		local_dt = timezone.localtime(dt)
 		buckets[f"{local_dt.hour:02d}"] += 1
 	return JsonResponse(buckets)
+
+
+@login_required
+def attendance_log_guest(request: HttpRequest) -> HttpResponse:
+	if not _require_roles(request, {'admin', 'staff'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	if request.method == 'POST':
+		form = GuestVisitForm(request.POST)
+		if form.is_valid():
+			guest_visit = form.save(commit=False)
+			guest_visit.visit_date = timezone.localdate()
+			guest_visit.save()
+			messages.success(request, f"Guest pass confirmed! Walk-in guest logged: {guest_visit.full_name}.")
+		else:
+			messages.error(request, 'Failed to log guest. Please check the form fields.')
+	return redirect('attendance_routes.check_in')
+
+
+@login_required
+def attendance_export_guests_csv(request: HttpRequest) -> HttpResponse:
+	"""Export guest visit records as CSV with optional filters."""
+	if not _require_roles(request, {'admin', 'staff'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	qs = GuestVisit.objects.all().order_by('-visit_date', '-id')
+
+	# Apply same filters as the history page
+	guest_search = (request.GET.get('guest_search') or '').strip()
+	date_from = (request.GET.get('date_from') or '').strip()
+	date_to = (request.GET.get('date_to') or '').strip()
+
+	if guest_search:
+		qs = qs.filter(full_name__icontains=guest_search)
+	if date_from:
+		try:
+			qs = qs.filter(visit_date__gte=timezone.datetime.fromisoformat(date_from).date())
+		except ValueError:
+			pass
+	if date_to:
+		try:
+			qs = qs.filter(visit_date__lte=timezone.datetime.fromisoformat(date_to).date())
+		except ValueError:
+			pass
+
+	response = HttpResponse(content_type='text/csv')
+	response['Content-Disposition'] = 'attachment; filename="guest_visits.csv"'
+
+	writer = csv.writer(response)
+	writer.writerow(['Full Name', 'Guest Type', 'Email', 'Phone Number', 'Visit Date', 'Amount Paid', 'Emergency Contact', 'Notes'])
+
+	for g in qs.iterator():
+		writer.writerow([
+			g.full_name,
+			g.guest_type,
+			g.email or '',
+			g.phone_number or '',
+			g.visit_date.isoformat(),
+			f'{g.amount_paid:.2f}',
+			g.emergency_contact or '',
+			g.notes or '',
+		])
+
+	return response

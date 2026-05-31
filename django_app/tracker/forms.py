@@ -1,5 +1,5 @@
 from django import forms
-from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric, GuideAssignment, DietAssignment
+from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric, GuideAssignment, DietAssignment, GuestVisit
 
 class MemberForm(forms.ModelForm):
     class Meta:
@@ -9,6 +9,7 @@ class MemberForm(forms.ModelForm):
             'date_of_birth',
             'gender',
             'emergency_contact',
+            'member_tier',
             'membership_type',
             'membership_start_date',
             'membership_expiry_date',
@@ -21,6 +22,20 @@ class MemberForm(forms.ModelForm):
             'membership_start_date': forms.DateInput(attrs={'type': 'date'}),
             'membership_expiry_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+
+class MemberProfileForm(forms.ModelForm):
+    class Meta:
+        model = Member
+        fields = [
+            'phone_number',
+            'date_of_birth',
+            'gender',
+        ]
+        widgets = {
+            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
+        }
+
 
 
 class WorkoutForm(forms.ModelForm):
@@ -157,4 +172,13 @@ class DietAssignmentForm(forms.Form):
             raise forms.ValidationError('End date must be after start date.')
 
         return cleaned_data
+
+
+class GuestVisitForm(forms.ModelForm):
+    class Meta:
+        model = GuestVisit
+        fields = ['full_name', 'guest_type', 'email', 'phone_number', 'amount_paid', 'emergency_contact', 'notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Optional visitor notes...'}),
+        }
 

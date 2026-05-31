@@ -27,6 +27,7 @@ from tracker.models import (
 	DietPlan,
 	MealPlan,
 	DietAssignment,
+	GuestVisit,
 )
 from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range
 
@@ -91,6 +92,12 @@ def admin_pending_approvals(request: HttpRequest) -> HttpResponse:
 	page_obj = paginator.get_page(page_number)
 	pagination = _PaginationAdapter(paginator, page_obj)
 
+	pending_renewals = list(
+		Member.objects.select_related('user')
+		.filter(pending_renewal_plan__isnull=False)
+		.order_by('-updated_at')
+	)
+
 	return render(
 		request,
 		"admin/pending_approvals.html",
@@ -98,6 +105,7 @@ def admin_pending_approvals(request: HttpRequest) -> HttpResponse:
 			"pending_members": list(page_obj.object_list),
 			"search": search,
 			"pagination": pagination,
+			"pending_renewals": pending_renewals,
 		},
 	)
 
@@ -302,7 +310,59 @@ def staff_dashboard(request: HttpRequest) -> HttpResponse:
 	if not _require_roles(request, {'admin', 'staff'}):
 		messages.error(request, 'Staff access required.')
 		return redirect('home')
-	return render(request, 'staff/dashboard.html')
+
+	today = timezone.localdate()
+	start_of_day = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.min.time()))
+	end_of_day = start_of_day + timedelta(days=1)
+
+	# 1. Performance Indicator Counters
+	active_members_count = Member.objects.filter(
+		is_approved=True,
+		is_active=True,
+		membership_expiry_date__gte=today
+	).count()
+
+	today_checkins_count = Attendance.objects.filter(
+		check_in_time__gte=start_of_day,
+		check_in_time__lt=end_of_day
+	).count()
+
+	pending_approvals_count = Member.objects.filter(is_approved=False).count()
+
+	today_guests_count = GuestVisit.objects.filter(visit_date=today).count()
+
+	stats = SimpleNamespace(
+		active_members=active_members_count,
+		today_checkins=today_checkins_count,
+		pending_approvals=pending_approvals_count,
+		today_guests=today_guests_count,
+	)
+
+	# 2. Live Queues
+	# 5 most recent pending approvals
+	pending_members = list(
+		Member.objects.select_related('user')
+		.filter(is_approved=False)
+		.order_by('-created_at', '-id')[:5]
+	)
+
+	# 5 most recent checked in members today
+	recent_checkins = list(
+		Attendance.objects.select_related('member__user')
+		.filter(check_in_time__gte=start_of_day, check_in_time__lt=end_of_day)
+		.order_by('-check_in_time', '-id')[:5]
+	)
+
+	return render(
+		request,
+		'staff/dashboard.html',
+		{
+			'stats': stats,
+			'pending_members': pending_members,
+			'recent_checkins': recent_checkins,
+		}
+	)
+
 
 
 def staff_create_staff(request: HttpRequest) -> HttpResponse:

@@ -257,6 +257,200 @@
         0% { transform: scale(0.6); }
         100% { transform: scale(1); }
     }
+
+    /* Renewal Modal styling */
+    .renew-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(10, 15, 20, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .renew-modal-backdrop.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .renew-modal-content {
+        background-color: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 520px;
+        padding: 28px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .renew-modal-backdrop.show .renew-modal-content {
+        transform: translateY(0);
+    }
+    .renew-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+    }
+    .renew-modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #ffffff;
+        font-family: var(--font-family-headers);
+    }
+    .renew-modal-close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 20px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+    .renew-modal-close:hover {
+        color: #ffffff;
+    }
+    
+    /* Plan selector styling */
+    .renew-plans-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .renew-plan-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    .renew-plan-card:hover {
+        border-color: var(--color-teal);
+        background: rgba(0, 229, 229, 0.02);
+    }
+    .renew-plan-card.active {
+        border-color: var(--color-teal);
+        background: rgba(0, 229, 229, 0.05);
+        box-shadow: 0 0 12px rgba(0, 229, 229, 0.15);
+    }
+    .renew-plan-card.active::after {
+        content: '\f058';
+        font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: var(--color-teal);
+        font-size: 14px;
+    }
+    .renew-plan-name {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+    }
+    .renew-plan-card.active .renew-plan-name {
+        color: var(--color-teal);
+    }
+    .renew-plan-price {
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 6px 0;
+        font-family: var(--font-family-headers);
+    }
+    .renew-plan-dur {
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+    
+    /* Form fields */
+    .renew-form-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .renew-form-input {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        color: #ffffff;
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        font-size: 13px;
+        width: 100%;
+        transition: border-color 0.2s ease;
+        margin-bottom: 14px;
+    }
+    .renew-form-input:focus {
+        border-color: var(--color-teal);
+        outline: none;
+    }
+    
+    /* Loading overlay */
+    .renew-loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(20, 25, 30, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        z-index: 10;
+        text-align: center;
+        padding: 20px;
+    }
+    .renew-loading-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .renew-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(0, 229, 229, 0.1);
+        border-top-color: var(--color-teal);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .renew-loading-text {
+        font-family: var(--font-family-headers);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+    }
+    .renew-loading-subtext {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
 </style>
 
 <div class="container-fluid">
@@ -297,12 +491,29 @@
                 </div>
             </div>
 
-            {% if is_expiring_soon %}
-            <div class="renew-banner">
-                <span class="badge badge-danger w-100 text-center" style="font-size: 11px;"><i class="fas fa-exclamation-triangle"></i> Plan Expiring Soon!</span>
-                <a href="#" class="btn btn-small btn-danger w-100 text-center"><i class="fas fa-credit-card"></i> Renew Now</a>
+            {% if current_user.member.pending_renewal_plan %}
+            <div style="background: rgba(229, 229, 0, 0.05); border: 1px solid var(--border-color); border-left: 3px solid var(--color-warning); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; margin-top: 12px; width: 100%; text-align: left;">
+                <span style="color: var(--color-warning); font-weight: 700; display: block; margin-bottom: 2px;"><i class="fas fa-clock"></i> Pending Counter Payment</span>
+                Requested: <strong>{{ current_user.member.pending_renewal_plan|title }}</strong> plan. Please pay at the counter to activate.
             </div>
             {% endif %}
+
+            <div class="renew-banner" style="margin-top: 12px; width: 100%;">
+                {% if is_locked_out %}
+                    <span class="badge badge-danger w-100 text-center" style="font-size: 11px; margin-bottom: 8px;"><i class="fas fa-ban"></i> Renewal Blocked (3 Rejections)</span>
+                    <button type="button" class="btn btn-small btn-secondary w-100 text-center" disabled style="cursor: not-allowed; opacity: 0.6;" title="Locked until {{ cooldown_end_date.strftime('%Y-%m-%d') if cooldown_end_date else '1 month' }}"><i class="fas fa-lock"></i> Locked Out</button>
+                {% elif current_user.member.pending_renewal_plan %}
+                    <button type="button" class="btn btn-small btn-secondary w-100 text-center" disabled style="cursor: not-allowed; opacity: 0.6;"><i class="fas fa-clock"></i> Renewal Requested</button>
+                {% elif days_left <= 0 %}
+                    <span class="badge badge-danger w-100 text-center" style="font-size: 11px; margin-bottom: 8px;"><i class="fas fa-exclamation-triangle"></i> Subscription Expired!</span>
+                    <button type="button" class="btn btn-small btn-danger w-100 text-center" id="renewBtn"><i class="fas fa-credit-card"></i> Renew Now</button>
+                {% elif is_expiring_soon %}
+                    <span class="badge badge-danger w-100 text-center" style="font-size: 11px; margin-bottom: 8px;"><i class="fas fa-exclamation-triangle"></i> Plan Expiring Soon!</span>
+                    <button type="button" class="btn btn-small btn-danger w-100 text-center" id="renewBtn"><i class="fas fa-credit-card"></i> Renew Now</button>
+                {% else %}
+                    <button type="button" class="btn btn-small btn-primary w-100 text-center" id="renewBtn" style="background: rgba(0, 229, 229, 0.08); border: 1px solid var(--color-teal); color: var(--color-teal);"><i class="fas fa-credit-card"></i> Renew / Extend</button>
+                {% endif %}
+            </div>
         </div>
 
         <!-- 14-Day Attendance Calendar Grid -->
@@ -362,6 +573,150 @@
                 <a href="{{ url_for('member.create_workout') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Log a Workout Now</a>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Subscription Renewal Modal Overlay -->
+<div class="renew-modal-backdrop" id="renewModal">
+    <div class="renew-modal-content">
+        <!-- Secure Processing Spinner Layer -->
+        <div class="renew-loading-overlay" id="loadingOverlay">
+            <div class="renew-spinner"></div>
+            <div class="renew-loading-text" id="loadingText">Establishing secure tunnel...</div>
+            <div class="renew-loading-subtext">Please do not refresh or close this window.</div>
+        </div>
+
+        <div class="renew-modal-header">
+            <h3>⚡ Extend Your GymTrack Pro Plan</h3>
+            <button type="button" class="renew-modal-close" id="closeModal">&times;</button>
+        </div>
+
+        <form action="{{ url_for('member.renew') }}" method="POST" id="renewForm">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <!-- Hidden input for plan selection -->
+            <input type="hidden" name="plan" id="selectedPlan" value="monthly">
+            
+            <label class="renew-form-label">1. Choose a Subscription Plan</label>
+            <div class="renew-plans-grid" style="grid-template-columns: repeat(3, 1fr);">
+                {% if current_user.member.member_tier == 'student' %}
+                    <!-- Student Plan Tiers -->
+                    <div class="renew-plan-card active" data-plan="monthly">
+                        <span class="renew-plan-name">Student Monthly</span>
+                        <div class="renew-plan-price">750</div>
+                        <span class="renew-plan-dur">30 Days Access</span>
+                    </div>
+                    <div class="renew-plan-card" data-plan="quarterly">
+                        <span class="renew-plan-name">Student Quarterly</span>
+                        <div class="renew-plan-price">2,800</div>
+                        <span class="renew-plan-dur">90 Days Access</span>
+                    </div>
+                    <div class="renew-plan-card" data-plan="annual">
+                        <span class="renew-plan-name">Student Yearly</span>
+                        <div class="renew-plan-price">10k</div>
+                        <span class="renew-plan-dur">365 Days Access</span>
+                    </div>
+                {% else %}
+                    <!-- Regular Plan Tiers -->
+                    <div class="renew-plan-card active" data-plan="monthly">
+                        <span class="renew-plan-name">Regular Monthly</span>
+                        <div class="renew-plan-price">900</div>
+                        <span class="renew-plan-dur">30 Days Access</span>
+                    </div>
+                    <div class="renew-plan-card" data-plan="quarterly">
+                        <span class="renew-plan-name">Regular Quarterly</span>
+                        <div class="renew-plan-price">3500</div>
+                        <span class="renew-plan-dur">90 Days Access</span>
+                    </div>
+                    <div class="renew-plan-card" data-plan="annual">
+                        <span class="renew-plan-name">Regular Yearly</span>
+                        <div class="renew-plan-price">13k</div>
+                        <span class="renew-plan-dur">365 Days Access</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="background: rgba(0, 229, 229, 0.03); border: 1px solid var(--border-color); border-left: 3px solid var(--color-teal); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; text-align: left;">
+                <h4 style="margin: 0 0 6px 0; font-size: 13px; font-family: var(--font-family-headers); color: #ffffff;"><i class="fas fa-building" style="color: var(--color-teal); margin-right: 6px;"></i> Paid at the Front Counter</h4>
+                <p class="text-muted" style="margin: 0; font-size: 12px; line-height: 1.5;">This subscription will be finalized at the physical front counter of the gym. Select a plan above, click submit to request the renewal, then settle the payment in-person at your next visit.</p>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-3" style="font-weight: 700; height: 44px; margin-top: 10px;">
+                <i class="fas fa-paper-plane"></i> Submit Counter Renewal Request
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const renewBtn = document.getElementById('renewBtn');
+        const renewModal = document.getElementById('renewModal');
+        const closeModal = document.getElementById('closeModal');
+        const planCards = document.querySelectorAll('.renew-plan-card');
+        const selectedPlanInput = document.getElementById('selectedPlan');
+        const renewForm = document.getElementById('renewForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
+        // Show Modal
+        if (renewBtn) {
+            renewBtn.addEventListener('click', function() {
+                renewModal.classList.add('show');
+            });
+        }
+
+        // Hide Modal
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                renewModal.classList.remove('show');
+            });
+        }
+
+        // Close on clicking backdrop
+        renewModal.addEventListener('click', function(e) {
+            if (e.target === renewModal) {
+                renewModal.classList.remove('show');
+            }
+        });
+
+        // Plan Selection
+        planCards.forEach(card => {
+            card.addEventListener('click', function() {
+                planCards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                selectedPlanInput.value = this.dataset.plan;
+            });
+        });
+
+        // Premium Counter Renewal Simulation
+        if (renewForm) {
+            renewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                loadingOverlay.classList.add('show');
+                
+                const steps = [
+                    "Processing counter renewal request...",
+                    "Registering selected plan...",
+                    "Generating front counter ticket...",
+                    "Ready! Redirecting to dashboard..."
+                ];
+                
+                let stepIdx = 0;
+                const interval = setInterval(function() {
+                    if (stepIdx < steps.length) {
+                        loadingText.innerText = steps[stepIdx];
+                        stepIdx++;
+                    } else {
+                        clearInterval(interval);
+                        renewForm.submit();
+                    }
+                }, 600);
+            });
+        }
+    });
+</script>
         </div>
     </div>
 </div>

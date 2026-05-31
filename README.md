@@ -37,6 +37,21 @@ Open:
 - App: http://127.0.0.1:8000/
 - Admin: http://127.0.0.1:8000/admin/
 
+## 👥 Demo / Test Credentials
+For local development and testing, you can use these seeded credentials. To reset or reseed these accounts at any time, run:
+```bash
+python django_app/manage.py seed_demo
+```
+
+* **Default Password**: `password123`
+
+| Role | Username | Email |
+| :--- | :--- | :--- |
+| **Admin** | `admin` | `admin@gym.local` |
+| **Staff** | `staff` | `staff@gym.local` |
+| **Trainer** | `trainer` | `trainer@gym.local` |
+| **Member** | `member` | `member@gym.local` |
+
 ## Features
 
 ### ✅ Member Management

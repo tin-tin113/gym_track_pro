@@ -2,6 +2,83 @@
 
 {% block title %}Check-In Terminal - GymTrack Pro{% endblock %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" rel="stylesheet">
+<style>
+/* ── Tom Select Dark Theme Override ── */
+.ts-wrapper.single .ts-control,
+.ts-wrapper .ts-control {
+    background-color: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-family-body) !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+    cursor: text;
+    box-shadow: none !important;
+    transition: border-color var(--duration-fast) var(--easing-smooth);
+}
+.ts-wrapper.single.input-active .ts-control,
+.ts-wrapper .ts-control:focus-within {
+    border-color: var(--color-teal) !important;
+    box-shadow: 0 0 0 2px rgba(0, 229, 229, 0.12) !important;
+}
+.ts-wrapper.single .ts-control::after {
+    border-color: var(--color-teal) transparent transparent !important;
+}
+.ts-wrapper.single.input-active .ts-control::after {
+    border-color: transparent transparent var(--color-teal) !important;
+}
+.ts-dropdown {
+    background-color: var(--surface) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: var(--shadow-lg) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-family-body) !important;
+    font-size: 14px !important;
+    margin-top: 4px !important;
+    z-index: 9999 !important;
+}
+.ts-dropdown .option {
+    padding: 10px 14px !important;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: background var(--duration-fast) ease;
+}
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+    background-color: rgba(0, 229, 229, 0.08) !important;
+    color: var(--color-teal) !important;
+}
+.ts-dropdown .option.selected {
+    background-color: rgba(0, 229, 229, 0.14) !important;
+    color: var(--color-teal) !important;
+    font-weight: 600;
+}
+.ts-dropdown-content {
+    max-height: 240px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) transparent;
+}
+.ts-wrapper .ts-control input {
+    color: var(--text-primary) !important;
+    caret-color: var(--color-teal);
+}
+.ts-wrapper .ts-control input::placeholder {
+    color: var(--text-muted) !important;
+}
+/* no-results */
+.ts-dropdown .no-results {
+    padding: 12px 14px !important;
+    color: var(--text-muted) !important;
+    font-style: italic;
+    font-size: 13px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-container">
     <!-- Header Section -->
@@ -92,6 +169,9 @@
                             <button type="button" class="control-btn" data-tab="undo-pane">
                                 <i class="fas fa-undo"></i> Undo Today's Entry
                             </button>
+                            <button type="button" class="control-btn" data-tab="guest-pane">
+                                <i class="fas fa-user-plus"></i> Log Walk-In Guest
+                            </button>
                         </div>
 
                         <!-- Tab Panes -->
@@ -100,15 +180,22 @@
                             <div id="checkin-pane" class="tab-pane active">
                                 <form id="manual-checkin-form" method="POST" action="{{ url_for('attendance_routes.check_in') }}">
                                     <div class="form-group mb-4">
-                                        <label for="member_id" class="form-label">Select Gym Member</label>
-                                        <select class="form-control terminal-select" id="member_id" name="member_id" required autofocus>
-                                            <option value="">-- Choose a member to check in --</option>
+                                        <label for="member_id" class="form-label d-flex align-items-center gap-2">
+                                            <i class="fas fa-search" style="color: var(--color-teal); font-size: 12px;"></i>
+                                            Search &amp; Select Member
+                                        </label>
+                                        <select id="member_id" name="member_id" required placeholder="Type name or email to search...">
+                                            <option value=""></option>
                                             {% for member in members %}
                                             <option value="{{ member.id }}">
-                                                {{ member.user.full_name }} ({{ member.user.email }})
+                                                {% if member.user.full_name %}{{ member.user.full_name }} — {{ member.user.email }}{% else %}{{ member.user.email }}{% endif %}
                                             </option>
                                             {% endfor %}
                                         </select>
+                                        <small class="text-muted mt-1 d-block" style="font-size: 11px;">
+                                            <i class="fas fa-keyboard" style="color: var(--color-teal);"></i>
+                                            Type at least 2 letters to filter members
+                                        </small>
                                     </div>
                                     <button type="button" id="open-checkin-modal" class="btn btn-lg btn-primary w-100">
                                         <i class="fas fa-check-circle"></i> Complete Manual Check-In
@@ -120,18 +207,70 @@
                             <div id="undo-pane" class="tab-pane">
                                 <form id="undo-checkin-form" method="POST" action="{{ url_for('attendance_routes.undo_check_in') }}">
                                     <div class="form-group mb-4">
-                                        <label for="undo_member_id" class="form-label">Select Checked-In Member</label>
-                                        <select class="form-control terminal-select" id="undo_member_id" name="member_id" required>
-                                            <option value="">-- Choose a member to undo entry --</option>
+                                        <label for="undo_member_id" class="form-label d-flex align-items-center gap-2">
+                                            <i class="fas fa-search" style="color: var(--color-danger); font-size: 12px;"></i>
+                                            Search &amp; Select Member
+                                        </label>
+                                        <select id="undo_member_id" name="member_id" required placeholder="Type name or email to search...">
+                                            <option value=""></option>
                                             {% for member in members %}
                                             <option value="{{ member.id }}">
-                                                {{ member.user.full_name }} ({{ member.user.email }})
+                                                {% if member.user.full_name %}{{ member.user.full_name }} — {{ member.user.email }}{% else %}{{ member.user.email }}{% endif %}
                                             </option>
                                             {% endfor %}
                                         </select>
+                                        <small class="text-muted mt-1 d-block" style="font-size: 11px;">
+                                            <i class="fas fa-keyboard" style="color: var(--color-danger);"></i>
+                                            Type at least 2 letters to filter members
+                                        </small>
                                     </div>
                                     <button type="button" id="open-undo-modal" class="btn btn-lg btn-danger w-100">
                                         <i class="fas fa-trash-alt"></i> Revoke Today's Check-In
+                                    </button>
+                                </form>
+                            </div>                            <!-- Guest Pane -->
+                            <div id="guest-pane" class="tab-pane">
+                                <form id="guest-checkin-form" method="POST" action="{{ url_for('attendance_routes.log_guest') }}">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_full_name" class="form-label text-teal font-bold" style="font-size: 12px; text-transform: uppercase;">Guest Full Name *</label>
+                                            <input type="text" class="form-control terminal-input" id="id_full_name" name="full_name" required placeholder="e.g. John Doe" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_guest_type" class="form-label text-teal font-bold" style="font-size: 12px; text-transform: uppercase;">Guest Type *</label>
+                                            <select class="form-control terminal-select" id="id_guest_type" name="guest_type" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white; height: 38px;">
+                                                <option value="regular">Regular (₱100.00)</option>
+                                                <option value="student">Student (₱50.00)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_email" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Email Address</label>
+                                            <input type="email" class="form-control terminal-input" id="id_email" name="email" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_phone_number" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Phone Number</label>
+                                            <input type="text" class="form-control terminal-input" id="id_phone_number" name="phone_number" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_amount_paid" class="form-label text-warning font-bold" style="font-size: 11px; text-transform: uppercase;">Amount Paid (₱) *</label>
+                                            <input type="number" step="0.01" class="form-control terminal-input" id="id_amount_paid" name="amount_paid" value="100.00" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="id_emergency_contact" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Emergency Contact</label>
+                                            <input type="text" class="form-control terminal-input" id="id_emergency_contact" name="emergency_contact" placeholder="Name/Phone" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-4">
+                                        <label for="id_notes" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Optional Notes</label>
+                                        <textarea class="form-control terminal-input" id="id_notes" name="notes" rows="1" placeholder="Any visitor notes..." style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-lg btn-success w-100" style="background-color: var(--color-success); border-color: var(--color-success); color: var(--bg-primary); font-weight: 700;">
+                                        <i class="fas fa-ticket-alt"></i> Purchase Guest Pass & Log Entry
                                     </button>
                                 </form>
                             </div>
@@ -147,13 +286,13 @@
                         <div class="quick-checkin-grid">
                             {% if members %}
                                 {% for member in members[:8] %}
-                                <div class="quick-member-card quick-checkin-btn" data-member-id="{{ member.id }}" data-member-name="{{ member.user.full_name }}">
-                                    <div class="quick-member-avatar">
-                                        <i class="fas fa-dumbbell"></i>
-                                    </div>
-                                    <div class="quick-member-name">{{ member.user.full_name }}</div>
-                                    <small class="text-muted" style="font-size: 9px; text-transform: uppercase; font-weight: 700;">Tap Card</small>
-                                </div>
+                                                                <div class="quick-member-card quick-checkin-btn" data-member-id="{{ member.id }}" data-member-name="{% if member.user.full_name %}{{ member.user.full_name }}{% else %}{{ member.user.email }}{% endif %}">
+                                                                    <div class="quick-member-avatar">
+                                                                        <i class="fas fa-dumbbell"></i>
+                                                                    </div>
+                                                                    <div class="quick-member-name">{% if member.user.full_name %}{{ member.user.full_name }}{% else %}{{ member.user.email|truncate(15) }}{% endif %}</div>
+                                                                    <small class="text-muted" style="font-size: 9px; text-transform: uppercase; font-weight: 700;">Tap Card</small>
+                                                                </div>
                                 {% endfor %}
                             {% else %}
                                 <p class="text-muted small mb-0">No active members found</p>
@@ -262,15 +401,18 @@ document.addEventListener('DOMContentLoaded', function () {
         undoModal.show();
     }
 
-    // Manual check-in button click handler
+    // Manual check-in button click handler — reads from Tom Select instance
     document.getElementById('open-checkin-modal').addEventListener('click', function (e) {
-        const sel = document.getElementById('member_id');
-        if (!sel.value) {
+        const ts = window._tsCheckIn;
+        const memberId = ts ? ts.getValue() : document.getElementById('member_id').value;
+        if (!memberId) {
             showToast('Please select a member first.', 'warning');
             return;
         }
-        const selectedName = sel.options[sel.selectedIndex].text;
-        openCheckinModal(sel.value, selectedName);
+        // Strip email suffix ("Name — email") to show only the name in the modal
+        const rawLabel = ts ? (ts.options[memberId] ? ts.options[memberId].text : '') : '';
+        const memberName = rawLabel.split(' \u2014 ')[0].trim() || rawLabel;
+        openCheckinModal(memberId, memberName);
     });
 
     // Quick check-in grid click handler
@@ -282,15 +424,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Undo button opens undo modal click handler
+    // Undo button opens undo modal — reads from Tom Select instance
     document.getElementById('open-undo-modal').addEventListener('click', function () {
-        const sel = document.getElementById('undo_member_id');
-        if (!sel.value) {
+        const ts = window._tsUndo;
+        const memberId = ts ? ts.getValue() : document.getElementById('undo_member_id').value;
+        if (!memberId) {
             showToast('Please select a member to undo.', 'warning');
             return;
         }
-        const selectedName = sel.options[sel.selectedIndex].text;
-        openUndoModal(sel.value, selectedName);
+        const rawLabel = ts ? (ts.options[memberId] ? ts.options[memberId].text : '') : '';
+        const memberName = rawLabel.split(' \u2014 ')[0].trim() || rawLabel;
+        openUndoModal(memberId, memberName);
     });
 
     // Countdown Timer logic
@@ -323,6 +467,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     setInterval(updateCountdown, 1000);
 
+    // Guest Type selection auto-pricing
+    const guestTypeSelect = document.getElementById('id_guest_type');
+    const guestAmountInput = document.getElementById('id_amount_paid');
+    if (guestTypeSelect && guestAmountInput) {
+        guestTypeSelect.addEventListener('change', function() {
+            if (this.value === 'student') {
+                guestAmountInput.value = '50.00';
+            } else {
+                guestAmountInput.value = '100.00';
+            }
+        });
+    }
+
     // Convert base flash messages into toasts
     document.querySelectorAll('#flash-messages .alert').forEach(function (alertEl) {
         const category = alertEl.className.match(/alert-([a-z]+)/);
@@ -351,6 +508,78 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Shared Tom Select config
+    const tsConfig = {
+        maxOptions: 150,
+        maxItems: 1,
+        valueField: 'value',
+        labelField: 'text',
+        searchField: ['text'],
+        placeholder: 'Type name or email to search…',
+        allowEmptyOption: false,
+        selectOnTab: true,
+        highlight: true,
+        render: {
+            option: function (data, escape) {
+                const parts = escape(data.text).split(' — ');
+                const name  = parts[0] || escape(data.text);
+                const email = parts[1] || '';
+                return `<div class="d-flex flex-column" style="line-height:1.3;">
+                    <span style="font-weight:600; color:var(--text-primary);">${name}</span>
+                    ${email ? `<span style="font-size:11px; color:var(--text-muted);">${email}</span>` : ''}
+                </div>`;
+            },
+            item: function (data, escape) {
+                const parts = escape(data.text).split(' — ');
+                return `<span>${parts[0] || escape(data.text)}</span>`;
+            },
+            no_results: function () {
+                return `<div class="no-results"><i class="fas fa-search-minus" style="margin-right:6px;"></i>No members found. Try a different name.</div>`;
+            },
+        },
+    };
+
+    // Initialise on check-in select
+    const checkInEl = document.getElementById('member_id');
+    if (checkInEl) {
+        window._tsCheckIn = new TomSelect(checkInEl, tsConfig);
+    }
+
+    // Initialise on undo select (teal accent swapped to danger red via CSS var override)
+    const undoEl = document.getElementById('undo_member_id');
+    if (undoEl) {
+        window._tsUndo = new TomSelect(undoEl, {
+            ...tsConfig,
+            render: {
+                ...tsConfig.render,
+                option: function (data, escape) {
+                    const parts = escape(data.text).split(' — ');
+                    const name  = parts[0] || escape(data.text);
+                    const email = parts[1] || '';
+                    return `<div class="d-flex flex-column" style="line-height:1.3;">
+                        <span style="font-weight:600; color:var(--text-primary);">${name}</span>
+                        ${email ? `<span style="font-size:11px; color:var(--text-muted);">${email}</span>` : ''}
+                    </div>`;
+                },
+            },
+        });
+    }
+
+    // Patch: read value from Tom Select instances for modal openers
+    const origCheckinBtn = document.getElementById('open-checkin-modal');
+    if (origCheckinBtn) {
+        origCheckinBtn.addEventListener('click', function (e) {
+            e.stopImmediatePropagation(); // prevent duplicate from inline handler below
+        }, true); // capture phase — runs before the existing DOMContentLoaded handler
+    }
+});
+</script>
+{% endblock %}
 
 <style>
 /* Custom Premium Terminal Styles */

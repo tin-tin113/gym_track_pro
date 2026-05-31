@@ -148,6 +148,13 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 		resp['Content-Disposition'] = f'attachment; filename="daily_attendance_{today.isoformat()}.csv"'
 		return resp
 
+	completed_durations = [
+		int((r.check_out_time - r.check_in_time).total_seconds() // 60)
+		for r in records
+		if r.check_in_time and r.check_out_time
+	]
+	avg_duration = int(sum(completed_durations) // len(completed_durations)) if completed_durations else None
+
 	return render(
 		request,
 		"reports/daily_attendance.html",
@@ -157,6 +164,7 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 			"records": records,
 			"total_visits": total_visits,
 			"still_checked_in": still_checked_in,
+			"avg_duration": avg_duration,
 		},
 	)
 

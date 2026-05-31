@@ -15,7 +15,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip
-from tracker.forms import MemberForm, WorkoutForm
+from tracker.forms import MemberForm, WorkoutForm, MemberProfileForm
 from .base import _require_roles, _require_member_access, _PaginationAdapter
 
 
@@ -56,8 +56,29 @@ def member_list_members(request: HttpRequest) -> HttpResponse:
 		)
 	elif status == 'expired':
 		qs = qs.filter(Q(is_approved=True) & (Q(is_active=False) | Q(membership_expiry_date__lt=today)))
+	elif status == 'pending_renewal':
+		qs = qs.filter(pending_renewal_plan__isnull=False).exclude(pending_renewal_plan='')
 	else:
 		status = 'all'
+
+	if (request.GET.get('format') or '').lower() == 'csv':
+		buf = io.StringIO()
+		writer = csv.writer(buf)
+		writer.writerow(['Full Name', 'Email', 'Phone Number', 'Member Tier', 'Membership Type', 'Start Date', 'Expiry Date', 'Status'])
+		for member in qs:
+			writer.writerow([
+				member.user.full_name,
+				member.user.email,
+				member.phone_number,
+				member.get_member_tier_display(),
+				member.get_membership_type_display(),
+				member.membership_start_date.isoformat() if member.membership_start_date else '',
+				member.membership_expiry_date.isoformat() if member.membership_expiry_date else '',
+				'Active' if member.is_membership_active() else 'Expired'
+			])
+		resp = HttpResponse(buf.getvalue(), content_type='text/csv')
+		resp['Content-Disposition'] = 'attachment; filename="members_export.csv"'
+		return resp
 
 	paginator = Paginator(qs, 10)
 	page_obj = paginator.get_page(page_number)
@@ -187,7 +208,13 @@ def member_import_csv(request: HttpRequest) -> HttpResponse:
 							skipped += 1
 							continue
 
-					membership_type = (row.get('membership_type') or 'monthly').strip() or 'monthly'
+					membership_type = (row.get('membership_type') or 'monthly').strip().lower()
+					if membership_type not in {'monthly', 'quarterly', 'annual'}:
+						membership_type = 'monthly'
+
+					member_tier = (row.get('member_tier') or row.get('tier') or 'regular').strip().lower()
+					if member_tier not in {'student', 'regular'}:
+						member_tier = 'regular'
 
 					base_username = (email.split('@', 1)[0] or 'member')[:150]
 					username = base_username
@@ -208,6 +235,7 @@ def member_import_csv(request: HttpRequest) -> HttpResponse:
 							phone_number=phone_number,
 							gender=gender,
 							date_of_birth=date_of_birth,
+							member_tier=member_tier,
 							membership_type=membership_type,
 							membership_start_date=membership_start_date,
 							membership_expiry_date=membership_expiry_date,
@@ -436,6 +464,14 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 			progress_percent = 0
 		is_expiring_soon = 0 <= days_left <= 7
 
+	is_locked_out = False
+	cooldown_end_date = None
+	if member.consecutive_rejections >= 3 and member.last_rejection_date:
+		cooldown_end = member.last_rejection_date + timedelta(days=30)
+		if cooldown_end > timezone.now():
+			is_locked_out = True
+			cooldown_end_date = cooldown_end
+
 	return render(
 		request,
 		"member_dashboard/dashboard.html",
@@ -447,8 +483,140 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 			"days_left": max(0, days_left),
 			"progress_percent": progress_percent,
 			"is_expiring_soon": is_expiring_soon,
+			"is_locked_out": is_locked_out,
+			"cooldown_end_date": cooldown_end_date,
 		},
 	)
+
+
+@login_required
+def member_renew(request: HttpRequest) -> HttpResponse:
+	member = _require_member_access(request)
+	if member is None:
+		if getattr(request.user, 'role', None) == 'member':
+			return redirect('auth.pending_status')
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	if request.method == 'POST':
+		if member.consecutive_rejections >= 3:
+			if member.last_rejection_date:
+				one_month_ago = timezone.now() - timedelta(days=30)
+				if member.last_rejection_date > one_month_ago:
+					messages.error(
+						request,
+						'Your subscription renewal has been rejected 3 consecutive times. You must wait 1 month from the last rejection before applying again.'
+					)
+					return redirect('member.member_dashboard')
+				else:
+					member.consecutive_rejections = 0
+
+		if member.pending_renewal_plan:
+			messages.error(request, 'You already have a pending subscription renewal request.')
+			return redirect('member.member_dashboard')
+
+		plan_choice = (request.POST.get('plan') or '').strip().lower()
+		
+		valid_plans = {Member.MembershipType.MONTHLY, Member.MembershipType.QUARTERLY, Member.MembershipType.ANNUAL}
+		if plan_choice not in valid_plans:
+			messages.error(request, 'Invalid subscription plan selected.')
+			return redirect('member.member_dashboard')
+
+		member.pending_renewal_plan = plan_choice
+		member.save(update_fields=['pending_renewal_plan', 'consecutive_rejections'])
+
+		messages.success(
+			request, 
+			f'Renewal request submitted! Please pay for your {plan_choice.title()} subscription at the counter during your next visit to finalize activation.'
+		)
+	return redirect('member.member_dashboard')
+
+
+@login_required
+def member_approve_renewal(request: HttpRequest, member_id: int) -> HttpResponse:
+	if not _require_roles(request, {'admin', 'staff', 'trainer'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	member = Member.objects.filter(id=member_id).first()
+	if member is None:
+		messages.error(request, 'Member not found.')
+		return redirect('member.list_members')
+
+	# If trainer, check if this member is assigned to them
+	if getattr(request.user, 'role', None) == 'trainer' and member.assigned_trainer_id != request.user.id:
+		messages.error(request, 'Access denied.')
+		return redirect('member.list_members')
+
+	if request.method == 'POST':
+		plan = member.pending_renewal_plan
+		if not plan:
+			messages.error(request, 'No pending renewal request found for this member.')
+			return redirect('member.view_member', member_id=member.id)
+
+		days_to_add = 0
+		if plan == Member.MembershipType.MONTHLY:
+			days_to_add = 30
+		elif plan == Member.MembershipType.QUARTERLY:
+			days_to_add = 90
+		elif plan == Member.MembershipType.ANNUAL:
+			days_to_add = 365
+
+		today = timezone.localdate()
+		if member.is_membership_active():
+			start_ref = member.membership_expiry_date
+		else:
+			start_ref = today
+			member.membership_start_date = today
+
+		member.membership_expiry_date = start_ref + timedelta(days=days_to_add)
+		member.membership_type = plan
+		member.pending_renewal_plan = None
+		member.is_active = True
+		member.consecutive_rejections = 0
+		member.save(update_fields=['membership_start_date', 'membership_expiry_date', 'membership_type', 'pending_renewal_plan', 'is_active', 'consecutive_rejections'])
+
+		messages.success(request, f'Counter payment confirmed! {plan.title()} subscription has been activated (Expires {member.membership_expiry_date}).')
+	
+	ref = request.META.get('HTTP_REFERER')
+	if ref:
+		return redirect(ref)
+	return redirect('member.view_member', member_id=member.id)
+
+
+@login_required
+def member_reject_renewal(request: HttpRequest, member_id: int) -> HttpResponse:
+	if not _require_roles(request, {'admin', 'staff', 'trainer'}):
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	member = Member.objects.filter(id=member_id).first()
+	if member is None:
+		messages.error(request, 'Member not found.')
+		return redirect('member.list_members')
+
+	# If trainer, check if this member is assigned to them
+	if getattr(request.user, 'role', None) == 'trainer' and member.assigned_trainer_id != request.user.id:
+		messages.error(request, 'Access denied.')
+		return redirect('member.list_members')
+
+	if request.method == 'POST':
+		plan = member.pending_renewal_plan
+		if not plan:
+			messages.error(request, 'No pending renewal request found for this member.')
+			return redirect('member.view_member', member_id=member.id)
+
+		member.consecutive_rejections = (member.consecutive_rejections or 0) + 1
+		member.last_rejection_date = timezone.now()
+		member.pending_renewal_plan = None
+		member.save(update_fields=['consecutive_rejections', 'last_rejection_date', 'pending_renewal_plan'])
+
+		messages.info(request, f'Subscription renewal request rejected. This member now has {member.consecutive_rejections} consecutive rejection(s).')
+	
+	ref = request.META.get('HTTP_REFERER')
+	if ref:
+		return redirect(ref)
+	return redirect('member.view_member', member_id=member.id)
 
 
 def member_profile(request: HttpRequest) -> HttpResponse:
@@ -486,7 +654,7 @@ def member_profile_edit(request: HttpRequest) -> HttpResponse:
 			messages.error(request, 'That email is already in use.')
 			return redirect('member.edit_member_profile')
 
-		form = MemberForm(request.POST, instance=member)
+		form = MemberProfileForm(request.POST, instance=member)
 		if form.is_valid():
 			request.user.full_name = full_name
 			request.user.email = email

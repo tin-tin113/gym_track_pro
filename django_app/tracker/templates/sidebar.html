@@ -10,15 +10,6 @@
 <!-- Sidebar Navigation -->
 <div class="sidebar">
     <nav class="sidebar-nav-container">
-        {% if sidebar_current_page_title %}
-        <div class="sidebar-current-page">
-            <div class="sidebar-current-page-kicker">
-                <i class="fas fa-location-dot"></i>
-                <span>Current page</span>
-            </div>
-            <div class="sidebar-current-page-title">{{ sidebar_current_page_title }}</div>
-        </div>
-        {% endif %}
         <ul class="sidebar-nav">
             <!-- Member Navigation -->
             {% if current_user.member %}
@@ -52,7 +43,11 @@
                 <i class="fas fa-cog"></i>
                 <span>Management</span>
             </li>
+            {% if current_user.is_admin %}
             {{ sidebar_link(url_for('admin.dashboard'), 'gauge', 'Dashboard', 'admin.dashboard') }}
+            {% else %}
+            {{ sidebar_link(url_for('staff.dashboard'), 'gauge', 'Dashboard', 'staff.dashboard') }}
+            {% endif %}
 
             <!-- Member Management -->
             {{ sidebar_link(url_for('member.list_members'), 'users', 'Members', 'admin.members') }}
@@ -64,8 +59,11 @@
             <!-- Staff Management (Admin only) -->
             {{ sidebar_link(url_for('staff.list_staff'), 'users-cog', 'Staff', 'admin.staff') }}
 
+            <!-- Pending Approvals (Admin only) -->
+            {{ sidebar_link(url_for('admin.pending_approvals'), 'hourglass-half', 'Pending Approvals', 'admin.pending_approvals') }}
+
             <!-- Guide Approvals (Admin only) -->
-            {{ sidebar_link(url_for('admin.pending_guides'), 'check-circle', 'Approvals', 'admin.approvals') }}
+            {{ sidebar_link(url_for('admin.pending_guides'), 'check-circle', 'Guide Approvals', 'admin.pending_guides') }}
             {% endif %}
 
             <!-- Attendance & Reports -->

@@ -42,10 +42,15 @@ urlpatterns = [
 
     path('member/guides/library', views.member_guides_library, name='member.browse_guides_library'),
     path('member/guides/<int:guide_id>', views.member_view_assigned_guide, name='member.view_assigned_guide'),
+    path('member/renew', views.member_renew, name='member.renew'),
+    path('members/<int:member_id>/approve-renewal', views.member_approve_renewal, name='member.approve_renewal'),
+    path('members/<int:member_id>/reject-renewal', views.member_reject_renewal, name='member.reject_renewal'),
+
 
     # Attendance
     path('attendance/', views.attendance_dashboard, name='attendance_routes.dashboard'),
     path('attendance/check-in', views.attendance_check_in, name='attendance_routes.check_in'),
+    path('attendance/guest/new', views.attendance_log_guest, name='attendance_routes.log_guest'),
     path('attendance/undo-check-in', views.attendance_undo_check_in, name='attendance_routes.undo_check_in'),
     path('attendance/check-out/<int:attendance_id>', views.attendance_check_out, name='attendance_routes.check_out'),
     path('attendance/history', views.attendance_history, name='attendance_routes.history'),
@@ -53,6 +58,7 @@ urlpatterns = [
     path('attendance/api/active-today', views.attendance_api_active_today, name='attendance_routes.api_active_today'),
     path('attendance/api/check-out/<int:attendance_id>', views.attendance_api_check_out, name='attendance_routes.api_check_out'),
     path('attendance/api/stats', views.attendance_api_stats, name='attendance_routes.api_stats'),
+    path('attendance/guests/export-csv', views.attendance_export_guests_csv, name='attendance_routes.export_guests_csv'),
 
     # Fitness
     path('fitness/metrics', views.fitness_metrics, name='fitness.add_metrics'),

@@ -109,6 +109,65 @@
 </div>
 {% endif %}
 
+<!-- Pending Subscription Renewals -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+    <h2><i class="fas fa-credit-card"></i> Pending Renewal Payments (Front Counter)</h2>
+    {% if pending_renewals %}
+    <span class="badge badge-warning">{{ pending_renewals|length }} requests</span>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Plan Requested</th>
+                    <th>Current Expiry</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if pending_renewals %}
+                    {% for member in pending_renewals %}
+                    <tr>
+                        <td class="fw-bold">
+                            <a href="{{ url_for('member.view_member', member_id=member.id) }}" style="color: var(--color-teal); font-weight: 700; text-decoration: none;">
+                                {{ member.user.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ member.user.email }}</td>
+                        <td>
+                            <span class="status-badge status-active" style="padding: 2px 8px; font-size: 10px;">{{ member.pending_renewal_plan|title }}</span>
+                        </td>
+                        <td>
+                            {{ member.membership_expiry_date }}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('member.approve_renewal', member_id=member.id) }}" style="margin: 0;">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                <button type="submit" class="btn btn-small btn-success" onclick="return confirm('Confirm counter payment and activate subscription?');">
+                                    <i class="fas fa-check-circle"></i> Confirm Payment & Activate
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted p-lg">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>No pending counter payments</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Back Link -->
 <div class="mt-4">
     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>

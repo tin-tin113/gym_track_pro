@@ -110,14 +110,8 @@
                 <div class="col-md-6 text-md-end">
                     <p class="mb-1"><strong>Members Completed:</strong> {{ total_visits - still_checked_in }}</p>
                     <p class="mb-0"><strong>Average Duration:</strong>
-                        {% set total_duration = 0 %}
-                        {% for record in records %}
-                            {% if record.check_out_time and record.check_in_time %}
-                                {% set total_duration = total_duration + ((record.check_out_time - record.check_in_time).total_seconds() / 60)|int %}
-                            {% endif %}
-                        {% endfor %}
-                        {% if total_visits - still_checked_in > 0 %}
-                            {{ (total_duration / (total_visits - still_checked_in))|int }} min
+                        {% if avg_duration is not none %}
+                            {{ avg_duration }} min
                         {% else %}
                             -
                         {% endif %}

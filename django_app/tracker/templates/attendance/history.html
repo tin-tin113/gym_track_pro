@@ -5,10 +5,56 @@
 {% block content %}
 <h2 class="mb-4">📋 Attendance History</h2>
 
+<!-- Segmented Tab Control -->
+<div class="segmented-control mb-4" style="max-width: 460px; display: flex; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 4px;">
+    <a href="{{ url_for('attendance_routes.history') }}?tab=members" class="control-btn {% if active_tab == 'members' %}active{% endif %}" style="flex: 1; text-align: center; text-decoration: none; font-family: var(--font-family-headers); font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 10px 14px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; gap: 8px; color: {% if active_tab == 'members' %}var(--color-teal){% else %}var(--text-muted){% endif %}; background: {% if active_tab == 'members' %}var(--bg-tertiary){% else %}transparent{% endif %}; border: {% if active_tab == 'members' %}1px solid var(--border-color){% else %}none{% endif %};">
+        <i class="fas fa-id-card"></i> Registered Members
+    </a>
+    <a href="{{ url_for('attendance_routes.history') }}?tab=guests" class="control-btn {% if active_tab == 'guests' %}active{% endif %}" style="flex: 1; text-align: center; text-decoration: none; font-family: var(--font-family-headers); font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 10px 14px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; gap: 8px; color: {% if active_tab == 'guests' %}var(--color-teal){% else %}var(--text-muted){% endif %}; background: {% if active_tab == 'guests' %}var(--bg-tertiary){% else %}transparent{% endif %}; border: {% if active_tab == 'guests' %}1px solid var(--border-color){% else %}none{% endif %};">
+        <i class="fas fa-ticket-alt"></i> Walk-In Guests
+    </a>
+</div>
+
 <!-- Filters -->
 <div class="card mb-4">
     <div class="card-body">
+        {% if active_tab == 'guests' %}
+        <form method="GET" action="{{ url_for('attendance_routes.history') }}" class="row g-3 align-items-end">
+            <input type="hidden" name="tab" value="guests">
+            <div class="col-md-4">
+                <label for="guest_search" class="form-label">Search by Name</label>
+                <input type="text" class="form-control" id="guest_search" name="guest_search"
+                    value="{{ guest_search }}" placeholder="Type guest name...">
+            </div>
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="date_from" name="date_from"
+                    value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="date_to" name="date_to"
+                    value="{{ date_to }}">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill" title="Apply Filters">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                {% if guest_search or date_from or date_to %}
+                <a href="{{ url_for('attendance_routes.history', tab='guests') }}" class="btn btn-outline-secondary" title="Clear All Filters">
+                    <i class="fas fa-times"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+        <div class="mt-3 text-end">
+            <a href="{{ url_for('attendance_routes.export_guests_csv', guest_search=guest_search, date_from=date_from, date_to=date_to) }}" class="btn btn-sm btn-outline-success">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </a>
+        </div>
+        {% else %}
         <form method="GET" action="{{ url_for('attendance_routes.history') }}" class="row g-3">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
             <div class="col-md-6">
                 <label for="member_id" class="form-label">Filter by Member</label>
                 <select class="form-select" id="member_id" name="member_id" onchange="this.form.submit()">
@@ -26,18 +72,59 @@
                     <input type="date" class="form-control" id="date" name="date"
                         value="{{ selected_date }}" onchange="this.form.submit()">
                     {% if selected_date %}
-                    <a href="{{ url_for('attendance_routes.history') }}" class="btn btn-outline-secondary">Clear</a>
+                    <a href="{{ url_for('attendance_routes.history', tab=active_tab) }}" class="btn btn-outline-secondary">Clear</a>
                     {% endif %}
                 </div>
             </div>
         </form>
+        {% endif %}
     </div>
 </div>
 
-<!-- Attendance Table -->
-<div class="card">
+<!-- History Tables -->
+<div class="card shadow-lg">
     <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        {% if active_tab == 'guests' %}
+        <!-- Guests Table -->
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Guest Name</th>
+                    <th>Email Address</th>
+                    <th>Phone Number</th>
+                    <th>Date of Visit</th>
+                    <th>Pass Price</th>
+                    <th>Emergency Contact</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if guest_records %}
+                    {% for record in guest_records %}
+                    <tr>
+                        <td class="fw-bold text-teal">{{ record.full_name }}</td>
+                        <td>{{ record.email or 'N/A' }}</td>
+                        <td>{{ record.phone_number or 'N/A' }}</td>
+                        <td>{{ record.visit_date }}</td>
+                        <td>
+                            <span class="badge bg-success-light text-success font-bold" style="font-size: 11px; padding: 4px 8px;">₱{{ "%.2f"|format(record.amount_paid) }}</span>
+                        </td>
+                        <td>{{ record.emergency_contact or 'N/A' }}</td>
+                        <td class="small text-muted" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ record.notes }}">
+                            {{ record.notes or '-' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">No guest records found for this criteria.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        {% else %}
+        <!-- Members Table -->
+        <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">
                 <tr>
                     <th>Member Name</th>
@@ -84,6 +171,7 @@
                         <td>
                             {% if not record.check_out_time %}
                             <form method="POST" action="{{ url_for('attendance_routes.check_out', attendance_id=record.id) }}" class="d-inline">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                                 <button type="submit" class="btn btn-sm btn-warning">Check Out</button>
                             </form>
                             {% endif %}
@@ -92,11 +180,12 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No attendance records found</td>
+                        <td colspan="7" class="text-center text-muted py-5">No attendance records found for this criteria.</td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
+        {% endif %}
     </div>
 </div>
 
@@ -106,7 +195,7 @@
     <ul class="pagination justify-content-center">
         {% if pagination.has_prev %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.prev_num, member_id=selected_member_id, date=selected_date) }}">Previous</a>
+            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.prev_num, tab=active_tab, member_id=selected_member_id, date=selected_date, guest_search=guest_search, date_from=date_from, date_to=date_to) }}">Previous</a>
         </li>
         {% endif %}
 
@@ -116,7 +205,7 @@
 
         {% if pagination.has_next %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.next_num, member_id=selected_member_id, date=selected_date) }}">Next</a>
+            <a class="page-link" href="{{ url_for('attendance_routes.history', page=pagination.next_num, tab=active_tab, member_id=selected_member_id, date=selected_date, guest_search=guest_search, date_from=date_from, date_to=date_to) }}">Next</a>
         </li>
         {% endif %}
     </ul>

@@ -1,53 +1,242 @@
 {% extends "base.html" %}
 
-{% block title %}Staff Dashboard - GymTrack Pro{% endblock %}
+{% block title %}Staff Operations Hub - GymTrack Pro{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h2>👥 Staff Dashboard</h2>
-        <p class="text-muted">Welcome to your staff dashboard. Use the navigation menu to manage members, attendance, fitness tracking, and reports.</p>
+<!-- Top Welcome Section -->
+<div class="row cols-1" style="margin-bottom: var(--spacing-xl);">
+    <div class="col">
+        <div style="background: linear-gradient(135deg, rgba(0, 229, 229, 0.1) 0%, rgba(0, 0, 0, 0) 100%); padding: var(--spacing-xl); border: 1px solid var(--border-color); border-radius: var(--radius-lg); position: relative; overflow: hidden;">
+            <div style="position: absolute; right: 20px; top: -10px; opacity: 0.05; font-size: 150px; color: var(--color-teal); pointer-events: none;">
+                <i class="fas fa-users-cog"></i>
+            </div>
+            <h1 style="color: #ffffff; font-family: var(--font-family-headers); font-weight: 800; font-size: 28px; margin-bottom: 4px; display: flex; align-items: center; gap: var(--spacing-md);">
+                <i class="fas fa-shield-halved" style="color: var(--color-teal);"></i> Staff Operations Control Center
+            </h1>
+            <p style="color: var(--text-secondary); margin-bottom: 0; font-size: var(--font-size-sm); max-width: 700px;">
+                Manage everyday gym activities, manual reception check-ins, guest pass entries, and verify pending membership registrations from this centralized panel.
+            </p>
+        </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title">👤 Members</h5>
-                <p class="text-muted">Manage gym members</p>
-                <a href="{{ url_for('member.list_members') }}" class="btn btn-sm btn-primary">View</a>
+<!-- Performance Metrics Grid -->
+<div class="row cols-4" style="margin-bottom: var(--spacing-xl);">
+    <!-- Stat Item 1: Pending Approvals -->
+    <div class="col">
+        <div class="stat-card {% if stats.pending_approvals > 0 %}stat-warning{% else %}stat-success{% endif %}">
+            <span class="stat-label">Pending Approvals</span>
+            <span class="stat-value">{{ stats.pending_approvals }}</span>
+            <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+            <div style="font-size: 11px; margin-top: 4px; color: {% if stats.pending_approvals > 0 %}var(--color-warning){% else %}var(--text-muted){% endif %}; font-weight: 600;">
+                {% if stats.pending_approvals > 0 %}
+                Requires verification
+                {% else %}
+                Queue is clear
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title">📋 Attendance</h5>
-                <p class="text-muted">Track member attendance</p>
-                <a href="{{ url_for('attendance.check_in') }}" class="btn btn-sm btn-primary">Check In</a>
+    <!-- Stat Item 2: Checked In Today -->
+    <div class="col">
+        <div class="stat-card">
+            <span class="stat-label">Checked In Today</span>
+            <span class="stat-value">{{ stats.today_checkins }}</span>
+            <span class="stat-icon"><i class="fas fa-calendar-check"></i></span>
+            <div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">
+                Member visits today
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title">💪 Fitness</h5>
-                <p class="text-muted">Track member fitness progress</p>
-                <a href="{{ url_for('fitness.metrics') }}" class="btn btn-sm btn-primary">View</a>
+    <!-- Stat Item 3: Active Members -->
+    <div class="col">
+        <div class="stat-card">
+            <span class="stat-label">Active Members</span>
+            <span class="stat-value">{{ stats.active_members }}</span>
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">
+                Approved active accounts
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card">
-            <div class="card-body text-center">
-                <h5 class="card-title">📊 Reports</h5>
-                <p class="text-muted">View reports and analytics</p>
-                <a href="{{ url_for('reports.dashboard') }}" class="btn btn-sm btn-primary">View</a>
+    <!-- Stat Item 4: Guest Walks-Ins -->
+    <div class="col">
+        <div class="stat-card stat-success">
+            <span class="stat-label">Guest Walk-Ins</span>
+            <span class="stat-value">{{ stats.today_guests }}</span>
+            <span class="stat-icon"><i class="fas fa-ticket"></i></span>
+            <div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">
+                Logged guest visits today
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Core Dashboard Action Panel & Queues -->
+<div class="row cols-1" style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-xl);">
+    <!-- Left Column: Operations Hub & Checkins -->
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-xl);">
+        
+        <!-- Quick Operations Panel -->
+        <div class="card">
+            <div class="card-header">
+                <h3 style="display: flex; align-items: center; gap: var(--spacing-sm);"><i class="fas fa-bolt" style="color: var(--color-teal);"></i> Quick Reception Tasks</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md); padding-top: var(--spacing-sm);">
+                <a href="{{ url_for('member.create_member') }}" class="btn" style="padding: var(--spacing-lg); justify-content: flex-start; text-align: left; height: auto; display: flex; flex-direction: row; gap: var(--spacing-md);">
+                    <i class="fas fa-user-plus" style="font-size: var(--font-size-lg); width: 24px;"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; text-transform: uppercase;">Register New Member</span>
+                        <span style="font-size: 11px; text-transform: none; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">Create and approve a new member</span>
+                    </div>
+                </a>
+                
+                <a href="{{ url_for('attendance_routes.check_in') }}" class="btn" style="padding: var(--spacing-lg); justify-content: flex-start; text-align: left; height: auto; display: flex; flex-direction: row; gap: var(--spacing-md);">
+                    <i class="fas fa-sign-in-alt" style="font-size: var(--font-size-lg); width: 24px;"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; text-transform: uppercase;">Member Check-In</span>
+                        <span style="font-size: 11px; text-transform: none; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">Check-in member manually at desk</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('attendance_routes.log_guest') }}" class="btn" style="padding: var(--spacing-lg); justify-content: flex-start; text-align: left; height: auto; display: flex; flex-direction: row; gap: var(--spacing-md);">
+                    <i class="fas fa-ticket" style="font-size: var(--font-size-lg); width: 24px;"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; text-transform: uppercase;">Log Guest Walk-In</span>
+                        <span style="font-size: 11px; text-transform: none; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">Record single guest entry and payment</span>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('member.import_csv') }}" class="btn" style="padding: var(--spacing-lg); justify-content: flex-start; text-align: left; height: auto; display: flex; flex-direction: row; gap: var(--spacing-md);">
+                    <i class="fas fa-file-csv" style="font-size: var(--font-size-lg); width: 24px;"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; text-transform: uppercase;">Bulk CSV Import</span>
+                        <span style="font-size: 11px; text-transform: none; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">Upload member rosters via CSV file</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Today's Checked In Live Stream -->
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="display: flex; align-items: center; gap: var(--spacing-sm);"><i class="fas fa-stream" style="color: var(--color-teal);"></i> Today's Live Check-Ins</h3>
+                <a href="{{ url_for('attendance_routes.dashboard') }}" class="text-link" style="font-size: 12px; font-weight: 600; text-transform: uppercase; font-family: var(--font-family-headers);">View All</a>
+            </div>
+            
+            {% if recent_checkins %}
+            <div class="table-responsive" style="margin-top: var(--spacing-xs);">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Check-In Time</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for checkin in recent_checkins %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); color: var(--color-teal); font-weight: bold; font-size: 13px;">
+                                        {{ checkin.member.user.full_name[:2] | upper }}
+                                    </div>
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600; color: #ffffff;">{{ checkin.member.user.full_name }}</span>
+                                        <span style="font-size: 11px; color: var(--text-muted);">{{ checkin.member.membership_type | title }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-family: var(--font-family-headers); font-size: 14px; font-weight: 500;">
+                                {{ checkin.check_in_time | strftime('%H:%M:%S') }}
+                            </td>
+                            <td>
+                                {% if checkin.check_out_time %}
+                                <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--text-muted); padding: 2px 8px; border-radius: 3px; font-size: 11px;">Checked Out</span>
+                                {% else %}
+                                <span class="badge" style="background: rgba(0, 229, 229, 0.1); color: var(--color-teal); border: 1px solid var(--color-teal); padding: 2px 8px; border-radius: 3px; font-size: 11px;">Active Workout</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                {% if not checkin.check_out_time %}
+                                <form action="{{ url_for('attendance_routes.check_out', attendance_id=checkin.id) }}" method="POST" style="display: inline-block;">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 4px 10px;">Check Out</button>
+                                </form>
+                                {% else %}
+                                <span style="font-size: 12px; color: var(--text-muted); font-style: italic;">
+                                    Duration: {{ checkin.duration_minutes }} min
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: var(--spacing-xl) 0; color: var(--text-muted);">
+                <i class="fas fa-door-closed" style="font-size: 28px; margin-bottom: var(--spacing-sm); display: block;"></i>
+                No check-ins logged today.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Pending Registrations Queue -->
+    <div>
+        <div class="card" style="height: 100%;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="display: flex; align-items: center; gap: var(--spacing-sm);"><i class="fas fa-hourglass-half" style="color: var(--color-warning);"></i> Pending Approvals</h3>
+                <a href="{{ url_for('member.list_members') }}?status=pending_approval" class="text-link" style="font-size: 12px; font-weight: 600; text-transform: uppercase; font-family: var(--font-family-headers);">All</a>
+            </div>
+
+            {% if pending_members %}
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); margin-top: var(--spacing-md);">
+                {% for member in pending_members %}
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: var(--spacing-md); transition: transform 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-sm);">
+                        <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid var(--border-color);">
+                                {{ member.user.full_name[:2] | upper }}
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <strong style="color: #ffffff; font-size: 13px;">{{ member.user.full_name }}</strong>
+                                <span style="font-size: 11px; color: var(--text-muted);">{{ member.user.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: var(--spacing-md); display: flex; justify-content: space-between;">
+                        <span>Plan: <strong>{{ member.membership_type | title }}</strong></span>
+                        <span style="font-family: var(--font-family-headers); font-weight: 500;">Joined: {{ member.created_at | strftime('%Y-%m-%d') }}</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                        <form action="{{ url_for('admin.approve_member', member_id=member.id) }}" method="POST">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-success w-100"><i class="fas fa-check"></i> Approve</button>
+                        </form>
+                        <form action="{{ url_for('admin.reject_member', member_id=member.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to reject and delete this registration?');">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <button type="submit" class="btn btn-sm btn-danger w-100"><i class="fas fa-times"></i> Reject</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: var(--spacing-3xl) 0; color: var(--text-muted); height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <i class="fas fa-check-circle" style="font-size: 36px; color: var(--color-success); margin-bottom: var(--spacing-sm);"></i>
+                <span style="font-weight: 600; color: #ffffff;">Queue Cleared!</span>
+                <span style="font-size: 12px; margin-top: 4px;">No registrations pending approval.</span>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -425,6 +425,319 @@
         max-width: 1200px;
         margin: 0 auto;
     }
+
+    /* PRICING SECTION - GLASSMORPHIC CARDS & NEON ACCENTS */
+    .pricing-section {
+        padding: 80px 24px;
+        background-color: var(--bg-primary);
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+    }
+
+    .pricing-toggle-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 40px;
+    }
+
+    .pricing-toggle {
+        display: inline-flex;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 4px;
+        position: relative;
+    }
+
+    .pricing-toggle-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-family: var(--font-family-headers);
+        font-weight: 700;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 10px 20px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all var(--duration-fast) var(--easing-smooth);
+    }
+
+    .pricing-toggle-btn:hover:not(.active) {
+        color: var(--text-primary);
+    }
+
+    .pricing-toggle-btn.active {
+        background: var(--bg-tertiary);
+        color: var(--color-teal);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+        .pricing-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .pricing-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .pricing-card {
+        padding: 40px 32px;
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        transition: all var(--duration-normal) var(--easing-smooth);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        text-align: center; /* Center-align text in pricing cards */
+    }
+
+    .pricing-card.featured {
+        border: 1.5px solid var(--color-teal);
+        box-shadow: 0 8px 30px rgba(0, 229, 229, 0.05);
+    }
+
+    .pricing-card.featured::before {
+        content: 'BEST VALUE';
+        position: absolute;
+        top: 20px;
+        right: -35px;
+        background: var(--color-teal);
+        color: #0B0F19; /* High-contrast dark navy text in dark mode */
+        font-family: var(--font-family-headers);
+        font-size: 10px;
+        font-weight: 800;
+        padding: 4px 35px;
+        transform: rotate(45deg);
+        letter-spacing: 0.5px;
+    }
+
+    [data-theme="light"] .pricing-card.featured::before {
+        color: #ffffff; /* High-contrast white on dark teal in light mode */
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.4);
+        border-color: var(--color-teal);
+    }
+
+    .pricing-card-header {
+        margin-bottom: 24px;
+        text-align: center; /* Center-align header area */
+    }
+
+    .pricing-card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--color-teal); /* Beautiful accent teal instead of muted gray */
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .pricing-card-price {
+        font-family: var(--font-family-headers);
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--text-primary); /* Adapt perfectly to light and dark theme backgrounds */
+        line-height: 1;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    .pricing-card-price span {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
+        font-family: var(--font-family-sans);
+    }
+
+    .pricing-card-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .pricing-features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto 32px auto; /* Center the list block within the card */
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: fit-content;
+        text-align: left; /* Keep checkmarks neatly left-aligned */
+    }
+
+    .pricing-features-list li {
+        font-size: 13px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pricing-features-list li i {
+        color: var(--color-teal);
+        font-size: 12px;
+    }
+
+    .pricing-btn {
+        width: 100%;
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+        border-radius: var(--radius-sm);
+        transition: all var(--duration-fast) var(--easing-smooth);
+        text-decoration: none;
+    }
+
+    .pricing-btn-primary {
+        background: var(--color-teal);
+        color: #0B0F19; /* High-contrast dark color on teal background in dark mode */
+        border: 1px solid var(--color-teal);
+    }
+
+    .pricing-btn-primary:hover {
+        background: var(--color-teal-light);
+        border-color: var(--color-teal-light);
+        color: #0B0F19;
+        box-shadow: var(--shadow-teal);
+    }
+
+    [data-theme="light"] .pricing-btn-primary {
+        color: #ffffff; /* High-contrast white on dark teal in light mode */
+    }
+
+    [data-theme="light"] .pricing-btn-primary:hover {
+        color: #ffffff;
+    }
+
+    .pricing-btn-secondary {
+        background: transparent;
+        color: var(--text-primary); /* Adapt perfectly to light and dark themes */
+        border: 1px solid var(--border-color-dark);
+    }
+
+    .pricing-btn-secondary:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border-color: var(--color-teal);
+    }
+
+    /* DAILY WALK-IN SPECIAL CARD STYLE */
+    .daily-card {
+        grid-column: 1 / -1;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, rgba(0, 229, 229, 0.04) 0%, transparent 100%), var(--surface);
+        border: 1px dashed var(--border-color);
+        display: flex;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 30px 40px !important;
+        gap: 30px;
+        text-align: left;
+    }
+
+    .daily-info {
+        flex: 1;
+        text-align: left;
+    }
+
+    .daily-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(0, 229, 229, 0.08);
+        color: var(--color-teal);
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 99px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .daily-head {
+        font-family: var(--font-family-headers);
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-primary); /* Adapt perfectly to dark and light theme backgrounds */
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .daily-text {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 0;
+        max-width: 600px;
+    }
+
+    .daily-price-box {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        padding: 16px 24px;
+        border-radius: var(--radius-sm);
+    }
+
+    .daily-price-item {
+        text-align: center;
+    }
+
+    .daily-price-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        font-weight: 700;
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .daily-price-value {
+        font-family: var(--font-family-headers);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--color-teal);
+    }
+
+    @media (max-width: 768px) {
+        .daily-card {
+            flex-direction: column !important;
+            padding: 24px !important;
+            text-align: center;
+        }
+        .daily-price-box {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
 <div class="landing-page">
@@ -441,9 +754,6 @@
                 <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-lg">
                     <i class="fas fa-user-plus"></i> Create Account
                 </a>
-            </div>
-            <div class="hero-demo">
-                <strong>Try Demo:</strong> Email: <code>admin@gym.local</code> | Password: <code>password123</code>
             </div>
         </div>
     </section>
@@ -522,6 +832,94 @@
         </div>
     </section>
 
+    <!-- PRICING SECTION -->
+    <section class="pricing-section">
+        <div class="landing-container">
+            <div class="section-header">
+                <h2>Flexible Membership Plans</h2>
+                <p>Choose the perfect access tier for your fitness journey. Instant setup, secure front-counter confirmation.</p>
+            </div>
+
+            <!-- Segmented pricing toggle -->
+            <div class="pricing-toggle-container">
+                <div class="pricing-toggle">
+                    <button class="pricing-toggle-btn active" id="btn-regular" onclick="switchPricing('regular')">Regular Members</button>
+                    <button class="pricing-toggle-btn" id="btn-student" onclick="switchPricing('student')">Student Tiers</button>
+                </div>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Daily Pass (Featured Row-wide card) -->
+                <div class="pricing-card daily-card">
+                    <div class="daily-info">
+                        <div class="daily-title"><i class="fas fa-bolt"></i> Guest Walk-In Pass</div>
+                        <div class="daily-head">Daily Payment Pass</div>
+                        <p class="daily-text">Perfect for visitors, travelers, or testing our premium facilities before committing. Includes full access to gym floor and locker rooms for one calendar day.</p>
+                    </div>
+                    <div class="daily-price-box">
+                        <div class="daily-price-item">
+                            <div class="daily-price-label">Regular Daily</div>
+                            <div class="daily-price-value">₱100</div>
+                        </div>
+                        <div style="width: 1px; height: 35px; background: var(--border-color);"></div>
+                        <div class="daily-price-item">
+                            <div class="daily-price-label">Student Daily</div>
+                            <div class="daily-price-value">₱50</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-card-header">
+                        <div class="pricing-card-title">Monthly Access</div>
+                        <div class="pricing-card-price"><span class="currency-symbol">₱</span><span id="price-monthly">900</span><span>/mo</span></div>
+                        <p class="pricing-card-desc">Flexible month-to-month access to stay consistent with your workout routine.</p>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check-circle"></i> Full Gym Floor Access</li>
+                        <li><i class="fas fa-check-circle"></i> Basic Workout Generator</li>
+                        <li><i class="fas fa-check-circle"></i> Attendance Kiosk Self Check-In</li>
+                        <li><i class="fas fa-check-circle"></i> Personal Locker &amp; Shower</li>
+                    </ul>
+                    <a href="{{ url_for('auth.signup') }}" class="pricing-btn pricing-btn-secondary">Get Started</a>
+                </div>
+
+                <!-- Quarterly Plan -->
+                <div class="pricing-card featured">
+                    <div class="pricing-card-header">
+                        <div class="pricing-card-title">Quarterly Access</div>
+                        <div class="pricing-card-price"><span class="currency-symbol">₱</span><span id="price-quarterly">3,500</span><span>/3 mo</span></div>
+                        <p class="pricing-card-desc">Our most popular intermediate plan designed for steady progression over 90 days.</p>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check-circle"></i> Everything in Monthly Access</li>
+                        <li><i class="fas fa-check-circle"></i> Trainer Assignment Support</li>
+                        <li><i class="fas fa-check-circle"></i> Nutrition Log &amp; Calorie Tracking</li>
+                        <li><i class="fas fa-check-circle"></i> 1 Complimentary Assessment</li>
+                    </ul>
+                    <a href="{{ url_for('auth.signup') }}" class="pricing-btn pricing-btn-primary">Become a Member</a>
+                </div>
+
+                <!-- Yearly Plan -->
+                <div class="pricing-card">
+                    <div class="pricing-card-header">
+                        <div class="pricing-card-title">Yearly Access</div>
+                        <div class="pricing-card-price"><span class="currency-symbol">₱</span><span id="price-yearly">13,000</span><span>/yr</span></div>
+                        <p class="pricing-card-desc">Commit to long-term health and athletic performance. Save big with 365 days access.</p>
+                    </div>
+                    <ul class="pricing-features-list">
+                        <li><i class="fas fa-check-circle"></i> Everything in Quarterly Access</li>
+                        <li><i class="fas fa-check-circle"></i> Dedicated Personal Coach Assigns</li>
+                        <li><i class="fas fa-check-circle"></i> Comprehensive Metrics Analytics</li>
+                        <li><i class="fas fa-check-circle"></i> Priority Support &amp; Guest Passes</li>
+                    </ul>
+                    <a href="{{ url_for('auth.signup') }}" class="pricing-btn pricing-btn-secondary">Join Annual Tier</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CTA SECTION -->
     <section class="cta-section">
         <div class="cta-content">
@@ -529,7 +927,7 @@
             <p>Deploy a fast, secure, and athletic-focused dashboard ecosystem optimized for mobile and desktop screens alike.</p>
             <div class="cta-buttons">
                 <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i> Login with Demo
+                    <i class="fas fa-sign-in-alt"></i> Sign In
                 </a>
                 <a href="{{ url_for('auth.signup') }}" class="btn btn-secondary btn-lg">
                     <i class="fas fa-user-plus"></i> Register
@@ -543,4 +941,28 @@
         <p>GymTrack Pro is a modern web platform engineered using secure Django models, clean Jinja2 rendering environments, and high contrast CSS tokens. Powered by Outfit and Rajdhani athletic typographies.</p>
     </footer>
 </div>
+
+<script>
+    function switchPricing(type) {
+        const btnRegular = document.getElementById('btn-regular');
+        const btnStudent = document.getElementById('btn-student');
+        const priceMonthly = document.getElementById('price-monthly');
+        const priceQuarterly = document.getElementById('price-quarterly');
+        const priceYearly = document.getElementById('price-yearly');
+
+        if (type === 'student') {
+            btnRegular.classList.remove('active');
+            btnStudent.classList.add('active');
+            priceMonthly.innerText = '750';
+            priceQuarterly.innerText = '2,800';
+            priceYearly.innerText = '10,000';
+        } else {
+            btnStudent.classList.remove('active');
+            btnRegular.classList.add('active');
+            priceMonthly.innerText = '900';
+            priceQuarterly.innerText = '3,500';
+            priceYearly.innerText = '13,000';
+        }
+    }
+</script>
 {% endblock %}

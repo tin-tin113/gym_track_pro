@@ -64,16 +64,24 @@ class Trainer(models.Model):
 
 class Member(models.Model):
 	class MembershipType(models.TextChoices):
-		DAILY = 'daily', 'Daily'
 		MONTHLY = 'monthly', 'Monthly'
 		QUARTERLY = 'quarterly', 'Quarterly'
 		ANNUAL = 'annual', 'Annual'
+
+	class MemberTier(models.TextChoices):
+		STUDENT = 'student', 'Student'
+		REGULAR = 'regular', 'Regular'
 
 	user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='member_profile')
 	date_of_birth = models.DateField(blank=True, null=True)
 	gender = models.CharField(max_length=10, blank=True)
 	phone_number = models.CharField(max_length=20, blank=True)
 	emergency_contact = models.CharField(max_length=120, blank=True)
+	member_tier = models.CharField(
+		max_length=20,
+		choices=MemberTier.choices,
+		default=MemberTier.REGULAR,
+	)
 	membership_type = models.CharField(
 		max_length=20,
 		choices=MembershipType.choices,
@@ -81,6 +89,14 @@ class Member(models.Model):
 	)
 	membership_start_date = models.DateField()
 	membership_expiry_date = models.DateField()
+	pending_renewal_plan = models.CharField(
+		max_length=20,
+		choices=MembershipType.choices,
+		blank=True,
+		null=True,
+	)
+	consecutive_rejections = models.IntegerField(default=0)
+	last_rejection_date = models.DateTimeField(blank=True, null=True)
 	assigned_trainer = models.ForeignKey(
 		settings.AUTH_USER_MODEL,
 		on_delete=models.SET_NULL,
@@ -485,3 +501,26 @@ class MealLog(models.Model):
 
 	def __str__(self) -> str:
 		return f"{self.meal_name} - {self.meal_date}"
+
+
+class GuestVisit(models.Model):
+	class GuestType(models.TextChoices):
+		STUDENT = 'student', 'Student'
+		REGULAR = 'regular', 'Regular'
+
+	full_name = models.CharField(max_length=120)
+	guest_type = models.CharField(
+		max_length=20,
+		choices=GuestType.choices,
+		default=GuestType.REGULAR,
+	)
+	email = models.EmailField(blank=True, null=True)
+	phone_number = models.CharField(max_length=20, blank=True)
+	visit_date = models.DateField(db_index=True)
+	amount_paid = models.FloatField(default=100.0)
+	emergency_contact = models.CharField(max_length=120, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self) -> str:
+		return f"{self.full_name} on {self.visit_date}"

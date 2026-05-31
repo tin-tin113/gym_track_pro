@@ -38,6 +38,9 @@ from .member import (
     member_view_assigned_guide,
     member_complete_guide,
     member_change_password,
+    member_renew,
+    member_approve_renewal,
+    member_reject_renewal,
 )
 
 from .attendance import (
@@ -50,6 +53,8 @@ from .attendance import (
     attendance_api_active_today,
     attendance_api_check_out,
     attendance_api_stats,
+    attendance_log_guest,
+    attendance_export_guests_csv,
 )
 
 from .fitness import (

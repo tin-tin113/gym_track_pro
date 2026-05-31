@@ -35,6 +35,7 @@
             <select name="status" onchange="this.form.submit()" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer;">
                 <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
                 <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="pending_renewal" {% if status == 'pending_renewal' %}selected{% endif %}>Pending Renewal</option>
                 <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
                 <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring Soon</option>
                 <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
@@ -69,6 +70,9 @@
                     <td>{{ member.phone_number or '—' }}</td>
                     <td>
                         <span class="badge badge-primary">{{ member.membership_type|title }}</span>
+                        <div style="margin-top: 4px;">
+                            <span class="status-badge {% if member.member_tier == 'student' %}status-pending{% else %}status-active{% endif %}" style="font-size: 10px; padding: 2px 6px;">{{ member.member_tier|title }}</span>
+                        </div>
                     </td>
                     <td>{{ member.membership_expiry_date.strftime('%b %d, %Y') }}</td>
                     <td>
@@ -76,20 +80,30 @@
                             <span class="status-badge status-pending">
                                 <i class="fas fa-hourglass-half"></i> Pending
                             </span>
-                        {% elif member.is_membership_active() %}
-                            {% if member.is_membership_expiring_soon() %}
-                                <span class="status-badge status-pending" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.4);">
-                                    <i class="fas fa-exclamation-triangle"></i> Expiring Soon
-                                </span>
+                        {% else %}
+                            {% if member.is_membership_active() %}
+                                {% if member.is_membership_expiring_soon() %}
+                                    <span class="status-badge status-pending" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.4);">
+                                        <i class="fas fa-exclamation-triangle"></i> Expiring Soon
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-success">
+                                        <i class="fas fa-check-circle"></i> Active
+                                    </span>
+                                {% endif %}
                             {% else %}
-                                <span class="status-badge status-success">
-                                    <i class="fas fa-check-circle"></i> Active
+                                <span class="status-badge status-expired">
+                                    <i class="fas fa-times-circle"></i> Expired
                                 </span>
                             {% endif %}
-                        {% else %}
-                            <span class="status-badge status-expired">
-                                <i class="fas fa-times-circle"></i> Expired
-                            </span>
+
+                            {% if member.pending_renewal_plan %}
+                                <div style="margin-top: 4px;">
+                                    <span class="status-badge status-pending" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.05); font-size: 11px; padding: 2px 6px;">
+                                        <i class="fas fa-wallet"></i> Pay Counter: {{ member.pending_renewal_plan|title }}
+                                    </span>
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </td>
                     <td>
@@ -106,6 +120,20 @@
                                     </button>
                                 </form>
                             {% else %}
+                                {% if member.pending_renewal_plan %}
+                                    <form method="POST" action="{{ url_for('member.approve_renewal', member_id=member.id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                        <button type="submit" class="btn btn-small btn-success" onclick="return confirm('Confirm counter payment and activate {{ member.pending_renewal_plan|title }} subscription for {{ member.user.full_name or member.user.username }}?');" style="margin-right: 4px;">
+                                            <i class="fas fa-coins"></i> Collect Payment
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('member.reject_renewal', member_id=member.id) }}" style="display: inline;">
+                                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                        <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Reject this subscription renewal request?');" style="margin-right: 4px;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                {% endif %}
                                 <a href="{{ url_for('member.view_member', member_id=member.id) }}" class="btn btn-small btn-primary">
                                     <i class="fas fa-eye"></i> View
                                 </a>
