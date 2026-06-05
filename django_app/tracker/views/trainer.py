@@ -69,7 +69,16 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
 		"total_users": get_user_model().objects.count(),
 	}
 
-	return render(request, "admin/dashboard.html", {"stats": stats})
+	expiring_members = list(
+		Member.objects.filter(
+			is_approved=True,
+			is_active=True,
+			membership_expiry_date__gte=today,
+			membership_expiry_date__lte=today + timedelta(days=7),
+		).select_related('user')
+	)
+
+	return render(request, "admin/dashboard.html", {"stats": stats, "expiring_members": expiring_members})
 
 
 @login_required
@@ -239,7 +248,17 @@ def admin_approve_member(request: HttpRequest, member_id: int) -> HttpResponse:
 
 	member.is_approved = True
 	member.approval_date = timezone.now()
-	member.save(update_fields=['is_approved', 'approval_date'])
+
+	today = timezone.localdate()
+	member.membership_start_date = today
+	days_to_add = 30
+	if member.membership_type == Member.MembershipType.QUARTERLY:
+		days_to_add = 90
+	elif member.membership_type == Member.MembershipType.ANNUAL:
+		days_to_add = 365
+	member.membership_expiry_date = today + timedelta(days=days_to_add)
+
+	member.save(update_fields=['is_approved', 'approval_date', 'membership_start_date', 'membership_expiry_date'])
 	messages.success(request, f"Approved member: {member.user.full_name}")
 	return redirect('member.list_members')
 
@@ -353,6 +372,15 @@ def staff_dashboard(request: HttpRequest) -> HttpResponse:
 		.order_by('-check_in_time', '-id')[:5]
 	)
 
+	expiring_members = list(
+		Member.objects.filter(
+			is_approved=True,
+			is_active=True,
+			membership_expiry_date__gte=today,
+			membership_expiry_date__lte=today + timedelta(days=7),
+		).select_related('user')
+	)
+
 	return render(
 		request,
 		'staff/dashboard.html',
@@ -360,6 +388,7 @@ def staff_dashboard(request: HttpRequest) -> HttpResponse:
 			'stats': stats,
 			'pending_members': pending_members,
 			'recent_checkins': recent_checkins,
+			'expiring_members': expiring_members,
 		}
 	)
 

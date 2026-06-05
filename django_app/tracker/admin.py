@@ -9,6 +9,7 @@ from .models import (
 	MealLog,
 	MealPlan,
 	Member,
+	Subscription,
 	Trainer,
 	TrainerAssignment,
 	User,
@@ -20,6 +21,7 @@ from .models import (
 
 admin.site.register(User)
 admin.site.register(Member)
+admin.site.register(Subscription)
 admin.site.register(Trainer)
 admin.site.register(TrainerAssignment)
 

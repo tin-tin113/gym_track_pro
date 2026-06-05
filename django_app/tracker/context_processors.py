@@ -1,8 +1,9 @@
 from __future__ import annotations
-
 from types import SimpleNamespace
-
+from datetime import timedelta
+from django.utils import timezone
 from django.middleware.csrf import get_token
+from tracker.models import Member
 
 
 def _sidebar_state(request):
@@ -42,7 +43,7 @@ def _sidebar_state(request):
         ({"staff.list_staff", "staff.create_staff", "staff.edit_staff", "staff.delete_staff"}, "admin.staff", "Staff"),
         ({"admin.dashboard"}, "admin.dashboard", "Dashboard"),
         ({"staff.dashboard"}, "staff.dashboard", "Dashboard"),
-        ({"member.list_members", "member.create_member", "member.import_csv", "member.view_member", "member.edit_member", "member.assign_trainer", "admin.approve_member", "admin.reject_member"}, "admin.members", "Members"),
+        ({"member.list_members", "member.create_member", "member.view_member", "member.edit_member", "member.assign_trainer", "admin.approve_member", "admin.reject_member"}, "admin.members", "Members"),
         ({"admin.pending_approvals"}, "admin.pending_approvals", "Pending Approvals"),
         ({"admin.pending_guides", "admin.all_guides", "admin.review_guide", "admin.approve_guide", "admin.reject_guide"}, "admin.pending_guides", "Guide Approvals"),
         ({"reports.daily_attendance"}, "reports.daily_attendance", "Today"),
@@ -69,10 +70,25 @@ def template_compat(request):
 
     sidebar_active_route, sidebar_current_page_title = _sidebar_state(request)
 
+    expiring_soon_count = 0
+    expiring_soon_members = []
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated and getattr(user, 'role', None) in {'admin', 'staff'}:
+        today = timezone.localdate()
+        expiring_soon_members = list(Member.objects.filter(
+            is_approved=True,
+            is_active=True,
+            membership_expiry_date__gte=today,
+            membership_expiry_date__lte=today + timedelta(days=7)
+        ).select_related('user'))
+        expiring_soon_count = len(expiring_soon_members)
+
     return {
-        "current_user": getattr(request, "user", None),
+        "current_user": user,
         "csrf_token": get_token(request),
         "SimpleNamespace": SimpleNamespace,
         "sidebar_active_route": sidebar_active_route,
         "sidebar_current_page_title": sidebar_current_page_title,
+        "expiring_soon_count": expiring_soon_count,
+        "expiring_soon_members": expiring_soon_members,
     }

@@ -50,7 +50,7 @@
                         <td>
                             {% if member_data.member.is_membership_active() %}
                                 {% if member_data.member.is_membership_expiring_soon() %}
-                                    <span class="badge badge-warning"><i class="fas fa-exclamation-triangle"></i> Expiring</span>
+                                    <span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Expiring</span>
                                 {% else %}
                                     <span class="badge badge-success"><i class="fas fa-check-circle"></i> Active</span>
                                 {% endif %}

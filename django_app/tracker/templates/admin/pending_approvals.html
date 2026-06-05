@@ -31,6 +31,7 @@
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Signup Date</th>
+                    <th>Plan Requested</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -47,6 +48,11 @@
                             {% else %}
                                 N/A
                             {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-active" style="padding: 2px 8px; font-size: 10px;">
+                                {{ member.get_membership_type_display() }}
+                            </span>
                         </td>
                         <td>
                             <span class="badge badge-warning"><i class="fas fa-hourglass-end"></i> Pending</span>
@@ -67,7 +73,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted p-lg">
+                        <td colspan="6" class="text-center text-muted p-lg">
                             <i class="fas fa-check-circle fa-2x mb-2"></i>
                             <p>No pending approvals</p>
                         </td>

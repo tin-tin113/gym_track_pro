@@ -14,9 +14,6 @@
             <a href="{{ url_for('member.create_member') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Member
             </a>
-            <a href="{{ url_for('member.import_csv') }}" class="btn btn-secondary">
-                <i class="fas fa-file-import"></i> Import CSV
-            </a>
         </div>
     </div>
 
@@ -53,7 +50,8 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Membership</th>
-                    <th>Expiry Date</th>
+                    <th>Start Date</th>
+                    <th>Expire Date</th>
                     <th>Status</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
@@ -69,11 +67,20 @@
                     </td>
                     <td>{{ member.phone_number or '—' }}</td>
                     <td>
-                        <span class="badge badge-primary">{{ member.membership_type|title }}</span>
+                        {% with active_subs=member.active_subscriptions %}
+                            {% if active_subs %}
+                                {% for sub in active_subs %}
+                                    <span class="badge badge-primary" style="margin-bottom: 2px; display: inline-block;">{{ sub.get_subscription_type_display() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="badge badge-primary">{{ member.membership_type|title }}</span>
+                            {% endif %}
+                        {% endwith %}
                         <div style="margin-top: 4px;">
                             <span class="status-badge {% if member.member_tier == 'student' %}status-pending{% else %}status-active{% endif %}" style="font-size: 10px; padding: 2px 6px;">{{ member.member_tier|title }}</span>
                         </div>
                     </td>
+                    <td>{{ member.membership_start_date.strftime('%b %d, %Y') }}</td>
                     <td>{{ member.membership_expiry_date.strftime('%b %d, %Y') }}</td>
                     <td>
                         {% if not member.is_approved %}
@@ -83,7 +90,7 @@
                         {% else %}
                             {% if member.is_membership_active() %}
                                 {% if member.is_membership_expiring_soon() %}
-                                    <span class="status-badge status-pending" style="color: var(--color-warning); border-color: rgba(245, 158, 11, 0.4);">
+                                    <span class="status-badge status-expired">
                                         <i class="fas fa-exclamation-triangle"></i> Expiring Soon
                                     </span>
                                 {% else %}

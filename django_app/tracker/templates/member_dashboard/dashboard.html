@@ -469,7 +469,18 @@
     <div class="dashboard-grid">
         <!-- Membership Circular Progress Countdown -->
         <div class="membership-ring-card">
-            <h3 class="plan-title">{{ current_user.member.membership_type }} Subscription</h3>
+            {% with active_subs=current_user.member.active_subscriptions %}
+                {% if active_subs and active_subs.count() > 1 %}
+                    <h3 class="plan-title" style="margin-bottom: 6px;">Multiple Active Subscriptions</h3>
+                    <div style="font-size: 11px; margin-bottom: 12px; text-align: center;">
+                        {% for sub in active_subs %}
+                            <span class="badge badge-primary" style="margin: 2px; display: inline-block;">{{ sub.get_subscription_type_display() }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <h3 class="plan-title">{{ current_user.member.membership_type }} Subscription</h3>
+                {% endif %}
+            {% endwith %}
             <div class="membership-circle-wrapper">
                 <svg viewBox="0 0 120 120">
                     <circle cx="60" cy="60" r="54" class="circle-bg" />
@@ -498,6 +509,13 @@
             <div style="background: rgba(229, 229, 0, 0.05); border: 1px solid var(--border-color); border-left: 3px solid var(--color-warning); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; margin-top: 12px; width: 100%; text-align: left;">
                 <span style="color: var(--color-warning); font-weight: 700; display: block; margin-bottom: 2px;"><i class="fas fa-clock"></i> Pending Counter Payment</span>
                 Requested: <strong>{{ current_user.member.pending_renewal_plan|title }}</strong> plan. Please pay at the counter to activate.
+            </div>
+            {% endif %}
+
+            {% if show_rejection_alert %}
+            <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid var(--border-color); border-left: 3px solid var(--color-danger); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; margin-top: 12px; width: 100%; text-align: left;">
+                <span style="color: var(--color-danger); font-weight: 700; display: block; margin-bottom: 2px;"><i class="fas fa-exclamation-circle"></i> Renewal Request Declined</span>
+                Your recent renewal request was declined by staff on <strong>{{ last_rejection_date.strftime('%b %d, %Y') }}</strong>. Please check with the front desk for details.
             </div>
             {% endif %}
 

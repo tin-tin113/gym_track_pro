@@ -19,7 +19,6 @@ urlpatterns = [
     # Member
     path('members/', views.member_list_members, name='member.list_members'),
     path('members/new', views.member_create_member, name='member.create_member'),
-    path('members/import', views.member_import_csv, name='member.import_csv'),
     path('members/<int:member_id>', views.member_detail, name='member.view_member'),
     path('members/<int:member_id>/edit', views.member_edit, name='member.edit_member'),
     path('members/<int:member_id>/assign-trainer', views.member_assign_trainer, name='member.assign_trainer'),

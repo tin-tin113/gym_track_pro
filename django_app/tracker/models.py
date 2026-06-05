@@ -145,6 +145,73 @@ class Member(models.Model):
 			return None
 		return (timezone.now() - last).days
 
+	@property
+	def active_subscriptions(self):
+		from django.utils import timezone
+		return self.subscriptions.filter(is_active=True, expiry_date__gte=timezone.localdate()).order_by('expiry_date')
+
+	def update_membership_from_subscriptions(self):
+		from django.utils import timezone
+		today = timezone.localdate()
+		active_subs = self.subscriptions.filter(is_active=True, expiry_date__gte=today)
+		if active_subs.exists():
+			latest_sub = active_subs.order_by('-expiry_date').first()
+			self.membership_type = latest_sub.subscription_type
+			self.membership_expiry_date = latest_sub.expiry_date
+			self.membership_start_date = latest_sub.start_date
+			self.is_active = True
+		else:
+			latest_sub = self.subscriptions.order_by('-expiry_date').first()
+			if latest_sub:
+				self.membership_type = latest_sub.subscription_type
+				self.membership_expiry_date = latest_sub.expiry_date
+				self.membership_start_date = latest_sub.start_date
+
+	def save(self, *args, **kwargs):
+		super().save(*args, **kwargs)
+		if self.membership_start_date and self.membership_expiry_date:
+			sub = Subscription.objects.filter(
+				member=self,
+				subscription_type=self.membership_type,
+			).order_by('-expiry_date').first()
+			if sub:
+				sub.start_date = self.membership_start_date
+				sub.expiry_date = self.membership_expiry_date
+				sub.is_active = self.is_active
+				sub.save()
+			else:
+				Subscription.objects.create(
+					member=self,
+					subscription_type=self.membership_type,
+					start_date=self.membership_start_date,
+					expiry_date=self.membership_expiry_date,
+					is_active=self.is_active
+				)
+
+
+class Subscription(models.Model):
+	member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscriptions')
+	subscription_type = models.CharField(
+		max_length=20,
+		choices=Member.MembershipType.choices,
+		default=Member.MembershipType.MONTHLY,
+	)
+	start_date = models.DateField()
+	expiry_date = models.DateField()
+	is_active = models.BooleanField(default=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	def __str__(self) -> str:
+		return f"{self.member} - {self.get_subscription_type_display()} ({self.start_date} to {self.expiry_date})"
+
+	def is_subscription_active(self) -> bool:
+		from django.utils import timezone
+		if not self.is_active:
+			return False
+		return self.expiry_date >= timezone.localdate()
+
+
 
 class TrainerAssignment(models.Model):
 	class AssignmentType(models.TextChoices):

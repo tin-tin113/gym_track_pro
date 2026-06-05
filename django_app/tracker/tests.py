@@ -344,6 +344,44 @@ class MemberModuleSubscriptionTests(TestCase):
 		self.assertEqual(self.member.consecutive_rejections, 1)
 		self.assertIsNotNone(self.member.last_rejection_date)
 
+	def test_member_rejection_dashboard_alerts(self):
+		admin_user = User.objects.create_user(username='admin_reject2', email='admin_reject2@gym.local', password='pw')
+		admin_user.role = User.Role.ADMIN
+		admin_user.save(update_fields=['role'])
+
+		# 1. Reject the renewal first
+		self.client.force_login(admin_user)
+		self.member.pending_renewal_plan = Member.MembershipType.MONTHLY
+		self.member.save(update_fields=['pending_renewal_plan'])
+		self.client.post(reverse('member.reject_renewal', kwargs={'member_id': self.member.id}))
+
+		# 2. Member logs in, gets dashboard, and sees the alert banner
+		self.client.force_login(self.member_user)
+		resp = self.client.get(reverse('member.member_dashboard'))
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Renewal Request Declined')
+
+		# 3. Member submits a new renewal request
+		self.client.post(reverse('member.renew'), data={'plan': 'monthly'})
+		
+		# 4. Member checks dashboard again; the alert banner should disappear because a new request is pending
+		resp = self.client.get(reverse('member.member_dashboard'))
+		self.assertEqual(resp.status_code, 200)
+		self.assertNotContains(resp, 'Renewal Request Declined')
+
+		# 5. Admin approves renewal
+		self.client.force_login(admin_user)
+		self.client.post(reverse('member.approve_renewal', kwargs={'member_id': self.member.id}))
+		self.member.refresh_from_db()
+		self.assertIsNone(self.member.last_rejection_date)
+
+		# 6. Member checks dashboard; no alert banner is shown
+		self.client.force_login(self.member_user)
+		resp = self.client.get(reverse('member.member_dashboard'))
+		self.assertEqual(resp.status_code, 200)
+		self.assertNotContains(resp, 'Renewal Request Declined')
+
+
 	def test_member_renewal_cooldown_enforced(self):
 		self.client.force_login(self.member_user)
 		
@@ -402,6 +440,43 @@ class MemberModuleSubscriptionTests(TestCase):
 		self.assertContains(resp, self.member.user.full_name)
 		self.assertContains(resp, 'Pay Counter: Monthly')
 		self.assertContains(resp, 'Collect Payment')
+
+	def test_concurrent_subscriptions_created_and_displayed(self):
+		from .models import Subscription
+		# Create an admin user to approve renewal
+		admin_user = User.objects.create_user(username='admin_sub_test', email='adminsub@gym.local', password='pw')
+		admin_user.role = User.Role.ADMIN
+		admin_user.save(update_fields=['role'])
+
+		# 1. Member already has a default Monthly subscription created in setUp()
+		# 2. Member requests a Quarterly subscription renewal (pending)
+		self.client.force_login(self.member_user)
+		resp = self.client.post(
+			reverse('member.renew'),
+			data={'plan': 'quarterly'},
+		)
+		self.assertEqual(resp.status_code, 302)
+		self.member.refresh_from_db()
+		self.assertEqual(self.member.pending_renewal_plan, Member.MembershipType.QUARTERLY)
+
+		# 3. Admin approves/collects payment
+		self.client.force_login(admin_user)
+		resp = self.client.post(
+			reverse('member.approve_renewal', kwargs={'member_id': self.member.id}),
+		)
+		self.assertEqual(resp.status_code, 302)
+		self.member.refresh_from_db()
+
+		# Verify that two active subscriptions exist in the database for this member
+		active_subs = self.member.active_subscriptions
+		self.assertEqual(active_subs.count(), 2)
+
+		# Verify member list displays both active subscriptions
+		resp = self.client.get(reverse('member.list_members'))
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Monthly')
+		self.assertContains(resp, 'Quarterly')
+
 
 
 class GuestVisitTests(TestCase):

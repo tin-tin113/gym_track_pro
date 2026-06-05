@@ -3,6 +3,22 @@
 {% block title %}Staff Operations Hub - GymTrack Pro{% endblock %}
 
 {% block content %}
+
+{% if expiring_members %}
+<div class="alert alert-danger animate-fadeIn" style="border-left: 4px solid var(--color-danger); background-color: rgba(239, 68, 68, 0.05); padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-lg); display: flex; gap: var(--spacing-md); align-items: center; border-radius: var(--radius-sm);">
+    <div class="alert-icon" style="color: var(--color-danger); font-size: 16px;"><i class="fas fa-exclamation-circle"></i></div>
+    <div style="flex: 1;">
+        <h5 style="color: var(--color-danger); font-weight: 700; margin-bottom: 4px; font-size: 14px; font-family: var(--font-family-headers); text-transform: uppercase;">⚠️ Expiring Members Alert</h5>
+        <p style="margin-bottom: 0; font-size: 13px; color: var(--text-primary);">
+            The following member(s) have memberships expiring within the next 7 days:
+            {% for m in expiring_members %}
+                <a href="{{ url_for('member.view_member', member_id=m.id) }}" style="color: var(--color-teal); font-weight: 700; text-decoration: none;">{{ m.user.full_name or m.user.username }}</a> (Expires: {{ m.membership_expiry_date.strftime('%b %d, %Y') }}){% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+</div>
+{% endif %}
+
 <!-- Top Welcome Section -->
 <div class="row cols-1" style="margin-bottom: var(--spacing-xl);">
     <div class="col">
@@ -110,13 +126,6 @@
                     </div>
                 </a>
 
-                <a href="{{ url_for('member.import_csv') }}" class="btn" style="padding: var(--spacing-lg); justify-content: flex-start; text-align: left; height: auto; display: flex; flex-direction: row; gap: var(--spacing-md);">
-                    <i class="fas fa-file-csv" style="font-size: var(--font-size-lg); width: 24px;"></i>
-                    <div style="display: flex; flex-direction: column;">
-                        <span style="font-size: 14px; text-transform: uppercase;">Bulk CSV Import</span>
-                        <span style="font-size: 11px; text-transform: none; color: var(--text-secondary); font-weight: normal; margin-top: 2px;">Upload member rosters via CSV file</span>
-                    </div>
-                </a>
             </div>
         </div>
 

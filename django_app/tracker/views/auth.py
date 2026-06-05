@@ -73,6 +73,7 @@ def auth_signup(request: HttpRequest) -> HttpResponse:
 		email = (request.POST.get('email') or '').strip().lower()
 		password = request.POST.get('password') or ''
 		confirm_password = request.POST.get('confirm_password') or request.POST.get('password_confirm') or ''
+		plan_choice = (request.POST.get('plan') or 'monthly').strip().lower()
 
 		if not full_name or not email or not password:
 			messages.error(request, 'Please fill in all required fields.')
@@ -83,6 +84,10 @@ def auth_signup(request: HttpRequest) -> HttpResponse:
 		if password != confirm_password:
 			messages.error(request, 'Passwords do not match.')
 			return redirect('auth.signup')
+
+		valid_plans = {Member.MembershipType.MONTHLY, Member.MembershipType.QUARTERLY, Member.MembershipType.ANNUAL}
+		if plan_choice not in valid_plans:
+			plan_choice = 'monthly'
 
 		User = get_user_model()
 		if User.objects.filter(email__iexact=email).exists():
@@ -109,11 +114,17 @@ def auth_signup(request: HttpRequest) -> HttpResponse:
 			user.save(update_fields=['full_name', 'role', 'is_active'])
 
 			today = timezone.localdate()
+			days_to_add = 30
+			if plan_choice == Member.MembershipType.QUARTERLY:
+				days_to_add = 90
+			elif plan_choice == Member.MembershipType.ANNUAL:
+				days_to_add = 365
+
 			Member.objects.create(
 				user=user,
 				membership_start_date=today,
-				membership_expiry_date=today + timedelta(days=30),
-				membership_type=Member.MembershipType.MONTHLY,
+				membership_expiry_date=today + timedelta(days=days_to_add),
+				membership_type=plan_choice,
 				is_active=True,
 				is_approved=False,
 			)

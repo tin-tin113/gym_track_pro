@@ -14,7 +14,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip
+from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip, Subscription
 from tracker.forms import MemberForm, WorkoutForm, MemberProfileForm
 from .base import _require_roles, _require_member_access, _PaginationAdapter
 
@@ -130,7 +130,7 @@ def member_create_member(request: HttpRequest) -> HttpResponse:
 			suffix += 1
 			username = f"{base_username}{suffix}"[:150]
 
-		default_password = 'GymTrack2026!'
+		default_password = 'P@ssw0rd'
 
 		with transaction.atomic():
 			user = User.objects.create_user(username=username, email=email, password=default_password)
@@ -149,118 +149,6 @@ def member_create_member(request: HttpRequest) -> HttpResponse:
 		return redirect('member.view_member', member_id=member.id)
 
 	return render(request, "member/edit.html", {"member": None, "now": timezone.now()})
-
-
-def member_import_csv(request: HttpRequest) -> HttpResponse:
-	if not request.user.is_authenticated:
-		return redirect('auth.login')
-	if not _require_roles(request, {'admin', 'staff'}):
-		messages.error(request, 'Access denied.')
-		return redirect('home')
-
-	if request.method == 'POST':
-		csv_file = request.FILES.get('csv_file')
-		if not csv_file:
-			messages.error(request, 'Please choose a CSV file.')
-			return redirect('member.import_csv')
-
-		User = get_user_model()
-		imported = 0
-		skipped = 0
-		errors: list[dict[str, Any]] = []
-		default_password = 'GymTrack2026!'
-
-		try:
-			text = io.TextIOWrapper(csv_file.file, encoding='utf-8')
-			reader = csv.DictReader(text)
-			for idx, row in enumerate(reader, start=2):
-				try:
-					full_name = (row.get('full_name') or '').strip()
-					email = (row.get('email') or '').strip().lower()
-					membership_start = (row.get('membership_start_date') or '').strip()
-					membership_expiry = (row.get('membership_expiry_date') or '').strip()
-
-					if not full_name or not email or not membership_start or not membership_expiry:
-						errors.append({"row": idx, "error": "Missing required fields"})
-						skipped += 1
-						continue
-					if User.objects.filter(email__iexact=email).exists():
-						skipped += 1
-						continue
-
-					try:
-						membership_start_date = timezone.datetime.fromisoformat(membership_start).date()
-						membership_expiry_date = timezone.datetime.fromisoformat(membership_expiry).date()
-					except ValueError:
-						errors.append({"row": idx, "error": "Invalid membership date(s)"})
-						skipped += 1
-						continue
-
-					phone_number = (row.get('phone_number') or '').strip()
-					gender = (row.get('gender') or '').strip()
-					dob_str = (row.get('date_of_birth') or '').strip()
-					date_of_birth = None
-					if dob_str:
-						try:
-							date_of_birth = timezone.datetime.fromisoformat(dob_str).date()
-						except ValueError:
-							errors.append({"row": idx, "error": "Invalid date_of_birth"})
-							skipped += 1
-							continue
-
-					membership_type = (row.get('membership_type') or 'monthly').strip().lower()
-					if membership_type not in {'monthly', 'quarterly', 'annual'}:
-						membership_type = 'monthly'
-
-					member_tier = (row.get('member_tier') or row.get('tier') or 'regular').strip().lower()
-					if member_tier not in {'student', 'regular'}:
-						member_tier = 'regular'
-
-					base_username = (email.split('@', 1)[0] or 'member')[:150]
-					username = base_username
-					suffix = 1
-					while User.objects.filter(username__iexact=username).exists():
-						suffix += 1
-						username = f"{base_username}{suffix}"[:150]
-
-					with transaction.atomic():
-						user = User.objects.create_user(username=username, email=email, password=default_password)
-						user.full_name = full_name
-						user.role = User.Role.MEMBER
-						user.is_active = True
-						user.save(update_fields=['full_name', 'role', 'is_active'])
-
-						Member.objects.create(
-							user=user,
-							phone_number=phone_number,
-							gender=gender,
-							date_of_birth=date_of_birth,
-							member_tier=member_tier,
-							membership_type=membership_type,
-							membership_start_date=membership_start_date,
-							membership_expiry_date=membership_expiry_date,
-							is_active=True,
-							is_approved=True,
-							approval_date=timezone.now(),
-						)
-
-					imported += 1
-				except Exception as exc:
-					errors.append({"row": idx, "error": str(exc)})
-					skipped += 1
-
-		except Exception as exc:
-			messages.error(request, f"Failed to read CSV: {exc}")
-			return redirect('member.import_csv')
-
-		import_result = {
-			"imported": imported,
-			"skipped": skipped,
-			"errors": errors,
-		}
-		return render(request, "member/import.html", {"import_result": import_result})
-
-	return render(request, "member/import.html")
 
 
 def member_detail(request: HttpRequest, member_id: int) -> HttpResponse:
@@ -304,6 +192,8 @@ def member_detail(request: HttpRequest, member_id: int) -> HttpResponse:
 		"total_duration": int(agg.get('total_duration') or 0),
 	}
 
+	attendance_records = member.attendance_records.all().order_by('-check_in_time')
+
 	latest_metrics = FitnessMetric.objects.filter(member=member).order_by('-metric_date', '-created_at', '-id').first()
 	if latest_metrics is not None and latest_metrics.bmi is None and latest_metrics.weight and latest_metrics.height:
 		height_m = latest_metrics.height / 100.0
@@ -321,6 +211,7 @@ def member_detail(request: HttpRequest, member_id: int) -> HttpResponse:
 			"trainers": trainers,
 			"attendance_stats": attendance_stats,
 			"latest_metrics": latest_metrics,
+			"attendance_records": attendance_records,
 		},
 	)
 
@@ -472,6 +363,13 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 			is_locked_out = True
 			cooldown_end_date = cooldown_end
 
+	show_rejection_alert = (
+		member.consecutive_rejections > 0 and
+		member.last_rejection_date is not None and
+		not member.pending_renewal_plan and
+		not is_locked_out
+	)
+
 	return render(
 		request,
 		"member_dashboard/dashboard.html",
@@ -485,6 +383,8 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 			"is_expiring_soon": is_expiring_soon,
 			"is_locked_out": is_locked_out,
 			"cooldown_end_date": cooldown_end_date,
+			"show_rejection_alert": show_rejection_alert,
+			"last_rejection_date": member.last_rejection_date,
 		},
 	)
 
@@ -563,18 +463,34 @@ def member_approve_renewal(request: HttpRequest, member_id: int) -> HttpResponse
 			days_to_add = 365
 
 		today = timezone.localdate()
-		if member.is_membership_active():
-			start_ref = member.membership_expiry_date
+		same_active_sub = Subscription.objects.filter(
+			member=member,
+			subscription_type=plan,
+			is_active=True,
+			expiry_date__gte=today
+		).order_by('-expiry_date').first()
+
+		if same_active_sub:
+			start_ref = same_active_sub.expiry_date
 		else:
 			start_ref = today
-			member.membership_start_date = today
 
-		member.membership_expiry_date = start_ref + timedelta(days=days_to_add)
-		member.membership_type = plan
+		expiry_date = start_ref + timedelta(days=days_to_add)
+
+		Subscription.objects.create(
+			member=member,
+			subscription_type=plan,
+			start_date=start_ref,
+			expiry_date=expiry_date,
+			is_active=True
+		)
+
+		member.update_membership_from_subscriptions()
 		member.pending_renewal_plan = None
 		member.is_active = True
 		member.consecutive_rejections = 0
-		member.save(update_fields=['membership_start_date', 'membership_expiry_date', 'membership_type', 'pending_renewal_plan', 'is_active', 'consecutive_rejections'])
+		member.last_rejection_date = None
+		member.save(update_fields=['membership_start_date', 'membership_expiry_date', 'membership_type', 'pending_renewal_plan', 'is_active', 'consecutive_rejections', 'last_rejection_date'])
 
 		messages.success(request, f'Counter payment confirmed! {plan.title()} subscription has been activated (Expires {member.membership_expiry_date}).')
 	

@@ -18,7 +18,6 @@ from .auth import (
 from .member import (
     member_list_members,
     member_create_member,
-    member_import_csv,
     member_detail,
     member_edit,
     member_assign_trainer,

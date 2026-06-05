@@ -44,7 +44,7 @@ class Command(BaseCommand):
             user.save()
             return user, created
 
-        password = "password123"
+        password = "P@ssw0rd"
         today = timezone.localdate()
 
         with transaction.atomic():

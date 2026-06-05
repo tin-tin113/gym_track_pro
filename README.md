@@ -43,7 +43,7 @@ For local development and testing, you can use these seeded credentials. To rese
 python django_app/manage.py seed_demo
 ```
 
-* **Default Password**: `password123`
+* **Default Password**: `P@ssw0rd`
 
 | Role | Username | Email |
 | :--- | :--- | :--- |
