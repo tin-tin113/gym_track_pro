@@ -14,7 +14,7 @@
     </div>
 
     <!-- Quick Navigation Action Cards -->
-    <div class="row cols-4 mb-4">
+    <div class="row cols-3 mb-4">
         <!-- Kiosk Station -->
         <a href="{{ url_for('attendance_routes.check_in') }}" class="card action-card h-100 text-decoration-none transition-all">
             <div class="card-body d-flex flex-column justify-content-between p-4 h-100">
@@ -43,22 +43,6 @@
                 </div>
                 <div class="mt-3 text-teal font-semibold small d-flex align-items-center gap-1">
                     View Logs <i class="fas fa-arrow-right"></i>
-                </div>
-            </div>
-        </a>
-
-        <!-- Analytics & Statistics -->
-        <a href="{{ url_for('attendance_routes.stats') }}" class="card action-card h-100 text-decoration-none transition-all">
-            <div class="card-body d-flex flex-column justify-content-between p-4 h-100">
-                <div>
-                    <div class="action-card-icon mb-3">
-                        <i class="fas fa-chart-line fa-2x"></i>
-                    </div>
-                    <h5 class="card-title text-navy font-bold">Analytics & Stats</h5>
-                    <p class="card-text text-muted small">Analyze peak times, daily breakdowns, and inactive member reports.</p>
-                </div>
-                <div class="mt-3 text-teal font-semibold small d-flex align-items-center gap-1">
-                    View Stats <i class="fas fa-arrow-right"></i>
                 </div>
             </div>
         </a>

@@ -98,7 +98,7 @@
         font-family: var(--font-family-headers);
         font-size: 34px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--text-primary);
         line-height: 1;
         letter-spacing: -0.5px;
     }
@@ -143,7 +143,7 @@
     }
 
     .date-row strong {
-        color: #ffffff;
+        color: var(--text-primary);
     }
 
     .renew-banner {
@@ -240,7 +240,7 @@
     }
 
     .attendance-day-box.checked-in .day-box-num {
-        color: #ffffff;
+        color: var(--text-primary);
     }
 
     .day-box-status {
@@ -306,7 +306,7 @@
     .renew-modal-header h3 {
         margin: 0;
         font-size: 20px;
-        color: #ffffff;
+        color: var(--text-primary);
         font-family: var(--font-family-headers);
     }
     .renew-modal-close {
@@ -318,7 +318,7 @@
         transition: color 0.2s ease;
     }
     .renew-modal-close:hover {
-        color: #ffffff;
+        color: var(--text-primary);
     }
     
     /* Plan selector styling */
@@ -369,7 +369,7 @@
     .renew-plan-price {
         font-size: 22px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--text-primary);
         margin: 6px 0;
         font-family: var(--font-family-headers);
     }
@@ -391,7 +391,7 @@
     .renew-form-input {
         background-color: var(--bg-secondary);
         border: 1px solid var(--border-color);
-        color: #ffffff;
+        color: var(--text-primary);
         border-radius: var(--radius-sm);
         padding: 10px 12px;
         font-size: 13px;
@@ -424,6 +424,9 @@
         text-align: center;
         padding: 20px;
     }
+    [data-theme="light"] .renew-loading-overlay {
+        background-color: rgba(255, 255, 255, 0.95);
+    }
     .renew-loading-overlay.show {
         opacity: 1;
         pointer-events: auto;
@@ -442,7 +445,7 @@
     }
     .renew-loading-text {
         font-family: var(--font-family-headers);
-        color: #ffffff;
+        color: var(--text-primary);
         font-size: 15px;
         font-weight: 700;
     }
@@ -518,7 +521,7 @@
 
         <!-- 14-Day Attendance Calendar Grid -->
         <div class="attendance-grid-card">
-            <h3 style="margin: 0; font-size: 18px; font-family: var(--font-family-headers); color: #ffffff;"><i class="fas fa-calendar-check" style="color: var(--color-teal); margin-right: 8px;"></i> Attendance Grid (Last 14 Days)</h3>
+            <h3 style="margin: 0; font-size: 18px; font-family: var(--font-family-headers); color: var(--text-primary);"><i class="fas fa-calendar-check" style="color: var(--color-teal); margin-right: 8px;"></i> Attendance Grid (Last 14 Days)</h3>
             <p class="text-muted" style="margin-top: 4px; font-size: 13px; margin-bottom: 0;">Consistency is the key to progress. Track your checked-in workout days at a glance.</p>
             
             <div class="attendance-tracker-grid">
@@ -637,7 +640,7 @@
             </div>
 
             <div style="background: rgba(0, 229, 229, 0.03); border: 1px solid var(--border-color); border-left: 3px solid var(--color-teal); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; text-align: left;">
-                <h4 style="margin: 0 0 6px 0; font-size: 13px; font-family: var(--font-family-headers); color: #ffffff;"><i class="fas fa-building" style="color: var(--color-teal); margin-right: 6px;"></i> Paid at the Front Counter</h4>
+                <h4 style="margin: 0 0 6px 0; font-size: 13px; font-family: var(--font-family-headers); color: var(--text-primary);"><i class="fas fa-building" style="color: var(--color-teal); margin-right: 6px;"></i> Paid at the Front Counter</h4>
                 <p class="text-muted" style="margin: 0; font-size: 12px; line-height: 1.5;">This subscription will be finalized at the physical front counter of the gym. Select a plan above, click submit to request the renewal, then settle the payment in-person at your next visit.</p>
             </div>
 

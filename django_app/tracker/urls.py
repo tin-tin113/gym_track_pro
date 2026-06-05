@@ -54,7 +54,6 @@ urlpatterns = [
     path('attendance/undo-check-in', views.attendance_undo_check_in, name='attendance_routes.undo_check_in'),
     path('attendance/check-out/<int:attendance_id>', views.attendance_check_out, name='attendance_routes.check_out'),
     path('attendance/history', views.attendance_history, name='attendance_routes.history'),
-    path('attendance/stats', views.attendance_stats, name='attendance_routes.stats'),
     path('attendance/api/active-today', views.attendance_api_active_today, name='attendance_routes.api_active_today'),
     path('attendance/api/check-out/<int:attendance_id>', views.attendance_api_check_out, name='attendance_routes.api_check_out'),
     path('attendance/api/stats', views.attendance_api_stats, name='attendance_routes.api_stats'),

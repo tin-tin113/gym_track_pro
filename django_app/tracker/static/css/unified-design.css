@@ -41,6 +41,11 @@
   --color-danger: #EF4444;
   --color-info: #00E5E5;
 
+  /* NEON HIGHLIGHT COLORS */
+  --neon-green: #10B981;
+  --neon-orange: #FF6B35;
+  --neon-purple: #BD53F4;
+
   /* HIGH-DENSITY SPACING SYSTEM */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -1422,6 +1427,11 @@ input:focus, textarea:focus, select:focus {
   --color-danger: #DC2626;
   --color-warning: #D97706;
 
+  /* NEON HIGHLIGHT ADJUSTMENTS FOR LIGHT BACKGROUNDS */
+  --neon-green: #16A34A;
+  --neon-orange: #EA580C;
+  --neon-purple: #9333EA;
+
   /* NEON DEEP GLOW SHADOWS SWITCH FOR LIGHT MODE */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
@@ -1475,6 +1485,29 @@ input:focus, textarea:focus, select:focus {
 [data-theme="light"] .btn:hover {
   color: #ffffff !important;
 }
+
+/* Maintain white text on dark background components in light mode */
+[data-theme="light"] .bg-success .text-white,
+[data-theme="light"] .bg-info .text-white,
+[data-theme="light"] .bg-warning .text-white,
+[data-theme="light"] .bg-danger .text-white,
+[data-theme="light"] .bg-dark .text-white,
+[data-theme="light"] .bg-success.text-white,
+[data-theme="light"] .bg-info.text-white,
+[data-theme="light"] .bg-warning.text-white,
+[data-theme="light"] .bg-danger.text-white,
+[data-theme="light"] .bg-dark.text-white {
+  color: #ffffff !important;
+}
+
+[data-theme="light"] .bg-success h1, [data-theme="light"] .bg-success h2, [data-theme="light"] .bg-success h3, [data-theme="light"] .bg-success h4, [data-theme="light"] .bg-success h5, [data-theme="light"] .bg-success h6,
+[data-theme="light"] .bg-info h1, [data-theme="light"] .bg-info h2, [data-theme="light"] .bg-info h3, [data-theme="light"] .bg-info h4, [data-theme="light"] .bg-info h5, [data-theme="light"] .bg-info h6,
+[data-theme="light"] .bg-warning h1, [data-theme="light"] .bg-warning h2, [data-theme="light"] .bg-warning h3, [data-theme="light"] .bg-warning h4, [data-theme="light"] .bg-warning h5, [data-theme="light"] .bg-warning h6,
+[data-theme="light"] .bg-danger h1, [data-theme="light"] .bg-danger h2, [data-theme="light"] .bg-danger h3, [data-theme="light"] .bg-danger h4, [data-theme="light"] .bg-danger h5, [data-theme="light"] .bg-danger h6,
+[data-theme="light"] .bg-dark h1, [data-theme="light"] .bg-dark h2, [data-theme="light"] .bg-dark h3, [data-theme="light"] .bg-dark h4, [data-theme="light"] .bg-dark h5, [data-theme="light"] .bg-dark h6 {
+  color: #ffffff !important;
+}
+
 
 
 [data-theme="light"] .sidebar-nav-link {

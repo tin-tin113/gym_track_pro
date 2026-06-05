@@ -213,7 +213,7 @@
                                         </label>
                                         <select id="undo_member_id" name="member_id" required placeholder="Type name or email to search...">
                                             <option value=""></option>
-                                            {% for member in members %}
+                                            {% for member in undo_members %}
                                             <option value="{{ member.id }}">
                                                 {% if member.user.full_name %}{{ member.user.full_name }} — {{ member.user.email }}{% else %}{{ member.user.email }}{% endif %}
                                             </option>
@@ -568,14 +568,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
             },
         });
-    }
-
-    // Patch: read value from Tom Select instances for modal openers
-    const origCheckinBtn = document.getElementById('open-checkin-modal');
-    if (origCheckinBtn) {
-        origCheckinBtn.addEventListener('click', function (e) {
-            e.stopImmediatePropagation(); // prevent duplicate from inline handler below
-        }, true); // capture phase — runs before the existing DOMContentLoaded handler
     }
 });
 </script>

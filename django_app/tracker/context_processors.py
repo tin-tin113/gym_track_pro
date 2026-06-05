@@ -29,7 +29,6 @@ def _sidebar_state(request):
                 "attendance_routes.dashboard",
                 "attendance_routes.check_out",
                 "attendance_routes.history",
-                "attendance_routes.stats",
             },
             "attendance.dashboard",
             "Attendance",

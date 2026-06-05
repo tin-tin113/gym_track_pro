@@ -48,7 +48,6 @@ from .attendance import (
     attendance_check_in,
     attendance_undo_check_in,
     attendance_history,
-    attendance_stats,
     attendance_check_out,
     attendance_api_active_today,
     attendance_api_check_out,

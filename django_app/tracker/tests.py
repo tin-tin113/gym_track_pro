@@ -436,3 +436,74 @@ class GuestVisitTests(TestCase):
 		self.assertEqual(guest.amount_paid, 100.00)
 		self.assertEqual(guest.notes, 'First time guest pass visitor')
 
+
+class AttendanceCheckInTests(TestCase):
+	def setUp(self):
+		self.admin = User.objects.create_user(username='admin_checkin', email='admincheckin@gym.local', password='pw')
+		self.admin.role = User.Role.ADMIN
+		self.admin.save(update_fields=['role'])
+
+		self.member_user = User.objects.create_user(username='member_checkin', email='membercheckin@gym.local', password='pw')
+		self.member_user.role = User.Role.MEMBER
+		self.member_user.save(update_fields=['role'])
+		self.member = Member.objects.create(
+			user=self.member_user,
+			membership_start_date=timezone.localdate(),
+			membership_expiry_date=timezone.localdate() + timedelta(days=30),
+			is_active=True,
+			is_approved=True,
+		)
+
+	def test_check_in_page_requires_auth(self):
+		response = self.client.get(reverse('attendance_routes.check_in'))
+		self.assertEqual(response.status_code, 302)
+
+	def test_check_in_page_renders_for_admin(self):
+		self.client.force_login(self.admin)
+		response = self.client.get(reverse('attendance_routes.check_in'))
+		self.assertEqual(response.status_code, 200)
+
+	def test_manual_check_in_success(self):
+		self.client.force_login(self.admin)
+		response = self.client.post(
+			reverse('attendance_routes.check_in'),
+			data={'member_id': str(self.member.id)}
+		)
+		self.assertEqual(response.status_code, 302)
+		self.assertTrue(Attendance.objects.filter(member=self.member).exists())
+
+	def test_check_in_expired_membership_fails(self):
+		# Set expiry date to yesterday
+		self.member.membership_expiry_date = timezone.localdate() - timedelta(days=1)
+		self.member.save()
+
+		self.client.force_login(self.admin)
+		response = self.client.post(
+			reverse('attendance_routes.check_in'),
+			data={'member_id': str(self.member.id)}
+		)
+		self.assertEqual(response.status_code, 302)
+		self.assertFalse(Attendance.objects.filter(member=self.member).exists())
+
+	def test_check_in_page_contains_undo_members(self):
+		self.client.force_login(self.admin)
+		
+		# Initially no check-ins, so the member should not be in the undo dropdown
+		response = self.client.get(reverse('attendance_routes.check_in'))
+		self.assertEqual(response.status_code, 200)
+		html = response.content.decode()
+		undo_section = html.split('id="undo_member_id"')[1].split('</select>')[0]
+		self.assertNotIn(f'value="{self.member.id}"', undo_section)
+
+		# Create a check-in today for the member
+		Attendance.objects.create(member=self.member, check_in_time=timezone.now())
+
+		# Now the member should be in the undo dropdown
+		response = self.client.get(reverse('attendance_routes.check_in'))
+		self.assertEqual(response.status_code, 200)
+		html = response.content.decode()
+		undo_section = html.split('id="undo_member_id"')[1].split('</select>')[0]
+		self.assertIn(f'value="{self.member.id}"', undo_section)
+
+
+

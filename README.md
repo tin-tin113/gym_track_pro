@@ -139,7 +139,6 @@ Endpoints are being reintroduced on Django as views/URLs are implemented.
 - `GET/POST /attendance/check-in` - Check-in
 - `POST /attendance/<id>/check-out` - Check-out
 - `GET /attendance/history` - History
-- `GET /attendance/stats` - Statistics
 
 ### Fitness
 - `GET/POST /fitness/metrics` - Add metrics

@@ -89,6 +89,10 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 			messages.error(request, 'Please select a valid member.')
 			return _safe_next_redirect(request, 'attendance_routes.check_in')
 
+		if not member.is_membership_active():
+			messages.error(request, f"Cannot check in: {member.user.full_name}'s membership has expired or is inactive.")
+			return _safe_next_redirect(request, 'attendance_routes.check_in')
+
 		already_active = Attendance.objects.filter(member=member, check_out_time__isnull=True).exists()
 		if already_active:
 			messages.info(request, f"{member.user.full_name} is already checked in.")
@@ -109,10 +113,22 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 	qr_image = _qr_data_uri(qr_payload)
 	countdown = {"minutes": 23, "seconds": 59}
 	guest_form = GuestVisitForm()
+
+	checked_in_today_ids = Attendance.objects.filter(
+		check_in_time__date=today
+	).values_list('member_id', flat=True)
+
+	undo_members = list(
+		Member.objects.select_related('user')
+		.filter(id__in=checked_in_today_ids)
+		.order_by('user__full_name', 'id')
+	)
+
 	return render(request, "attendance/check_in.html", {
 		"qr_image": qr_image,
 		"countdown": countdown,
 		"members": members,
+		"undo_members": undo_members,
 		"guest_form": guest_form
 	})
 
@@ -247,49 +263,6 @@ def attendance_history(request: HttpRequest) -> HttpResponse:
 				"selected_date": selected_date,
 			},
 		)
-
-
-def attendance_stats(request: HttpRequest) -> HttpResponse:
-	if not request.user.is_authenticated:
-		return redirect('auth.login')
-	if not _require_roles(request, {'admin', 'staff'}):
-		messages.error(request, 'Access denied.')
-		return redirect('home')
-
-	now = timezone.now()
-	today = timezone.localdate()
-	start_today = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.min.time()))
-	start_week = now - timedelta(days=7)
-	start_month = now - timedelta(days=30)
-
-	stats = {
-		"today_checkins": Attendance.objects.filter(check_in_time__gte=start_today).count(),
-		"week_checkins": Attendance.objects.filter(check_in_time__gte=start_week).count(),
-		"month_checkins": Attendance.objects.filter(check_in_time__gte=start_month).count(),
-	}
-
-	active_member_ids = set(
-		Attendance.objects.filter(check_in_time__gte=start_month).values_list('member_id', flat=True).distinct()
-	)
-	inactive_qs = (
-		Member.objects.select_related('user')
-		.filter(is_active=True, is_approved=True)
-		.exclude(id__in=active_member_ids)
-		.order_by('user__full_name', 'id')
-	)
-	stats["inactive_members"] = inactive_qs.count()
-	stats["inactive_members_list"] = list(inactive_qs[:10])
-
-	# Walk-in guest stats
-	stats["guest_today"] = GuestVisit.objects.filter(visit_date=today).count()
-	stats["guest_week"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=7)).count()
-	stats["guest_month"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=30)).count()
-
-	stats["revenue_today"] = GuestVisit.objects.filter(visit_date=today).aggregate(total=Sum('amount_paid'))['total'] or 0
-	stats["revenue_week"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=7)).aggregate(total=Sum('amount_paid'))['total'] or 0
-	stats["revenue_month"] = GuestVisit.objects.filter(visit_date__gte=today - timedelta(days=30)).aggregate(total=Sum('amount_paid'))['total'] or 0
-
-	return render(request, "attendance/stats.html", {"stats": stats})
 
 
 @login_required
