@@ -29,7 +29,6 @@ from .member import (
     member_edit_workout,
     member_delete_workout,
     member_exercise_history,
-    member_clone_workout,
     member_programs,
     member_current_diet,
     member_log_meal,

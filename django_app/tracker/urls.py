@@ -34,7 +34,6 @@ urlpatterns = [
     path('member/workouts/<int:workout_id>/edit', views.member_edit_workout, name='member.edit_workout'),
     path('member/workouts/<int:workout_id>/delete', views.member_delete_workout, name='member.delete_workout'),
     path('member/workouts/history', views.member_exercise_history, name='member.exercise_history'),
-    path('member/workouts/<int:workout_id>/clone', views.member_clone_workout, name='member.clone_workout'),
     path('member/programs', views.member_programs, name='member.member_programs'),
     path('member/programs/start-guide/<int:assignment_id>', views.start_assigned_guide_session, name='member.start_assigned_guide_session'),
     path('member/diet/current', views.member_current_diet, name='member.current_diet'),

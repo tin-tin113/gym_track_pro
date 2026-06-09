@@ -737,12 +737,15 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 
 	guide_id_str = request.GET.get('guide_id')
 	tip_index_str = request.GET.get('tip_index', '0')
+	clone_id_str = request.GET.get('clone_id')
 	
 	guide = None
 	guide_assignment = None
 	tip_index = 0
 	tips = []
 	current_tip = None
+	clone_workout = None
+	sets_json = "[]"
 	
 	if guide_id_str:
 		try:
@@ -758,6 +761,25 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 					current_tip = tips[tip_index]
 		except Exception as e:
 			print("Error reading guide assignment:", e)
+
+	if clone_id_str:
+		try:
+			clone_workout = Workout.objects.filter(id=int(clone_id_str), member=member).first()
+			if clone_workout:
+				sets_list = list(clone_workout.sets_list.all().order_by('set_number'))
+				sets_data = [
+					{
+						'set_number': s.set_number,
+						'weight': s.weight,
+						'reps': s.reps,
+						'is_completed': False,
+						'is_pr': False,
+					}
+					for s in sets_list
+				]
+				sets_json = json.dumps(sets_data)
+		except Exception as e:
+			print("Error reading clone workout:", e)
 
 	if request.method == 'POST':
 		workout_date_str = (request.POST.get('workout_date') or '').strip()
@@ -811,6 +833,20 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 			'exercise_name': current_tip.exercise_name,
 			'exercise_category': current_tip.tip_category,
 		}
+	elif clone_workout:
+		prefilled_workout = {
+			'exercise_name': clone_workout.exercise_name,
+			'exercise_category': clone_workout.exercise_category,
+			'muscle_group': clone_workout.muscle_group,
+			'sets': clone_workout.sets,
+			'reps': clone_workout.reps,
+			'weight': clone_workout.weight,
+			'duration_minutes': clone_workout.duration_minutes,
+			'distance_km': clone_workout.distance_km,
+			'intensity': clone_workout.intensity,
+			'notes': clone_workout.notes,
+			'workout_date': timezone.localdate().strftime('%Y-%m-%d'),  # Prefills with today's date
+		}
 	else:
 		init_name = request.GET.get('exercise_name', '')
 		init_category = request.GET.get('exercise_category', '')
@@ -827,7 +863,7 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 			"workout": prefilled_workout,
 			"past_exercises": past_exercises,
 			"muscle_groups": Workout.MuscleGroup.choices,
-			"sets_json": "[]",
+			"sets_json": sets_json,
 			"guide": guide,
 			"tip_index": tip_index,
 			"total_exercises": len(tips),
@@ -1032,51 +1068,6 @@ def member_exercise_history(request: HttpRequest) -> HttpResponse:
 	)
 
 
-def member_clone_workout(request: HttpRequest, workout_id: int) -> HttpResponse:
-	if not request.user.is_authenticated:
-		return redirect('auth.login')
-	member = _require_member_access(request)
-	if member is None:
-		if getattr(request.user, 'role', None) == 'member':
-			return redirect('auth.pending_status')
-		messages.error(request, 'Access denied.')
-		return redirect('home')
-
-	workout = Workout.objects.filter(id=workout_id, member=member).first()
-	if workout is None:
-		messages.error(request, 'Workout not found.')
-		return redirect('member.list_workouts')
-
-	if request.method == 'POST':
-		# Create a new workout by cloning details and setting date to today
-		new_workout = Workout.objects.create(
-			member=member,
-			workout_date=timezone.localdate(),
-			exercise_name=workout.exercise_name,
-			exercise_category=workout.exercise_category,
-			muscle_group=workout.muscle_group,
-			sets=workout.sets,
-			reps=workout.reps,
-			weight=workout.weight,
-			duration_minutes=workout.duration_minutes,
-			distance_km=workout.distance_km,
-			intensity=workout.intensity,
-			notes=workout.notes,
-		)
-		# Copy all sets associated with the workout
-		for s in workout.sets_list.all():
-			WorkoutSet.objects.create(
-				workout=new_workout,
-				set_number=s.set_number,
-				reps=s.reps,
-				weight=s.weight,
-				set_type=s.set_type,
-				is_completed=s.is_completed,
-			)
-		messages.success(request, f"Duplicated {new_workout.exercise_name} workout for today.")
-		return redirect('member.list_workouts')
-
-	return redirect('member.list_workouts')
 
 
 def member_programs(request: HttpRequest) -> HttpResponse:

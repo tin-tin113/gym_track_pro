@@ -730,9 +730,44 @@ class MemberWorkoutImprovementTests(TestCase):
 			weight=140.0,
 			notes='Heavy session',
 		)
+		WorkoutSet.objects.create(
+			workout=orig,
+			set_number=1,
+			reps=5,
+			weight=140.0,
+			is_completed=True,
+		)
 
-		resp = self.client.post(reverse('member.clone_workout', kwargs={'workout_id': orig.id}))
-		self.assertEqual(resp.status_code, 302)
+		# 1. GET page with clone_id
+		resp = self.client.get(reverse('member.create_workout') + f"?clone_id={orig.id}")
+		self.assertEqual(resp.status_code, 200)
+		
+		# Verify HTML content has pre-filled values
+		self.assertContains(resp, 'Deadlift')
+		self.assertContains(resp, '140')
+		self.assertContains(resp, '5')
+
+		# 2. POST to save the cloned workout template
+		import json
+		post_data = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'muscle_group': 'back',
+			'exercise_name': 'Deadlift',
+			'sets': 1,
+			'reps': 5,
+			'weight': 140.0,
+			'intensity': 'moderate',
+			'notes': 'Heavy session copy',
+			'sets_data': json.dumps([{
+				'set_number': 1,
+				'weight': 140.0,
+				'reps': 5,
+				'is_completed': True,
+			}])
+		}
+		resp2 = self.client.post(reverse('member.create_workout'), post_data)
+		self.assertEqual(resp2.status_code, 302)
 
 		cloned = Workout.objects.filter(exercise_name='Deadlift').order_by('-id').first()
 		self.assertNotEqual(cloned.id, orig.id)
@@ -740,7 +775,124 @@ class MemberWorkoutImprovementTests(TestCase):
 		self.assertEqual(cloned.sets, 1)
 		self.assertEqual(cloned.reps, 5)
 		self.assertEqual(cloned.weight, 140.0)
-		self.assertEqual(cloned.notes, 'Heavy session')
+
+	def test_member_clone_workout_calculates_prs(self):
+		# Create prior history for Bench Press (60kg)
+		prior_workout = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=5),
+			exercise_name='Bench Press',
+			exercise_category='Strength',
+			muscle_group='chest',
+		)
+		WorkoutSet.objects.create(
+			workout=prior_workout,
+			set_number=1,
+			reps=10,
+			weight=60.0,
+			is_completed=True,
+		)
+
+		# Create the workout to clone which has the same 60kg set
+		orig = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=2),
+			exercise_name='Bench Press',
+			exercise_category='Strength',
+			muscle_group='chest',
+			sets=1,
+			reps=10,
+			weight=60.0,
+		)
+		WorkoutSet.objects.create(
+			workout=orig,
+			set_number=1,
+			reps=10,
+			weight=60.0,
+			is_completed=True,
+		)
+
+		# 1. GET page with clone_id
+		resp = self.client.get(reverse('member.create_workout') + f"?clone_id={orig.id}")
+		self.assertEqual(resp.status_code, 200)
+
+		# 2. POST to save it with a new PR (80kg)
+		import json
+		post_data = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'muscle_group': 'chest',
+			'exercise_name': 'Bench Press',
+			'sets': 1,
+			'reps': 10,
+			'weight': 80.0,
+			'intensity': 'moderate',
+			'sets_data': json.dumps([{
+				'set_number': 1,
+				'weight': 80.0,
+				'reps': 10,
+				'is_completed': True,
+			}])
+		}
+		resp2 = self.client.post(reverse('member.create_workout'), post_data)
+		self.assertEqual(resp2.status_code, 302)
+
+		# Fetch the cloned workout and sets
+		cloned = Workout.objects.filter(exercise_name='Bench Press').order_by('-id').first()
+		self.assertNotEqual(cloned.id, orig.id)
+		self.assertEqual(cloned.workout_date, self.today)
+
+		cloned_set = cloned.sets_list.filter(set_number=1).first()
+		self.assertIsNotNone(cloned_set)
+		# It should be flagged as a PR because 80kg is higher than the historical 60kg!
+		self.assertTrue(cloned_set.is_pr)
+
+		# Now clone a workout that is NOT a PR (e.g. 50kg, since the history now has 80kg from today)
+		orig_light = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=1),
+			exercise_name='Bench Press',
+			exercise_category='Strength',
+			muscle_group='chest',
+			sets=1,
+			reps=10,
+			weight=50.0,
+		)
+		WorkoutSet.objects.create(
+			workout=orig_light,
+			set_number=1,
+			reps=10,
+			weight=50.0,
+			is_completed=True,
+		)
+
+		resp3 = self.client.get(reverse('member.create_workout') + f"?clone_id={orig_light.id}")
+		self.assertEqual(resp3.status_code, 200)
+
+		post_data_light = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'muscle_group': 'chest',
+			'exercise_name': 'Bench Press',
+			'sets': 1,
+			'reps': 10,
+			'weight': 50.0,
+			'intensity': 'moderate',
+			'sets_data': json.dumps([{
+				'set_number': 1,
+				'weight': 50.0,
+				'reps': 10,
+				'is_completed': True,
+			}])
+		}
+		resp4 = self.client.post(reverse('member.create_workout'), post_data_light)
+		self.assertEqual(resp4.status_code, 302)
+
+		cloned_light = Workout.objects.filter(exercise_name='Bench Press').order_by('-id').first()
+		cloned_light_set = cloned_light.sets_list.filter(set_number=1).first()
+		self.assertIsNotNone(cloned_light_set)
+		# It should NOT be flagged as a PR because 50kg is lower than the historical 80kg!
+		self.assertFalse(cloned_light_set.is_pr)
 
 
 class AdvancedFitnessLoggingTests(TestCase):

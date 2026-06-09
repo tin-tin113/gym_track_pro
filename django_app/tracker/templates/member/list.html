@@ -18,25 +18,34 @@
     </div>
 
     <!-- Filter Section -->
-    <div class="list-filter-section">
-        <form method="GET" action="{{ url_for('member.list_members') }}" class="filter-field" style="max-width: 500px; display: flex; gap: var(--spacing-sm); margin-bottom: 0;">
-            <label style="margin-bottom: 0; font-family: var(--font-family-headers); font-weight: 700; text-transform: uppercase; font-size: 12px; color: var(--text-secondary); align-self: center;">Search:</label>
-            <input type="text" name="search" placeholder="Name or email..." value="{{ search }}" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
-            <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">
-                <i class="fas fa-search"></i> Find
-            </button>
-        </form>
-
-        <form method="GET" action="{{ url_for('member.list_members') }}" class="filter-field" style="max-width: 300px; display: flex; gap: var(--spacing-sm); margin-bottom: 0;">
-            <label style="margin-bottom: 0; font-family: var(--font-family-headers); font-weight: 700; text-transform: uppercase; font-size: 12px; color: var(--text-secondary); align-self: center;">Status:</label>
-            <select name="status" onchange="this.form.submit()" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer;">
-                <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
-                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
-                <option value="pending_renewal" {% if status == 'pending_renewal' %}selected{% endif %}>Pending Renewal</option>
-                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-                <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring Soon</option>
-                <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
-            </select>
+    <div class="list-filter-section" style="padding: 0; background: transparent; border: none; margin-bottom: var(--spacing-lg);">
+        <form method="GET" action="{{ url_for('member.list_members') }}" style="width: 100%; display: flex; gap: var(--spacing-md); flex-wrap: wrap; align-items: flex-end; padding: var(--spacing-md); background-color: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 4px;">
+                <label for="search" style="font-family: var(--font-family-headers); font-weight: 700; text-transform: uppercase; font-size: 11px; color: var(--text-muted); margin-bottom: 0;">Search Members</label>
+                <div class="input-group" style="display: flex; width: 100%;">
+                    <span class="input-group-text" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-right: none; color: var(--text-muted); display: flex; align-items: center; padding: 0 12px; border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm);"><i class="fas fa-search"></i></span>
+                    <input type="text" id="search" name="search" placeholder="Name or email..." value="{{ search or '' }}" style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); background-color: var(--bg-secondary); color: var(--text-primary);">
+                </div>
+            </div>
+            
+            <div style="width: 180px; min-width: 150px; display: flex; flex-direction: column; gap: 4px;">
+                <label for="status" style="font-family: var(--font-family-headers); font-weight: 700; text-transform: uppercase; font-size: 11px; color: var(--text-muted); margin-bottom: 0;">Status</label>
+                <select id="status" name="status" onchange="this.form.submit()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-secondary); color: var(--text-primary); cursor: pointer; height: 38px;">
+                    <option value="all" {% if status == 'all' %}selected{% endif %}>All Members</option>
+                    <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="pending_renewal" {% if status == 'pending_renewal' %}selected{% endif %}>Pending Renewal</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring Soon</option>
+                    <option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-sm); height: 38px;">
+                <button type="submit" class="btn btn-primary" style="padding: 0 16px; height: 100%;"><i class="fas fa-filter"></i> Filter</button>
+                {% if search or status and status != 'all' %}
+                <a href="{{ url_for('member.list_members') }}" class="btn btn-secondary" style="padding: 0 16px; height: 100%; display: flex; align-items: center; justify-content: center;" title="Clear Filters"><i class="fas fa-sync-alt"></i></a>
+                {% endif %}
+            </div>
         </form>
     </div>
 
