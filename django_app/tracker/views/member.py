@@ -609,7 +609,7 @@ def member_workouts(request: HttpRequest) -> HttpResponse:
 	except ValueError:
 		page_number = 1
 
-	qs = Workout.objects.select_related('trainer').filter(member=member)
+	qs = Workout.objects.select_related('trainer').prefetch_related('sets_list').filter(member=member)
 
 	if search_query:
 		qs = qs.filter(exercise_name__icontains=search_query)
