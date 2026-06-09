@@ -7,12 +7,12 @@
     <div class="col-md-8">
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
-                <h3>{% if member %}✏️ Edit{% else %}➕ Create{% endif %} Member</h3>
+                <h3>{% if member %}<i class="fas fa-edit me-1"></i> Edit{% else %}<i class="fas fa-plus me-1"></i> Create{% endif %} Member</h3>
             </div>
             <div class="card-body">
                 <form method="POST" novalidate>
                     <!-- Personal Information -->
-                    <h5 class="mb-3">👤 Personal Information</h5>
+                    <h5 class="mb-3"><i class="fas fa-user me-2" style="color: var(--color-teal);"></i>Personal Information</h5>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -54,7 +54,7 @@
 
                     <!-- Membership Information -->
                     <hr class="my-4">
-                    <h5 class="mb-3">📅 Membership Information</h5>
+                    <h5 class="mb-3"><i class="fas fa-calendar-alt me-2" style="color: var(--color-teal);"></i>Membership Information</h5>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -107,7 +107,7 @@
                         <a href="{% if member %}{{ url_for('member.view_member', member_id=member.id) }}{% else %}{{ url_for('member.list_members') }}{% endif %}"
                             class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
-                            {% if member %}💾 Update Member{% else %}✅ Create Member{% endif %}
+                            {% if member %}<i class="fas fa-save me-1"></i> Update Member{% else %}<i class="fas fa-check me-1"></i> Create Member{% endif %}
                         </button>
                     </div>
                 </form>

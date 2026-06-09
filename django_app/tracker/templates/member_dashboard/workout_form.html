@@ -1,18 +1,221 @@
 {% extends 'base.html' %}
-{% block title %}Log Workout - GymTrack Pro{% endblock %}
+{% block title %}{% if workout %}Edit{% else %}Log{% endif %} Workout - GymTrack Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+/* CSS Styles for Plate Modal, Rest Timer, and Set Tracker */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(7, 10, 18, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 1040;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xl);
+    width: 95%;
+    max-width: 500px;
+    border-radius: var(--radius-sm);
+}
+#barbell-graphic {
+    position: relative;
+    height: 100px;
+    background: #070A12;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    overflow: hidden;
+}
+.bar-shaft {
+    position: absolute;
+    height: 8px;
+    width: 85%;
+    background: linear-gradient(180deg, #E5E7EB 0%, #9CA3AF 50%, #4B5563 100%);
+    border-radius: 4px;
+    z-index: 1;
+}
+.bar-collar {
+    position: absolute;
+    height: 36px;
+    width: 14px;
+    background: linear-gradient(180deg, #9CA3AF 0%, #4B5563 100%);
+    border: 1px solid #1F2937;
+    z-index: 2;
+}
+.bar-collar-left {
+    left: 30%;
+}
+.bar-collar-right {
+    right: 30%;
+}
+.plates-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    z-index: 3;
+    position: absolute;
+    height: 100%;
+}
+.plates-container-left {
+    right: 70%;
+    flex-direction: row-reverse;
+}
+.plates-container-right {
+    left: 70%;
+    flex-direction: row;
+}
+.plate {
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+.plate-25 { background: #EF4444; height: 75px; width: 14px; border-left: 2px solid #F87171; }
+.plate-20 { background: #3B82F6; height: 70px; width: 13px; border-left: 2px solid #60A5FA; }
+.plate-15 { background: #F59E0B; height: 62px; width: 12px; border-left: 2px solid #FBBF24; }
+.plate-10 { background: #10B981; height: 54px; width: 11px; border-left: 2px solid #34D399; }
+.plate-5 { background: #F3F4F6; height: 44px; width: 10px; color: #111827; text-shadow: none; border-left: 2px solid #FFFFFF; }
+.plate-2_5 { background: #374151; height: 36px; width: 9px; border-left: 2px solid #4B5563; }
+.plate-1_25 { background: #6B7280; height: 28px; width: 8px; border-left: 2px solid #9CA3AF; }
+
+/* Rest Timer Floating Widget */
+#rest-timer-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1050;
+    width: 280px;
+    background: rgba(22, 31, 48, 0.96);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xl), var(--shadow-teal);
+    border-left: 3px solid var(--color-teal);
+    border-radius: var(--radius-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.95;
+}
+#rest-timer-widget.minimized {
+    height: 48px;
+    overflow: hidden;
+    width: 180px;
+}
+.timer-header {
+    background: var(--bg-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.timer-circle-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 12px auto;
+}
+.timer-circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.05);
+    stroke-width: 6;
+}
+.timer-circle-progress {
+    fill: none;
+    stroke: var(--color-teal);
+    stroke-width: 6;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.1s linear;
+}
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-family-headers);
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+}
+.timer-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 8px 12px;
+}
+.timer-control-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.completed-set-row {
+    background: rgba(16, 185, 129, 0.08) !important;
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+.completed-set-row input {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1 class="mb-4">{% if workout %}Edit{% else %}Log{% endif %} Workout</h1>
+    {% if guide %}
+    <div class="card p-3 mb-4" style="background: rgba(0, 229, 229, 0.05); border-left-color: var(--color-teal);">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <span class="text-uppercase font-bold text-info" style="font-size: 10px; display: block; letter-spacing: 0.5px;">Active Guide Flow</span>
+                <h4 style="margin: 0; font-size: 16px; color: var(--text-primary);">
+                    <i class="fas fa-book-open text-info" style="margin-right: 6px;"></i> {{ guide.name }}
+                </h4>
+            </div>
+            <div class="text-end">
+                <span class="status-badge status-active" style="font-size: 11px; padding: 2px 8px;">Exercise {{ current_exercise_num }} of {{ total_exercises }}</span>
+                <small class="text-muted d-block mt-1" style="font-size: 10px;">Next: {% if tip_index + 1 < total_exercises %}Log next exercise{% else %}Complete routine!{% endif %}</small>
+            </div>
+        </div>
+        <div class="progress mt-3" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); overflow: hidden;">
+            <div class="progress-bar bg-info" style="width: {{ (current_exercise_num / total_exercises) * 100 }}%; height: 100%; background-color: var(--color-teal); transition: width 0.4s ease;"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <h1 class="mb-4">{% if workout and not guide %}Edit{% else %}Log{% endif %} Workout</h1>
     
-    <form method="POST" class="card p-4">
+    <form method="POST" id="workout-form" class="card p-4">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" id="sets_data" name="sets_data" value="{{ sets_json }}">
+        
         <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
                 <label for="workout_date" class="form-label">Workout Date</label>
                 <input type="date" class="form-control" id="workout_date" name="workout_date" 
-                       value="{% if workout %}{{ workout.workout_date }}{% else %}{{ now().strftime('%Y-%m-%d') }}{% endif %}" required>
+                       value="{% if workout %}{{ workout.workout_date or '' }}{% else %}{{ now().strftime('%Y-%m-%d') }}{% endif %}" required>
             </div>
             
-            <div class="col-md-6 mb-3">
+            <div class="col-md-4 mb-3">
                 <label for="exercise_category" class="form-label">Exercise Category</label>
                 <select class="form-control" id="exercise_category" name="exercise_category" required>
                     <option value="">Select category</option>
@@ -23,13 +226,28 @@
                     <option value="Other" {% if workout and workout.exercise_category == 'Other' %}selected{% endif %}>Other</option>
                 </select>
             </div>
+
+            <div class="col-md-4 mb-3" id="muscle_group_field" style="display:none;">
+                <label for="muscle_group" class="form-label">Muscle Group</label>
+                <select class="form-control" id="muscle_group" name="muscle_group">
+                    <option value="">Select muscle group</option>
+                    {% for val, name in muscle_groups %}
+                        <option value="{{ val }}" {% if workout and workout.muscle_group == val %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         
         <div class="mb-3">
             <label for="exercise_name" class="form-label">Exercise Name</label>
             <input type="text" class="form-control" id="exercise_name" name="exercise_name" 
                    placeholder="e.g., Bench Press, Running, Stretching" 
-                   value="{% if workout %}{{ workout.exercise_name }}{% endif %}" required>
+                   value="{% if workout %}{{ workout.exercise_name }}{% endif %}" list="past_exercises_list" required>
+            <datalist id="past_exercises_list">
+                {% for exercise in past_exercises %}
+                    <option value="{{ exercise }}"></option>
+                {% endfor %}
+            </datalist>
         </div>
         
         <div id="strength_fields" style="display:none;">
@@ -38,17 +256,50 @@
                 <div class="col-md-4 mb-3">
                     <label for="sets" class="form-label">Sets</label>
                     <input type="number" class="form-control" id="sets" name="sets" 
-                           value="{% if workout %}{{ workout.sets or '' }}{% endif %}" min="1">
+                           value="{% if workout %}{{ workout.sets or '3' }}{% else %}3{% endif %}" min="1">
                 </div>
                 <div class="col-md-4 mb-3">
                     <label for="reps" class="form-label">Reps</label>
                     <input type="number" class="form-control" id="reps" name="reps" 
-                           value="{% if workout %}{{ workout.reps or '' }}{% endif %}" min="1">
+                           value="{% if workout %}{{ workout.reps or '10' }}{% else %}10{% endif %}" min="1">
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="weight" class="form-label">Weight (kg)</label>
-                    <input type="number" class="form-control" id="weight" name="weight" step="0.5"
-                           value="{% if workout %}{{ workout.weight or '' }}{% endif %}" min="0">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <label for="weight" class="form-label mb-0">Weight (kg)</label>
+                        <button type="button" class="btn btn-secondary btn-small py-0 px-2" id="plate-calc-btn" style="height: 20px; font-size: 10px; text-transform: uppercase;">
+                            <i class="fas fa-calculator text-info"></i> Plates
+                        </button>
+                    </div>
+                    <input type="number" class="form-control mt-1" id="weight" name="weight" step="0.5"
+                           value="{% if workout %}{{ workout.weight or '60' }}{% else %}60{% endif %}" min="0">
+                </div>
+            </div>
+
+            <!-- Set Tracker Section -->
+            <div id="set_tracker_container" class="mt-4">
+                <h5 class="mb-3 text-uppercase" style="color: var(--color-teal); font-size: 13px;">Set Log & Done Checks</h5>
+                <div class="table-responsive">
+                    <table class="table" style="background: var(--bg-secondary); border: 1px solid var(--border-color);">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Set</th>
+                                <th style="width: 35%">Weight (kg)</th>
+                                <th style="width: 35%">Reps</th>
+                                <th style="width: 15%; text-align: center;">Done</th>
+                            </tr>
+                        </thead>
+                        <tbody id="set_tracker_tbody">
+                            <!-- Dynamically generated rows -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-2 d-flex gap-2">
+                    <button type="button" class="btn btn-secondary btn-small" id="add-set-btn">
+                        <i class="fas fa-plus"></i> Add Set
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-small" id="remove-set-btn">
+                        <i class="fas fa-minus"></i> Remove Set
+                    </button>
                 </div>
             </div>
         </div>
@@ -86,20 +337,440 @@
         </div>
         
         <div class="btn-group mt-4" role="group">
-            <button type="submit" class="btn btn-primary">Save Workout</button>
+            <button type="submit" class="btn btn-primary" id="save-workout-btn">Save Workout</button>
             <a href="{{ url_for('member.list_workouts') }}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
 
+<!-- Barbell Plate Calculator Modal -->
+<div id="plate-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content card p-4">
+        <div class="card-header d-flex justify-content-between align-items-center mb-3" style="background: transparent; border: none; padding: 0; margin: 0;">
+            <h3 class="mb-0" style="font-size: 18px; color: var(--color-teal);">Barbell Plate Calculator</h3>
+            <button type="button" class="btn btn-secondary btn-small py-0 px-2" id="close-plate-modal" style="font-size: 16px; border: none; background: transparent;">&times;</button>
+        </div>
+        <div>
+            <div class="row mb-3">
+                <div class="col-md-6 mb-2">
+                    <label for="calc-target-weight" class="form-label">Target Weight (kg)</label>
+                    <input type="number" class="form-control" id="calc-target-weight" min="0" step="0.5">
+                </div>
+                <div class="col-md-6 mb-2">
+                    <label for="calc-bar-weight" class="form-label">Bar Weight (kg)</label>
+                    <select class="form-control" id="calc-bar-weight">
+                        <option value="20">20 kg (Standard Olympic)</option>
+                        <option value="15">15 kg (Women's Bar)</option>
+                        <option value="10">10 kg (EZ Curl Bar)</option>
+                        <option value="0">0 kg (No Barbell)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="plate-calc-results" class="text-center mt-3">
+                <h5 class="text-uppercase mb-2" style="font-size: 12px; color: var(--text-muted);">Visual Loading (Per Side)</h5>
+                <div id="barbell-graphic">
+                    <div class="bar-shaft"></div>
+                    <div class="bar-collar bar-collar-left"></div>
+                    <div class="plates-container plates-container-left" id="plates-left"></div>
+                    <div class="bar-collar bar-collar-right"></div>
+                    <div class="plates-container plates-container-right" id="plates-right"></div>
+                </div>
+                <div id="plate-counts-list" class="mt-3 text-secondary font-monospace" style="font-size: 12px; font-weight: bold;">
+                    No plates needed.
+                </div>
+            </div>
+        </div>
+        <div class="card-footer mt-4" style="background: transparent; border: none; padding: 0; display: flex; justify-content: flex-end; gap: 8px;">
+            <button type="button" class="btn btn-secondary" id="apply-plate-weight">Apply Weight</button>
+            <button type="button" class="btn btn-primary" id="close-plate-modal-btn">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Rest Timer Floating Widget -->
+<div id="rest-timer-widget" class="minimized">
+    <div class="timer-header" id="timer-toggle-hdr">
+        <span style="font-family: var(--font-family-headers); font-size: 12px; font-weight: bold; color: var(--color-teal); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-stopwatch"></i> REST TIMER
+        </span>
+        <span id="timer-header-time" style="font-family: var(--font-family-headers); font-weight: bold; color: white;">00:00</span>
+        <i class="fas fa-chevron-up" id="timer-toggle-icon" style="font-size: 10px; color: var(--text-muted); margin-left: auto;"></i>
+    </div>
+    <div class="timer-body p-3 text-center" id="timer-body-content" style="display: none;">
+        <div class="timer-circle-container">
+            <svg width="100" height="100">
+                <circle class="timer-circle-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="timer-circle-progress" id="timer-progress-ring" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-text" id="timer-display">90s</div>
+        </div>
+        <div class="timer-btn-grid">
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="setTimerDuration(30)">30s</button>
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="setTimerDuration(60)">60s</button>
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="setTimerDuration(90)">90s</button>
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="setTimerDuration(120)">2m</button>
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="setTimerDuration(180)">3m</button>
+            <button type="button" class="btn btn-secondary btn-small p-1" onclick="addTimerTime(30)">+30s</button>
+        </div>
+        <div class="timer-control-row">
+            <button type="button" class="btn btn-primary btn-small" id="timer-play-btn"><i class="fas fa-play"></i></button>
+            <button type="button" class="btn btn-secondary btn-small" id="timer-reset-btn"><i class="fas fa-redo"></i></button>
+        </div>
+    </div>
+</div>
+
 <script>
+    // --- Setup Category Change Handlers ---
     document.getElementById('exercise_category').addEventListener('change', function() {
         const category = this.value;
         document.getElementById('strength_fields').style.display = category === 'Strength' ? 'block' : 'none';
         document.getElementById('cardio_fields').style.display = category === 'Cardio' ? 'block' : 'none';
+        
+        const showMuscle = (category === 'Strength' || category === 'Flexibility' || category === 'Other');
+        document.getElementById('muscle_group_field').style.display = showMuscle ? 'block' : 'none';
     });
     
-    // Initialize on page load
+    // Initialize category layout
     document.getElementById('exercise_category').dispatchEvent(new Event('change'));
+
+    // --- Plate Calculator Logic ---
+    const plateModal = document.getElementById('plate-modal');
+    const plateBtn = document.getElementById('plate-calc-btn');
+    const closePlateBtn1 = document.getElementById('close-plate-modal');
+    const closePlateBtn2 = document.getElementById('close-plate-modal-btn');
+    const applyPlateBtn = document.getElementById('apply-plate-weight');
+    
+    const targetWeightInput = document.getElementById('calc-target-weight');
+    const barWeightSelect = document.getElementById('calc-bar-weight');
+    const platesLeft = document.getElementById('plates-left');
+    const platesRight = document.getElementById('plates-right');
+    const plateCountsList = document.getElementById('plate-counts-list');
+
+    plateBtn.addEventListener('click', function() {
+        // Populate modal target weight from current main weight input
+        const currentWeight = parseFloat(document.getElementById('weight').value) || 0;
+        targetWeightInput.value = currentWeight;
+        updatePlates();
+        plateModal.style.display = 'flex';
+    });
+
+    function hidePlateModal() {
+        plateModal.style.display = 'none';
+    }
+    
+    closePlateBtn1.addEventListener('click', hidePlateModal);
+    closePlateBtn2.addEventListener('click', hidePlateModal);
+    
+    applyPlateBtn.addEventListener('click', function() {
+        const weightVal = parseFloat(targetWeightInput.value) || 0;
+        document.getElementById('weight').value = weightVal;
+        // Trigger input event to sync set log table
+        document.getElementById('weight').dispatchEvent(new Event('input'));
+        hidePlateModal();
+    });
+
+    targetWeightInput.addEventListener('input', updatePlates);
+    barWeightSelect.addEventListener('change', updatePlates);
+
+    function updatePlates() {
+        const target = parseFloat(targetWeightInput.value) || 0;
+        const bar = parseFloat(barWeightSelect.value) || 0;
+        
+        platesLeft.innerHTML = '';
+        platesRight.innerHTML = '';
+        
+        let remaining = (target - bar) / 2;
+        
+        if (remaining <= 0) {
+            plateCountsList.innerHTML = "No plates needed.";
+            return;
+        }
+
+        const plateDenominations = [25, 20, 15, 10, 5, 2.5, 1.25];
+        const platesUsed = [];
+        const counts = {};
+        
+        for (let plate of plateDenominations) {
+            let count = Math.floor(remaining / plate);
+            if (count > 0) {
+                counts[plate] = count;
+                for (let i = 0; i < count; i++) {
+                    platesUsed.push(plate);
+                }
+                remaining = remaining % plate;
+            }
+        }
+        
+        // Render plates visually
+        platesUsed.forEach(plate => {
+            const classSuffix = plate.toString().replace('.', '_');
+            const label = plate % 1 === 0 ? plate : plate.toFixed(2);
+            
+            const pLeft = document.createElement('div');
+            pLeft.className = `plate plate-${classSuffix}`;
+            pLeft.innerText = label;
+            platesLeft.appendChild(pLeft);
+            
+            const pRight = document.createElement('div');
+            pRight.className = `plate plate-${classSuffix}`;
+            pRight.innerText = label;
+            platesRight.appendChild(pRight);
+        });
+
+        // Update list description
+        const textParts = [];
+        for (let plate of plateDenominations) {
+            if (counts[plate]) {
+                textParts.push(`${counts[plate]}x ${plate}kg`);
+            }
+        }
+        plateCountsList.innerHTML = textParts.join(', ') + " per side";
+    }
+
+    // --- Rest Timer Logic ---
+    let timerTimeLeft = 90;
+    let timerTotal = 90;
+    let timerInterval = null;
+    let timerPaused = true;
+    
+    const timerWidget = document.getElementById('rest-timer-widget');
+    const timerHeader = document.getElementById('timer-toggle-hdr');
+    const timerHeaderTime = document.getElementById('timer-header-time');
+    const timerToggleIcon = document.getElementById('timer-toggle-icon');
+    const timerBody = document.getElementById('timer-body-content');
+    
+    const timerDisplay = document.getElementById('timer-display');
+    const timerProgress = document.getElementById('timer-progress-ring');
+    const timerPlayBtn = document.getElementById('timer-play-btn');
+    const timerResetBtn = document.getElementById('timer-reset-btn');
+
+    // Toggle minimize/expand
+    timerHeader.addEventListener('click', function() {
+        if (timerWidget.classList.contains('minimized')) {
+            timerWidget.classList.remove('minimized');
+            timerBody.style.display = 'block';
+            timerToggleIcon.className = 'fas fa-chevron-down';
+        } else {
+            timerWidget.classList.add('minimized');
+            timerBody.style.display = 'none';
+            timerToggleIcon.className = 'fas fa-chevron-up';
+        }
+    });
+
+    function setTimerDuration(seconds) {
+        timerTotal = seconds;
+        timerTimeLeft = seconds;
+        timerPaused = true;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+        updateTimerDisplay();
+    }
+    
+    function addTimerTime(seconds) {
+        timerTotal += seconds;
+        timerTimeLeft += seconds;
+        updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+        const mins = Math.floor(timerTimeLeft / 60);
+        const secs = timerTimeLeft % 60;
+        const text = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        timerDisplay.innerText = `${timerTimeLeft}s`;
+        timerHeaderTime.innerText = text;
+        
+        // Progress ring
+        const circumference = 2 * Math.PI * 45; // 282.74
+        const offset = circumference - (timerTimeLeft / timerTotal) * circumference;
+        timerProgress.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
+    }
+
+    timerPlayBtn.addEventListener('click', toggleTimer);
+    timerResetBtn.addEventListener('click', () => setTimerDuration(timerTotal));
+
+    function toggleTimer() {
+        if (timerPaused) {
+            timerPaused = false;
+            timerPlayBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            timerInterval = setInterval(() => {
+                timerTimeLeft--;
+                if (timerTimeLeft <= 0) {
+                    timerTimeLeft = 0;
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    timerPaused = true;
+                    timerPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+                    playTimerChime();
+                }
+                updateTimerDisplay();
+            }, 1000);
+        } else {
+            timerPaused = true;
+            timerPlayBtn.innerHTML = '<i class="fas fa-play"></i>';
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function playTimerChime() {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playTone = (freq, start, duration) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.4, start);
+                gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+                osc.start(start);
+                osc.stop(start + duration);
+            };
+            const now = audioCtx.currentTime;
+            playTone(523.25, now, 0.8); // C5
+            playTone(659.25, now + 0.15, 0.9); // E5
+            playTone(783.99, now + 0.3, 1.2); // G5
+        } catch (e) {
+            console.error("Audio Context error: ", e);
+        }
+        
+        // Flash timer widget border/color
+        timerWidget.style.borderLeftColor = 'var(--color-danger)';
+        setTimeout(() => {
+            timerWidget.style.borderLeftColor = 'var(--color-teal)';
+        }, 3000);
+    }
+
+    // --- Interactive Set Tracker Code ---
+    const setsInput = document.getElementById('sets');
+    const repsInput = document.getElementById('reps');
+    const weightInput = document.getElementById('weight');
+    const setTrackerTbody = document.getElementById('set_tracker_tbody');
+    const setsDataInput = document.getElementById('sets_data');
+
+    // Rebuild tracker when sets/reps/weight input values change
+    setsInput.addEventListener('input', rebuildSetTracker);
+    repsInput.addEventListener('input', syncTargetReps);
+    weightInput.addEventListener('input', syncTargetWeights);
+
+    document.getElementById('add-set-btn').addEventListener('click', function() {
+        setsInput.value = parseInt(setsInput.value || 0) + 1;
+        rebuildSetTracker();
+    });
+    
+    document.getElementById('remove-set-btn').addEventListener('click', function() {
+        const val = parseInt(setsInput.value || 0);
+        if (val > 1) {
+            setsInput.value = val - 1;
+            rebuildSetTracker();
+        }
+    });
+
+    function rebuildSetTracker() {
+        const count = Math.max(1, parseInt(setsInput.value) || 1);
+        const rows = setTrackerTbody.querySelectorAll('tr');
+        
+        // Keep track of current values if they exist
+        const oldData = [];
+        rows.forEach(r => {
+            const w = parseFloat(r.querySelector('.set-w').value) || 0;
+            const rep = parseInt(r.querySelector('.set-r').value) || 0;
+            const done = r.querySelector('.set-done').checked;
+            oldData.push({ weight: w, reps: rep, done: done });
+        });
+
+        setTrackerTbody.innerHTML = '';
+        
+        const defaultWeight = parseFloat(weightInput.value) || 0;
+        const defaultReps = parseInt(repsInput.value) || 0;
+
+        for (let i = 1; i <= count; i++) {
+            const tr = document.createElement('tr');
+            tr.id = `set-row-${i}`;
+            
+            const prev = oldData[i - 1];
+            const weightVal = prev ? prev.weight : defaultWeight;
+            const repsVal = prev ? prev.reps : defaultReps;
+            const doneVal = prev ? prev.done : false;
+
+            if (doneVal) {
+                tr.className = 'completed-set-row';
+            }
+
+            tr.innerHTML = `
+                <td style="font-weight: bold; font-family: var(--font-family-headers); color: var(--color-teal); vertical-align: middle;">${i}</td>
+                <td>
+                    <input type="number" class="form-control form-control-sm set-w" value="${weightVal}" step="0.5" min="0" oninput="saveSetsJSON()">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm set-r" value="${repsVal}" min="0" oninput="saveSetsJSON()">
+                </td>
+                <td style="text-align: center; vertical-align: middle;">
+                    <input type="checkbox" class="set-done" style="width: 18px; height: 18px; cursor: pointer;" ${doneVal ? 'checked' : ''} onchange="toggleSetDone(this, ${i})">
+                </td>
+            `;
+            setTrackerTbody.appendChild(tr);
+        }
+        saveSetsJSON();
+    }
+
+    function syncTargetReps() {
+        const val = parseInt(repsInput.value) || 0;
+        setTrackerTbody.querySelectorAll('.set-r').forEach(input => {
+            const row = input.closest('tr');
+            const isDone = row.querySelector('.set-done').checked;
+            if (!isDone) input.value = val;
+        });
+        saveSetsJSON();
+    }
+
+    function syncTargetWeights() {
+        const val = parseFloat(weightInput.value) || 0;
+        setTrackerTbody.querySelectorAll('.set-w').forEach(input => {
+            const row = input.closest('tr');
+            const isDone = row.querySelector('.set-done').checked;
+            if (!isDone) input.value = val;
+        });
+        saveSetsJSON();
+    }
+
+    window.toggleSetDone = function(checkbox, setNum) {
+        const row = document.getElementById(`set-row-${setNum}`);
+        if (checkbox.checked) {
+            row.classList.add('completed-set-row');
+            // Auto trigger rest timer!
+            if (timerWidget.classList.contains('minimized')) {
+                timerHeader.click(); // Expand
+            }
+            setTimerDuration(timerTotal);
+            toggleTimer(); // Start countdown
+        } else {
+            row.classList.remove('completed-set-row');
+        }
+        saveSetsJSON();
+    };
+
+    window.saveSetsJSON = function() {
+        const setsData = [];
+        const rows = setTrackerTbody.querySelectorAll('tr');
+        rows.forEach((r, idx) => {
+            const w = parseFloat(r.querySelector('.set-w').value) || 0;
+            const rep = parseInt(r.querySelector('.set-r').value) || 0;
+            const done = r.querySelector('.set-done').checked;
+            setsData.push({
+                set_number: idx + 1,
+                weight: w,
+                reps: rep,
+                is_completed: done
+            });
+        });
+        setsDataInput.value = JSON.stringify(setsData);
+    };
+
+    // Initialize the set tracker on startup
+    rebuildSetTracker();
 </script>
 {% endblock %}

@@ -33,7 +33,10 @@ urlpatterns = [
     path('member/workouts/new', views.member_workout_form, name='member.create_workout'),
     path('member/workouts/<int:workout_id>/edit', views.member_edit_workout, name='member.edit_workout'),
     path('member/workouts/<int:workout_id>/delete', views.member_delete_workout, name='member.delete_workout'),
+    path('member/workouts/history', views.member_exercise_history, name='member.exercise_history'),
+    path('member/workouts/<int:workout_id>/clone', views.member_clone_workout, name='member.clone_workout'),
     path('member/programs', views.member_programs, name='member.member_programs'),
+    path('member/programs/start-guide/<int:assignment_id>', views.start_assigned_guide_session, name='member.start_assigned_guide_session'),
     path('member/diet/current', views.member_current_diet, name='member.current_diet'),
     path('member/diet/log-meal', views.member_log_meal, name='member.log_meal'),
     path('member/diet/progress', views.member_diet_progress, name='member.diet_progress'),
@@ -82,6 +85,7 @@ urlpatterns = [
     path('trainer/members/<int:member_id>/workouts/assign', views.trainer_assign_workout, name='trainer.assign_workout'),
     path('trainer/members/<int:member_id>/workouts/<int:workout_id>/edit', views.trainer_edit_assigned_workout, name='trainer.edit_assigned_workout'),
     path('trainer/members/<int:member_id>/workouts/<int:workout_id>/delete', views.trainer_delete_assigned_workout, name='trainer.delete_assigned_workout'),
+    path('trainer/members/<int:member_id>/workouts/<int:workout_id>/set-notes', views.trainer_add_set_notes, name='trainer.add_set_notes'),
 
     # Guides
     path('trainer/guides/library', views.trainer_browse_guides, name='trainer.browse_guides'),

@@ -419,10 +419,27 @@ class Workout(models.Model):
 		MODERATE = 'moderate', 'Moderate'
 		INTENSE = 'intense', 'Intense'
 
+	class MuscleGroup(models.TextChoices):
+		CHEST = 'chest', 'Chest'
+		BACK = 'back', 'Back'
+		SHOULDERS = 'shoulders', 'Shoulders'
+		ARMS = 'arms', 'Arms'
+		LEGS = 'legs', 'Legs'
+		CORE = 'core', 'Core'
+		FULL_BODY = 'full_body', 'Full Body'
+		CARDIO = 'cardio', 'Cardio'
+		OTHER = 'other', 'Other'
+
 	member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='workouts')
 	workout_date = models.DateField()
 	exercise_name = models.CharField(max_length=120)
 	exercise_category = models.CharField(max_length=50)
+	muscle_group = models.CharField(
+		max_length=20,
+		choices=MuscleGroup.choices,
+		default=MuscleGroup.OTHER,
+		blank=True
+	)
 
 	sets = models.IntegerField(blank=True, null=True)
 	reps = models.IntegerField(blank=True, null=True)
@@ -455,6 +472,52 @@ class Workout(models.Model):
 
 	def __str__(self) -> str:
 		return f"{self.exercise_name} on {self.workout_date}"
+
+	def get_volume(self) -> float:
+		if self.sets_list.exists():
+			return sum((s.reps or 0) * (s.weight or 0.0) for s in self.sets_list.all() if s.is_completed)
+		return float((self.sets or 0) * (self.reps or 0) * (self.weight or 0.0))
+
+	def get_max_weight(self) -> float:
+		if self.sets_list.exists():
+			completed = [s for s in self.sets_list.all() if s.is_completed]
+			if completed:
+				return max(s.weight for s in completed)
+			return 0.0
+		return self.weight or 0.0
+
+	def get_max_estimated_1rm(self) -> float:
+		if self.sets_list.exists():
+			completed = [s for s in self.sets_list.all() if s.is_completed and s.reps and s.weight]
+			if completed:
+				return max(s.weight * (1 + s.reps / 30.0) for s in completed)
+			return 0.0
+		if self.reps and self.weight:
+			return self.weight * (1 + self.reps / 30.0)
+		return 0.0
+
+
+class WorkoutSet(models.Model):
+	class SetType(models.TextChoices):
+		WARMUP = 'warmup', 'Warm-up'
+		WORKING = 'working', 'Working'
+		DROP = 'drop', 'Drop Set'
+
+	workout = models.ForeignKey(Workout, on_delete=models.CASCADE, related_name='sets_list')
+	set_number = models.IntegerField()
+	reps = models.IntegerField()
+	weight = models.FloatField()
+	set_type = models.CharField(max_length=15, choices=SetType.choices, default=SetType.WORKING)
+	is_completed = models.BooleanField(default=False)
+	# PR detection — True when this set was a new personal record at the time it was logged
+	is_pr = models.BooleanField(default=False)
+	# Trainer coaching notes specific to this individual set
+	trainer_notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self) -> str:
+		return f"{self.workout.exercise_name} Set {self.set_number}: {self.weight}kg x {self.reps}"
+
 
 
 class DietPlan(models.Model):

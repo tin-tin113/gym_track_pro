@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="page-header d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>💪 {{ member.user.full_name or member.user.username }}'s Workouts</h1>
+            <h1><i class="fas fa-dumbbell me-2" style="color: var(--color-teal);"></i>{{ member.user.full_name or member.user.username }}'s Workouts</h1>
             <p class="text-muted" style="margin-bottom: 0;">Member since {{ member.membership_start_date.strftime('%B %Y') }}</p>
         </div>
         <a href="{{ url_for('trainer.assign_workout', member_id=member.id) }}" class="btn btn-success">
@@ -54,13 +54,47 @@
                             {% for workout in workouts %}
                                 <tr>
                                     <td><strong>{{ workout.workout_date.strftime('%b %d, %Y') }}</strong></td>
-                                    <td><strong>{{ workout.exercise_name }}</strong></td>
+                                    <td>
+                                        <strong>{{ workout.exercise_name }}</strong>
+                                        {% if workout.sets_list.filter(is_pr=True).exists() %}
+                                            <span title="Member hit a Personal Record on this workout!" style="margin-left: 4px; font-size: 13px; color: #FFD700;">🏆</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <span class="status-badge status-active" style="font-size: 10px; padding: 2px 8px;">{{ workout.exercise_category }}</span>
                                     </td>
                                     <td>
                                         {% if workout.exercise_category in ['Strength', 'strength'] %}
-                                            {% if workout.sets or workout.reps or workout.weight %}
+                                            {% if workout.sets_list.exists() %}
+                                                {# --- Expanded per-set view with inline trainer feedback --- #}
+                                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                                    {% for s in workout.sets_list.all().order_by('set_number') %}
+                                                        <div style="background: {{ 'rgba(255,215,0,0.06)' if s.is_pr else 'rgba(0,229,229,0.03)' }}; border: 1px solid {{ 'rgba(255,215,0,0.3)' if s.is_pr else 'var(--border-color)' }}; border-radius: var(--radius-sm); padding: 6px 10px;">
+                                                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 12px;">
+                                                                {% if s.is_pr %}<span title="Personal Record">🏆</span>{% endif %}
+                                                                <strong>Set {{ s.set_number }}:</strong>
+                                                                <span>{{ s.weight }} kg × {{ s.reps }} reps</span>
+                                                                {% if s.set_type == 'warmup' %}<span class="status-badge status-active" style="font-size: 9px; padding: 1px 5px;">Warm-up</span>{% endif %}
+                                                                {% if s.set_type == 'drop' %}<span class="status-badge status-expired" style="font-size: 9px; padding: 1px 5px;">Drop</span>{% endif %}
+                                                                {% if not s.is_completed %}<span class="status-badge" style="font-size: 9px; padding: 1px 5px; background: rgba(239,83,80,0.1); color: #ef5350;">Skipped</span>{% endif %}
+                                                            </div>
+                                                            {# Trainer note display #}
+                                                            {% if s.trainer_notes %}
+                                                                <div style="font-size: 11px; color: var(--color-teal); margin-bottom: 4px; padding: 3px 6px; background: rgba(0,229,229,0.05); border-radius: 3px;">
+                                                                    <i class="fas fa-comment-dots" style="margin-right: 4px;"></i>{{ s.trainer_notes }}
+                                                                </div>
+                                                            {% endif %}
+                                                            {# Inline feedback form #}
+                                                            <form method="POST" action="{{ url_for('trainer.add_set_notes', member_id=member.id, workout_id=workout.id) }}" style="display: flex; gap: 6px; align-items: stretch;">
+                                                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                                                <input type="hidden" name="set_id" value="{{ s.id }}">
+                                                                <input type="text" name="notes" value="{{ s.trainer_notes }}" placeholder="Add coaching note…" style="flex: 1; font-size: 11px; padding: 3px 8px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); min-width: 0;">
+                                                                <button type="submit" style="font-size: 11px; padding: 3px 10px; background: rgba(0,229,229,0.1); border: 1px solid var(--color-teal); color: var(--color-teal); border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;">Save</button>
+                                                            </form>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% elif workout.sets or workout.reps or workout.weight %}
                                                 <small class="text-secondary" style="font-size: 12px;">
                                                     {% if workout.sets %}<span>{{ workout.sets }} sets</span>{% endif %}
                                                     {% if workout.reps %}<span>{{ workout.reps }} reps</span>{% endif %}

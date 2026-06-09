@@ -45,6 +45,7 @@ class WorkoutForm(forms.ModelForm):
             'workout_date',
             'exercise_name',
             'exercise_category',
+            'muscle_group',
             'sets',
             'reps',
             'weight',

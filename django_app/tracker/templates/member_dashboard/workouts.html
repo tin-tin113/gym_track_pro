@@ -7,12 +7,57 @@
     <!-- Header -->
     <div class="page-header d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>💪 My Workouts</h1>
+            <h1><i class="fas fa-dumbbell me-2" style="color: var(--color-teal);"></i>My Workouts</h1>
             <p class="text-muted" style="margin-bottom: 0;">Track your gym activity, self-logged logs, and trainer-assigned workouts</p>
         </div>
         <a href="{{ url_for('member.create_workout') }}" class="btn btn-success">
             <i class="fas fa-plus"></i> Log New Workout
         </a>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="card p-3 mb-4" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+        <form method="GET" action="{{ url_for('member.list_workouts') }}" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label for="search" class="form-label text-muted small mb-1">Search Exercises</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-muted);"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="search" name="search" placeholder="e.g. Bench Press" value="{{ search_query or '' }}" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label for="category" class="form-label text-muted small mb-1">Category</label>
+                <select class="form-select" id="category" name="category" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); height: 38px;">
+                    <option value="">All Categories</option>
+                    <option value="Strength" {% if category_filter == 'Strength' %}selected{% endif %}>Strength</option>
+                    <option value="Cardio" {% if category_filter == 'Cardio' %}selected{% endif %}>Cardio</option>
+                    <option value="Flexibility" {% if category_filter == 'Flexibility' %}selected{% endif %}>Flexibility</option>
+                    <option value="Sports" {% if category_filter == 'Sports' %}selected{% endif %}>Sports</option>
+                    <option value="Other" {% if category_filter == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="muscle_group" class="form-label text-muted small mb-1">Muscle Group</label>
+                <select class="form-select" id="muscle_group" name="muscle_group" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary); height: 38px;">
+                    <option value="">All Muscles</option>
+                    {% for val, name in muscle_groups %}
+                    <option value="{{ val }}" {% if muscle_group_filter == val %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label for="date_from" class="form-label text-muted small mb-1">From Date</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from or '' }}" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
+            </div>
+            <div class="col-md-2">
+                <label for="date_to" class="form-label text-muted small mb-1">To Date</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to or '' }}" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-primary);">
+            </div>
+            <div class="col-md-1 d-flex gap-1" style="height: 38px;">
+                <button type="submit" class="btn btn-primary w-100" style="padding: 8px 12px; height: 100%;"><i class="fas fa-filter"></i></button>
+                <a href="{{ url_for('member.list_workouts') }}" class="btn btn-secondary" style="padding: 8px 12px; height: 100%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-sync-alt"></i></a>
+            </div>
+        </form>
     </div>
 
     {% if workouts %}
@@ -39,7 +84,12 @@
                                 <tr>
                                     <td><strong>{{ workout.workout_date }}</strong></td>
                                     <td>
-                                        <strong>{{ workout.exercise_name }}</strong>
+                                        <a href="{{ url_for('member.exercise_history') }}?exercise={{ workout.exercise_name|urlencode }}" class="text-decoration-none text-info font-bold">
+                                            {{ workout.exercise_name }}
+                                        </a>
+                                        {% if workout.sets_list.filter(is_pr=True).exists() %}
+                                            <span title="Personal Record! 🎉" style="margin-left: 4px; font-size: 13px; color: #FFD700; filter: drop-shadow(0 0 4px rgba(255,215,0,0.6));">🏆</span>
+                                        {% endif %}
                                         {% if workout.trainer_id %}
                                             <br><small class="text-muted">Assigned by {{ workout.trainer.full_name }}</small>
                                         {% endif %}
@@ -58,8 +108,18 @@
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        {% if workout.sets or workout.reps or workout.weight or workout.duration_minutes %}
+                                      <td>
+                                        {% if workout.sets_list.exists() %}
+                                            <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.3;">
+                                                {% for s in workout.sets_list.all() %}
+                                                    <span style="display: inline-flex; align-items: center; gap: 3px; background: {{ 'rgba(255,215,0,0.08)' if s.is_pr else 'rgba(0, 229, 229, 0.05)' }}; border: 1px solid {{ 'rgba(255,215,0,0.35)' if s.is_pr else 'rgba(0, 229, 229, 0.1)' }}; padding: 1px 4px; border-radius: var(--radius-sm); margin: 1px;">
+                                                        {% if s.is_pr %}<span style="font-size: 10px;" title="Personal Record!">🏆</span>{% endif %}
+                                                        S{{ s.set_number }}: {{ s.weight }}kg × {{ s.reps }}
+                                                        {% if s.trainer_notes %}<span title="{{ s.trainer_notes }}" style="cursor: help; color: var(--color-teal); font-size: 10px;">💬</span>{% endif %}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        {% elif workout.sets or workout.reps or workout.weight or workout.duration_minutes %}
                                             <small class="text-secondary" style="font-size: 12px;">
                                                 {% if workout.sets %}<span>{{ workout.sets }} sets</span>{% endif %}
                                                 {% if workout.reps %}<span>{{ workout.reps }} reps</span>{% endif %}
@@ -82,14 +142,21 @@
                                         {% endif %}
                                     </td>
                                     <td style="text-align: right; padding-right: var(--spacing-lg);">
-                                        <div class="row-actions" style="display: flex; gap: var(--spacing-sm); justify-content: flex-end;">
+                                        <div class="row-actions" style="display: flex; gap: var(--spacing-sm); justify-content: flex-end; align-items: center;">
+                                            <form method="POST" action="{{ url_for('member.clone_workout', workout_id=workout.id) }}" style="display:inline;">
+                                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                                <button type="submit" class="btn btn-small btn-primary" style="padding: 4px 10px; font-size: 11px; background: rgba(0, 229, 229, 0.08); border: 1px solid var(--color-teal); color: var(--color-teal);" title="Clone this workout to today">
+                                                    <i class="fas fa-copy"></i> Repeat
+                                                </button>
+                                            </form>
                                             {% if workout.trainer_id %}
-                                                <small class="text-muted">Read-only</small>
+                                                <small class="text-muted" style="margin-left: 4px;">Assigned</small>
                                             {% else %}
                                                 <a href="{{ url_for('member.edit_workout', workout_id=workout.id) }}" class="btn btn-small btn-secondary" style="padding: 4px 10px; font-size: 11px;">
                                                     <i class="fas fa-edit"></i> Edit
                                                 </a>
                                                 <form method="POST" action="{{ url_for('member.delete_workout', workout_id=workout.id) }}" style="display:inline;">
+                                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                                                     <button type="submit" class="btn btn-small btn-danger" style="padding: 4px 10px; font-size: 11px;" onclick="return confirm('Delete this workout?')">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </button>
@@ -109,10 +176,10 @@
         {% if pagination.pages > 1 %}
         <div class="pagination" style="display: flex; gap: var(--spacing-xs); margin-top: var(--spacing-lg); justify-content: center;">
             {% if pagination.has_prev %}
-                <a href="{{ url_for('member.list_workouts', page=1) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
+                <a href="{{ url_for('member.list_workouts', page=1, search=search_query, category=category_filter, muscle_group=muscle_group_filter, date_from=date_from, date_to=date_to) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
                     <i class="fas fa-angles-left"></i> First
                 </a>
-                <a href="{{ url_for('member.list_workouts', page=pagination.prev_num) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
+                <a href="{{ url_for('member.list_workouts', page=pagination.prev_num, search=search_query, category=category_filter, muscle_group=muscle_group_filter, date_from=date_from, date_to=date_to) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
                     <i class="fas fa-angle-left"></i>
                 </a>
             {% endif %}
@@ -122,34 +189,49 @@
                     {% if page_num == pagination.page %}
                         <span class="pagination-item active" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--color-teal); color: var(--bg-primary); font-weight: 700; border-radius: var(--radius-sm);">{{ page_num }}</span>
                     {% else %}
-                        <a href="{{ url_for('member.list_workouts', page=page_num) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-secondary); text-decoration: none;">{{ page_num }}</a>
+                        <a href="{{ url_for('member.list_workouts', page=page_num, search=search_query, category=category_filter, muscle_group=muscle_group_filter, date_from=date_from, date_to=date_to) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-secondary); text-decoration: none;">{{ page_num }}</a>
                     {% endif %}
                 {% endif %}
             {% endfor %}
 
             {% if pagination.has_next %}
-                <a href="{{ url_for('member.list_workouts', page=pagination.next_num) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
+                <a href="{{ url_for('member.list_workouts', page=pagination.next_num, search=search_query, category=category_filter, muscle_group=muscle_group_filter, date_from=date_from, date_to=date_to) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
                     <i class="fas fa-angle-right"></i>
                 </a>
-                <a href="{{ url_for('member.list_workouts', page=pagination.pages) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
+                <a href="{{ url_for('member.list_workouts', page=pagination.pages, search=search_query, category=category_filter, muscle_group=muscle_group_filter, date_from=date_from, date_to=date_to) }}" class="pagination-item" style="padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--color-teal); text-decoration: none;">
                     Last <i class="fas fa-angles-right"></i>
                 </a>
             {% endif %}
         </div>
         {% endif %}
     {% else %}
-        <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
-            <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(0, 229, 229, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(0, 229, 229, 0.2); box-shadow: var(--shadow-teal);">
-                <i class="fas fa-dumbbell" style="font-size: 24px; color: var(--color-teal);"></i>
+        {% if search_query or category_filter or muscle_group_filter or date_from or date_to %}
+            <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
+                <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(239, 83, 80, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(239, 83, 80, 0.2);">
+                    <i class="fas fa-search-minus" style="font-size: 24px; color: var(--color-danger);"></i>
+                </div>
+                <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: var(--text-primary);">No matching workouts</h3>
+                <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
+                    No logs found with the selected filters. Try clearing your search parameters.
+                </p>
+                <a href="{{ url_for('member.list_workouts') }}" class="btn btn-secondary" style="padding: 10px 24px; font-size: 13px;">
+                    Clear Filters
+                </a>
             </div>
-            <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: var(--text-primary);">No workouts logged</h3>
-            <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
-                You haven't logged any workouts or received any plans yet. Log your first workout session to get started!
-            </p>
-            <a href="{{ url_for('member.create_workout') }}" class="btn btn-success" style="padding: 10px 24px; font-size: 13px;">
-                <i class="fas fa-plus"></i> Log First Workout
-            </a>
-        </div>
+        {% else %}
+            <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
+                <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(0, 229, 229, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(0, 229, 229, 0.2); box-shadow: var(--shadow-teal);">
+                    <i class="fas fa-dumbbell" style="font-size: 24px; color: var(--color-teal);"></i>
+                </div>
+                <h3 style="margin-bottom: var(--spacing-xs); text-transform: uppercase; font-family: var(--font-family-headers); color: var(--text-primary);">No workouts logged</h3>
+                <p class="text-muted" style="max-width: 400px; font-size: 14px; margin-bottom: var(--spacing-lg);">
+                    You haven't logged any workouts or received any plans yet. Log your first workout session to get started!
+                </p>
+                <a href="{{ url_for('member.create_workout') }}" class="btn btn-success" style="padding: 10px 24px; font-size: 13px;">
+                    <i class="fas fa-plus"></i> Log First Workout
+                </a>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 {% endblock %}

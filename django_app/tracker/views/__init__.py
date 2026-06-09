@@ -28,6 +28,8 @@ from .member import (
     member_workout_form,
     member_edit_workout,
     member_delete_workout,
+    member_exercise_history,
+    member_clone_workout,
     member_programs,
     member_current_diet,
     member_log_meal,
@@ -40,6 +42,7 @@ from .member import (
     member_renew,
     member_approve_renewal,
     member_reject_renewal,
+    start_assigned_guide_session,
 )
 
 from .attendance import (
@@ -105,6 +108,7 @@ from .trainer import (
     trainer_member_diet,
     trainer_assign_diet_to_member,
     trainer_remove_member_diet,
+    trainer_add_set_notes,
     admin_dashboard,
     admin_pending_approvals,
     admin_pending_guides,

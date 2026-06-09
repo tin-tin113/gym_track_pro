@@ -7,13 +7,13 @@
     <div class="col-md-8">
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
-                <h3>{% if trainer %}✏️ Edit{% else %}➕ Create{% endif %} Trainer</h3>
+                <h3>{% if trainer %}<i class="fas fa-edit me-1"></i> Edit{% else %}<i class="fas fa-plus me-1"></i> Create{% endif %} Trainer</h3>
             </div>
             <div class="card-body">
                 <form method="POST" novalidate>
                     <!-- Personal Information -->
                     <div class="mb-4">
-                        <h5 class="text-muted">👤 Personal Information</h5>
+                        <h5 class="text-muted"><i class="fas fa-user me-2" style="color: var(--color-teal);"></i>Personal Information</h5>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -46,7 +46,7 @@
                     <!-- Professional Information -->
                     <hr class="my-4">
                     <div class="mb-4">
-                        <h5 class="text-muted">🏋️ Professional Information</h5>
+                        <h5 class="text-muted"><i class="fas fa-dumbbell me-2" style="color: var(--color-teal);"></i>Professional Information</h5>
 
                         <div class="mb-3">
                             <label for="specialization" class="form-label">Specialization(s)</label>
@@ -75,7 +75,7 @@
                     {% if trainer %}
                     <hr class="my-4">
                     <div class="mb-4">
-                        <h5 class="text-muted">🔐 Account Setup Status</h5>
+                        <h5 class="text-muted"><i class="fas fa-lock me-2" style="color: var(--color-teal);"></i>Account Setup Status</h5>
 
                         {% if has_setup_token %}
                             {% if is_setup_valid %}
@@ -123,7 +123,7 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('trainer.list_trainers') }}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
-                            {% if trainer %}💾 Update Trainer{% else %}✅ Create Trainer{% endif %}
+                            {% if trainer %}<i class="fas fa-save me-1"></i> Update Trainer{% else %}<i class="fas fa-check me-1"></i> Create Trainer{% endif %}
                         </button>
                     </div>
                 </form>

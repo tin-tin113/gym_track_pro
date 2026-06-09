@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>🎯 Manage Member Assignments</h2>
+    <h2><i class="fas fa-bullseye me-2" style="color: var(--color-teal);"></i>Manage Member Assignments</h2>
     <a href="{{ url_for('trainer.list_trainers') }}" class="btn btn-secondary">← Back</a>
 </div>
 
@@ -22,7 +22,7 @@
             <dd class="col-sm-8">
                 <span class="badge bg-info">{{ assignments|length }}/{{ trainer.max_clients }}</span>
                 {% if trainer.is_at_capacity() %}
-                    <span class="badge bg-warning">⚠️ At Capacity</span>
+                    <span class="badge bg-warning"><i class="fas fa-exclamation-triangle me-1"></i> At Capacity</span>
                 {% endif %}
             </dd>
         </dl>
@@ -34,7 +34,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-success text-white">
-                <h5 class="mb-0">✓ Assigned Members ({{ assignments|length }})</h5>
+                <h5 class="mb-0"><i class="fas fa-check me-2" style="color: var(--color-success);"></i>Assigned Members ({{ assignments|length }})</h5>
             </div>
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                 <table class="table table-sm table-hover mb-0">
@@ -70,7 +70,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">➕ Unassigned Members ({{ unassigned_members|length }})</h5>
+                <h5 class="mb-0"><i class="fas fa-plus me-2" style="color: var(--color-teal);"></i>Unassigned Members ({{ unassigned_members|length }})</h5>
             </div>
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
                 <table class="table table-sm table-hover mb-0">
@@ -79,7 +79,7 @@
                             {% if trainer.is_at_capacity() %}
                             <tr>
                                 <td colspan="2" class="text-center text-warning py-3">
-                                    <strong>⚠️ Trainer is at maximum capacity</strong>
+                                    <strong><i class="fas fa-exclamation-triangle me-1"></i> Trainer is at maximum capacity</strong>
                                 </td>
                             </tr>
                             {% endif %}

@@ -16,7 +16,10 @@ from .models import (
 	Workout,
 	WorkoutGuide,
 	WorkoutTip,
+	WorkoutSet,
+	GuideAssignment,
 )
+
 
 
 class TrainerModuleSmokeTests(TestCase):
@@ -579,6 +582,305 @@ class AttendanceCheckInTests(TestCase):
 		html = response.content.decode()
 		undo_section = html.split('id="undo_member_id"')[1].split('</select>')[0]
 		self.assertIn(f'value="{self.member.id}"', undo_section)
+
+
+class MemberWorkoutImprovementTests(TestCase):
+	def setUp(self):
+		self.today = timezone.localdate()
+		self.member_user = User.objects.create_user(username='member_workout_test', email='mworkout@gym.local', password='pw')
+		self.member_user.role = User.Role.MEMBER
+		self.member_user.full_name = 'Workout Member'
+		self.member_user.save(update_fields=['role', 'full_name'])
+		self.member = Member.objects.create(
+			user=self.member_user,
+			membership_start_date=self.today - timedelta(days=5),
+			membership_expiry_date=self.today + timedelta(days=25),
+			is_active=True,
+			is_approved=True,
+		)
+		self.client.force_login(self.member_user)
+
+	def test_member_workouts_list_filtering(self):
+		w1 = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today,
+			exercise_name='Barbell Curl',
+			exercise_category='Strength',
+			muscle_group='arms',
+			sets=3,
+			reps=10,
+			weight=60.0,
+			intensity='moderate',
+		)
+		w2 = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=1),
+			exercise_name='Treadmill Run',
+			exercise_category='Cardio',
+			muscle_group='cardio',
+			duration_minutes=30,
+			distance_km=5.0,
+			intensity='intense',
+		)
+
+		# 1. Search filter
+		resp = self.client.get(reverse('member.list_workouts') + '?search=Barbell')
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Barbell Curl')
+		self.assertNotContains(resp, 'Treadmill Run')
+
+		# 2. Category filter
+		resp = self.client.get(reverse('member.list_workouts') + '?category=Cardio')
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Treadmill Run')
+		self.assertNotContains(resp, 'Barbell Curl')
+
+		# 3. Muscle Group filter
+		resp = self.client.get(reverse('member.list_workouts') + '?muscle_group=arms')
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Barbell Curl')
+		self.assertNotContains(resp, 'Treadmill Run')
+
+		# 4. Date filter
+		resp = self.client.get(reverse('member.list_workouts') + f'?date_from={self.today}&date_to={self.today}')
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Barbell Curl')
+		self.assertNotContains(resp, 'Treadmill Run')
+
+	def test_member_dashboard_workout_statistics(self):
+		Workout.objects.create(
+			member=self.member,
+			workout_date=self.today,
+			exercise_name='Barbell Curl',
+			exercise_category='Strength',
+			muscle_group='arms',
+			sets=3,
+			reps=10,
+			weight=60.0,
+		)
+		Workout.objects.create(
+			member=self.member,
+			workout_date=self.today,
+			exercise_name='Squat',
+			exercise_category='Strength',
+			muscle_group='legs',
+			sets=3,
+			reps=5,
+			weight=100.0,
+		)
+		Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=1),
+			exercise_name='Running',
+			exercise_category='Cardio',
+			duration_minutes=30,
+			distance_km=5.0,
+		)
+
+		resp = self.client.get(reverse('member.member_dashboard'))
+		self.assertEqual(resp.status_code, 200)
+		
+		# Assert metrics and statistics are removed from the dashboard response
+		self.assertNotContains(resp, 'Total Workouts')
+		self.assertNotContains(resp, 'Weekly Frequency')
+		self.assertNotContains(resp, 'Training Balance')
+
+	def test_member_exercise_history_view(self):
+		# Create progressive overload workouts
+		Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=2),
+			exercise_name='Barbell Curl',
+			exercise_category='Strength',
+			muscle_group='arms',
+			sets=3,
+			reps=10,
+			weight=50.0,
+		)
+		Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=1),
+			exercise_name='Barbell Curl',
+			exercise_category='Strength',
+			muscle_group='arms',
+			sets=3,
+			reps=8,
+			weight=60.0,
+		)
+
+		resp = self.client.get(reverse('member.exercise_history') + '?exercise=Barbell%20Curl')
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Barbell Curl History')
+		
+		# Verify PR badges are rendered in response
+		self.assertContains(resp, 'PR')
+		self.assertContains(resp, '1RM PR')
+		self.assertContains(resp, '50.0')
+		self.assertContains(resp, '60.0')
+
+	def test_member_clone_workout_success(self):
+		orig = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today - timedelta(days=2),
+			exercise_name='Deadlift',
+			exercise_category='Strength',
+			muscle_group='back',
+			sets=1,
+			reps=5,
+			weight=140.0,
+			notes='Heavy session',
+		)
+
+		resp = self.client.post(reverse('member.clone_workout', kwargs={'workout_id': orig.id}))
+		self.assertEqual(resp.status_code, 302)
+
+		cloned = Workout.objects.filter(exercise_name='Deadlift').order_by('-id').first()
+		self.assertNotEqual(cloned.id, orig.id)
+		self.assertEqual(cloned.workout_date, self.today)
+		self.assertEqual(cloned.sets, 1)
+		self.assertEqual(cloned.reps, 5)
+		self.assertEqual(cloned.weight, 140.0)
+		self.assertEqual(cloned.notes, 'Heavy session')
+
+
+class AdvancedFitnessLoggingTests(TestCase):
+	def setUp(self):
+		self.today = timezone.localdate()
+		self.member_user = User.objects.create_user(username='adv_member', email='adv@gym.local', password='pw')
+		self.member_user.role = User.Role.MEMBER
+		self.member_user.save(update_fields=['role'])
+		self.member = Member.objects.create(
+			user=self.member_user,
+			membership_start_date=self.today - timedelta(days=2),
+			membership_expiry_date=self.today + timedelta(days=28),
+			is_active=True,
+			is_approved=True,
+		)
+		self.client.force_login(self.member_user)
+
+	def test_workout_set_volume_and_1rm_properties(self):
+		workout = Workout.objects.create(
+			member=self.member,
+			workout_date=self.today,
+			exercise_name='Bench Press',
+			exercise_category='Strength',
+		)
+		s1 = WorkoutSet.objects.create(
+			workout=workout, set_number=1, weight=60.0, reps=10, is_completed=True
+		)
+		s2 = WorkoutSet.objects.create(
+			workout=workout, set_number=2, weight=70.0, reps=8, is_completed=True
+		)
+		s3 = WorkoutSet.objects.create(
+			workout=workout, set_number=3, weight=80.0, reps=6, is_completed=True
+		)
+		s4 = WorkoutSet.objects.create(
+			workout=workout, set_number=4, weight=90.0, reps=5, is_completed=False  # not completed
+		)
+
+		# Completed volume: (60*10) + (70*8) + (80*6) = 600 + 560 + 480 = 1640
+		self.assertEqual(workout.get_volume(), 1640.0)
+
+		# Max completed weight: 80.0
+		self.assertEqual(workout.get_max_weight(), 80.0)
+
+		# Estimated 1RM max completed:
+		# s1: 60 * (1 + 10/30) = 80.0
+		# s2: 70 * (1 + 8/30) = 88.66
+		# s3: 80 * (1 + 6/30) = 96.0
+		# max: 96.0
+		self.assertAlmostEqual(workout.get_max_estimated_1rm(), 96.0)
+
+	def test_member_workout_form_multiple_sets_saving(self):
+		post_data = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'muscle_group': 'chest',
+			'exercise_name': 'Bench Press',
+			'sets': 3,
+			'reps': 10,
+			'weight': 60,
+			'intensity': 'moderate',
+			'notes': 'Some notes',
+			'sets_data': '[{"set_number":1,"weight":60,"reps":10,"is_completed":true},{"set_number":2,"weight":65,"reps":8,"is_completed":true},{"set_number":3,"weight":70,"reps":6,"is_completed":true}]'
+		}
+		resp = self.client.post(reverse('member.create_workout'), post_data)
+		self.assertEqual(resp.status_code, 302)
+
+		workout = Workout.objects.filter(member=self.member, exercise_name='Bench Press').first()
+		self.assertIsNotNone(workout)
+		self.assertEqual(workout.sets_list.count(), 3)
+		
+		# Summary fields should match the max/total
+		self.assertEqual(workout.sets, 3)
+		self.assertEqual(workout.reps, 10)  # max reps
+		self.assertEqual(workout.weight, 70.0)  # max weight
+
+	def test_start_assigned_guide_session_flow(self):
+		trainer_user = User.objects.create_user(username='tr_guide', email='tr@gym.local', password='pw')
+		guide = WorkoutGuide.objects.create(
+			name='PPL Push',
+			category='Strength',
+			difficulty_level='Intermediate',
+			trainer=trainer_user,
+			status=WorkoutGuide.Status.APPROVED
+		)
+		tip1 = WorkoutTip.objects.create(
+			guide=guide, exercise_name='Overhead Press', tip_category='Strength', content='Press heavy', order=1
+		)
+		tip2 = WorkoutTip.objects.create(
+			guide=guide, exercise_name='Incline Bench', tip_category='Strength', content='30 deg incline', order=2
+		)
+		assignment = GuideAssignment.objects.create(
+			guide=guide, member=self.member, trainer=trainer_user, is_active=True
+		)
+
+		# 1. Trigger Start Guide View
+		start_url = reverse('member.start_assigned_guide_session', kwargs={'assignment_id': assignment.id})
+		resp = self.client.get(start_url)
+		expected_redirect = reverse('member.create_workout') + f"?guide_id={guide.id}&tip_index=0"
+		self.assertRedirects(resp, expected_redirect)
+
+		# 2. Perform GET on the redirected form page
+		resp = self.client.get(expected_redirect)
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Overhead Press')  # prefilled exercise name
+
+		# 3. Post first exercise log
+		post_data_1 = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'exercise_name': 'Overhead Press',
+			'sets': 3,
+			'reps': 10,
+			'weight': 40,
+			'intensity': 'moderate',
+			'sets_data': '[{"set_number":1,"weight":40,"reps":10,"is_completed":true}]'
+		}
+		resp = self.client.post(reverse('member.create_workout') + f"?guide_id={guide.id}&tip_index=0", post_data_1)
+		self.assertRedirects(resp, reverse('member.create_workout') + f"?guide_id={guide.id}&tip_index=1")
+
+		w1 = Workout.objects.filter(exercise_name='Overhead Press').first()
+		self.assertEqual(w1.guide, guide)
+		self.assertEqual(w1.guide_assignment, assignment)
+
+		# 4. Post second (last) exercise log
+		post_data_2 = {
+			'workout_date': self.today.strftime('%Y-%m-%d'),
+			'exercise_category': 'Strength',
+			'exercise_name': 'Incline Bench',
+			'sets': 3,
+			'reps': 8,
+			'weight': 60,
+			'intensity': 'intense',
+			'sets_data': '[{"set_number":1,"weight":60,"reps":8,"is_completed":true}]'
+		}
+		resp = self.client.post(reverse('member.create_workout') + f"?guide_id={guide.id}&tip_index=1", post_data_2)
+		self.assertRedirects(resp, reverse('member.member_programs'))
+
+		assignment.refresh_from_db()
+		self.assertTrue(assignment.is_completed)
+		self.assertIsNotNone(assignment.completion_date)
 
 
 

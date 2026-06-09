@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% block title %}{{ exercise_name }} Progress History - GymTrack Pro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><a href="{{ url_for('member.list_workouts') }}" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i></a> {{ exercise_name }} History</h1>
+            <p class="text-muted" style="margin-bottom: 0;">Progressive overload tracking and performance metrics over time</p>
+        </div>
+        <a href="{{ url_for('member.create_workout') }}?exercise_name={{ exercise_name }}&exercise_category={{ category }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Log This Exercise
+        </a>
+    </div>
+
+    <!-- Overview Cards Row -->
+    <div class="row g-3 mb-4">
+        {% if category == 'Strength' %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Personal Record (PR)</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ max_weight }} <span style="font-size: 14px; font-weight: 500;">kg</span></h2>
+                <small class="text-muted">highest weight lifted</small>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Estimated 1RM Max</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ max_1rm }} <span style="font-size: 14px; font-weight: 500;">kg</span></h2>
+                <small class="text-muted">based on Epley formula</small>
+            </div>
+        </div>
+        {% elif category == 'Cardio' %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Max Distance</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ max_distance }} <span style="font-size: 14px; font-weight: 500;">km</span></h2>
+                <small class="text-muted">longest run/ride</small>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Max Duration</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ max_duration }} <span style="font-size: 14px; font-weight: 500;">mins</span></h2>
+                <small class="text-muted">longest session</small>
+            </div>
+        </div>
+        {% endif %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Total Logs</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--text-primary); margin: 0;">{{ workouts|length }}</h2>
+                <small class="text-muted">times logged</small>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card p-3 text-center" style="border-left: 3px solid var(--color-teal); background-color: var(--bg-secondary);">
+                <span class="text-muted small text-uppercase font-bold tracking-wider mb-1">Category</span>
+                <h2 style="font-size: 28px; font-weight: 800; color: var(--color-teal); margin: 0;">{{ category }}</h2>
+                <small class="text-muted">exercise category</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Card -->
+    <div class="card mb-4" style="border-left: none; padding: var(--spacing-lg);">
+        <h3 class="mb-3" style="font-size: 16px; font-family: var(--font-family-headers); color: var(--text-primary);">
+            <i class="fas fa-chart-line" style="color: var(--color-teal); margin-right: 8px;"></i>
+            Performance Trend Over Time
+        </h3>
+        <div style="position: relative; height: 300px; width: 100%;">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+
+    <!-- History Log Table -->
+    <div class="card" style="border-left: none; padding: 0; overflow: hidden; margin-bottom: var(--spacing-xl);">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-history" style="color: var(--color-teal); margin-right: 8px;"></i> Detailed History Log</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="data-table" style="border-radius: 0; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            {% if category == 'Strength' %}
+                                <th>Sets</th>
+                                <th>Reps</th>
+                                <th>Weight</th>
+                                <th>Estimated 1RM</th>
+                            {% elif category == 'Cardio' %}
+                                <th>Duration</th>
+                                <th>Distance</th>
+                            {% endif %}
+                            <th>Intensity</th>
+                            <th>Source</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in workouts %}
+                            <tr>
+                                <td><strong>{{ w.workout_date }}</strong></td>
+                                {% if category == 'Strength' %}
+                                    <td>{{ w.sets or '—' }}</td>
+                                    <td>{{ w.reps or '—' }}</td>
+                                    <td>
+                                        <strong>{{ w.weight or '—' }}</strong> {% if w.weight %}kg{% endif %}
+                                        {% if w.is_weight_pr %}
+                                            <span class="status-badge status-expired" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;"><i class="fas fa-fire"></i> PR</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ w.estimated_1rm or '—' }}</strong> {% if w.estimated_1rm %}kg{% endif %}
+                                        {% if w.is_1rm_pr %}
+                                            <span class="status-badge status-success" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;"><i class="fas fa-trophy"></i> 1RM PR</span>
+                                        {% endif %}
+                                    </td>
+                                {% elif category == 'Cardio' %}
+                                    <td>
+                                        {{ w.duration_minutes or '—' }} {% if w.duration_minutes %}mins{% endif %}
+                                        {% if w.is_duration_pr %}
+                                            <span class="status-badge status-expired" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;"><i class="fas fa-fire"></i> PR</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ w.distance_km or '—' }} {% if w.distance_km %}km{% endif %}
+                                        {% if w.is_distance_pr %}
+                                            <span class="status-badge status-success" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;"><i class="fas fa-trophy"></i> PR</span>
+                                        {% endif %}
+                                    </td>
+                                {% endif %}
+                                <td>
+                                    {% if w.intensity == 'light' %}
+                                        <span class="status-badge status-success" style="font-size: 10px; padding: 2px 8px;">Light</span>
+                                    {% elif w.intensity == 'moderate' %}
+                                        <span class="status-badge status-pending" style="font-size: 10px; padding: 2px 8px;">Moderate</span>
+                                    {% elif w.intensity == 'intense' %}
+                                        <span class="status-badge status-expired" style="font-size: 10px; padding: 2px 8px;">Intense</span>
+                                    {% else %}
+                                        <span class="status-badge status-active" style="font-size: 10px; padding: 2px 8px;">{{ w.intensity|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if w.trainer_id %}
+                                        <span class="status-badge status-pending" style="font-size: 10px; padding: 2px 8px;"><i class="fas fa-user-tie"></i> Assigned</span>
+                                    {% else %}
+                                        <span class="status-badge status-success" style="font-size: 10px; padding: 2px 8px;"><i class="fas fa-check"></i> Logged</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="text-secondary small">{{ w.notes or '—' }}</span></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dates = {{ chart_dates|tojson }};
+        const category = "{{ category }}";
+        
+        let datasets = [];
+        
+        if (category === 'Strength') {
+            datasets = [
+                {
+                    label: 'Weight Lifted (kg)',
+                    data: {{ chart_weights|tojson }},
+                    borderColor: '#00e5e5', // Teal
+                    backgroundColor: 'rgba(0, 229, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Estimated 1RM (kg)',
+                    data: {{ chart_1rms|tojson }},
+                    borderColor: '#ff5350', // Coral/Red
+                    backgroundColor: 'rgba(255, 83, 80, 0.05)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                }
+            ];
+        } else if (category === 'Cardio') {
+            datasets = [
+                {
+                    label: 'Distance (km)',
+                    data: {{ chart_distances|tojson }},
+                    borderColor: '#00e5e5', // Teal
+                    backgroundColor: 'rgba(0, 229, 229, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Duration (minutes)',
+                    data: {{ chart_durations|tojson }},
+                    borderColor: '#ffca28', // Yellow
+                    backgroundColor: 'rgba(255, 202, 40, 0.05)',
+                    borderWidth: 2,
+                    borderDash: [3, 3],
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y2'
+                }
+            ];
+        }
+        
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        
+        let chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: 'var(--text-secondary)'
+                    }
+                },
+                y: {
+                    position: 'left',
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.05)'
+                    },
+                    ticks: {
+                        color: 'var(--text-secondary)'
+                    },
+                    title: {
+                        display: true,
+                        text: category === 'Strength' ? 'Weight (kg)' : 'Distance (km)',
+                        color: 'var(--text-secondary)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'var(--text-primary)'
+                    }
+                }
+            }
+        };
+        
+        if (category === 'Cardio') {
+            chartOptions.scales.y2 = {
+                position: 'right',
+                grid: {
+                    drawOnChartArea: false
+                },
+                ticks: {
+                    color: 'var(--text-secondary)'
+                },
+                title: {
+                    display: true,
+                    text: 'Duration (minutes)',
+                    color: 'var(--text-secondary)'
+                }
+            };
+        }
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: chartOptions
+        });
+    });
+</script>
+{% endblock %}

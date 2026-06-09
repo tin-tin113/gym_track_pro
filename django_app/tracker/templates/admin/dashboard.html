@@ -10,7 +10,7 @@
 <div class="alert alert-danger animate-fadeIn" style="border-left: 4px solid var(--color-danger); background-color: rgba(239, 68, 68, 0.05); padding: var(--spacing-md) var(--spacing-lg); margin-bottom: var(--spacing-lg); display: flex; gap: var(--spacing-md); align-items: center; border-radius: var(--radius-sm);">
     <div class="alert-icon" style="color: var(--color-danger); font-size: 16px;"><i class="fas fa-exclamation-circle"></i></div>
     <div style="flex: 1;">
-        <h5 style="color: var(--color-danger); font-weight: 700; margin-bottom: 4px; font-size: 14px; font-family: var(--font-family-headers); text-transform: uppercase;">⚠️ Expiring Members Alert</h5>
+        <h5 style="color: var(--color-danger); font-weight: 700; margin-bottom: 4px; font-size: 14px; font-family: var(--font-family-headers); text-transform: uppercase;"><i class="fas fa-exclamation-triangle me-2"></i>Expiring Members Alert</h5>
         <p style="margin-bottom: 0; font-size: 13px; color: var(--text-primary);">
             The following member(s) have memberships expiring within the next 7 days:
             {% for m in expiring_members %}

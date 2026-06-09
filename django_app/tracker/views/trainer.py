@@ -28,6 +28,7 @@ from tracker.models import (
 	MealPlan,
 	DietAssignment,
 	GuestVisit,
+	WorkoutSet,
 )
 from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range
 
@@ -1901,3 +1902,43 @@ def trainer_manage_assignments(request: HttpRequest, trainer_id: int) -> HttpRes
 			"unassigned_members": unassigned_members,
 		},
 	)
+
+
+def trainer_add_set_notes(request: HttpRequest, member_id: int, workout_id: int) -> HttpResponse:
+	"""Trainer endpoint: add or update coaching feedback on a specific WorkoutSet."""
+	if not _require_trainer_or_admin(request):
+		messages.error(request, 'Access denied.')
+		return redirect('auth.login')
+
+	member = Member.objects.filter(id=member_id).first()
+	if member is None:
+		messages.error(request, 'Member not found.')
+		return redirect('trainer.members')
+	if not _can_view_member_as_trainer(request, member):
+		messages.error(request, 'Access denied.')
+		return redirect('trainer.members')
+
+	workout = Workout.objects.filter(id=workout_id, member=member).first()
+	if workout is None:
+		messages.error(request, 'Workout not found.')
+		return redirect('trainer.member_workouts', member_id=member.id)
+
+	if request.method != 'POST':
+		return redirect('trainer.member_workouts', member_id=member.id)
+
+	set_id = (request.POST.get('set_id') or '').strip()
+	notes = (request.POST.get('notes') or '').strip()[:1000]
+
+	if not set_id:
+		messages.error(request, 'No set specified.')
+		return redirect('trainer.member_workouts', member_id=member.id)
+
+	try:
+		workout_set = WorkoutSet.objects.get(id=int(set_id), workout=workout)
+		workout_set.trainer_notes = notes
+		workout_set.save(update_fields=['trainer_notes'])
+		messages.success(request, f'Feedback saved for Set {workout_set.set_number}.')
+	except (WorkoutSet.DoesNotExist, ValueError):
+		messages.error(request, 'Set not found.')
+
+	return redirect('trainer.member_workouts', member_id=member.id)

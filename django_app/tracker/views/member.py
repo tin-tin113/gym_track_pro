@@ -13,8 +13,10 @@ from django.db.models import Avg, Count, Q, Sum
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.urls import reverse
 
-from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip, Subscription
+import json
+from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip, Subscription, WorkoutSet
 from tracker.forms import MemberForm, WorkoutForm, MemberProfileForm
 from .base import _require_roles, _require_member_access, _PaginationAdapter
 
@@ -322,6 +324,7 @@ def member_dashboard(request: HttpRequest) -> HttpResponse:
 		.order_by('-workout_date', '-id')[:5]
 	)
 
+
 	# Fetch timezone-aware attendance history over the last 14 days
 	grid_start_datetime = timezone.make_aware(timezone.datetime.combine(today - timedelta(days=13), timezone.datetime.min.time()))
 	check_in_datetimes = Attendance.objects.filter(
@@ -595,12 +598,31 @@ def member_workouts(request: HttpRequest) -> HttpResponse:
 		messages.error(request, 'Access denied.')
 		return redirect('home')
 
+	search_query = (request.GET.get('search') or '').strip()
+	category_filter = (request.GET.get('category') or '').strip()
+	muscle_group_filter = (request.GET.get('muscle_group') or '').strip()
+	date_from = (request.GET.get('date_from') or '').strip()
+	date_to = (request.GET.get('date_to') or '').strip()
+
 	try:
 		page_number = int(request.GET.get('page') or '1')
 	except ValueError:
 		page_number = 1
 
-	qs = Workout.objects.select_related('trainer').filter(member=member).order_by('-workout_date', '-id')
+	qs = Workout.objects.select_related('trainer').filter(member=member)
+
+	if search_query:
+		qs = qs.filter(exercise_name__icontains=search_query)
+	if category_filter:
+		qs = qs.filter(exercise_category=category_filter)
+	if muscle_group_filter:
+		qs = qs.filter(muscle_group=muscle_group_filter)
+	if date_from:
+		qs = qs.filter(workout_date__gte=date_from)
+	if date_to:
+		qs = qs.filter(workout_date__lte=date_to)
+
+	qs = qs.order_by('-workout_date', '-id')
 	paginator = Paginator(qs, 10)
 	page_obj = paginator.get_page(page_number)
 	pagination = _PaginationAdapter(paginator, page_obj)
@@ -611,8 +633,96 @@ def member_workouts(request: HttpRequest) -> HttpResponse:
 		{
 			"workouts": list(page_obj.object_list),
 			"pagination": pagination,
+			"search_query": search_query,
+			"category_filter": category_filter,
+			"muscle_group_filter": muscle_group_filter,
+			"date_from": date_from,
+			"date_to": date_to,
+			"muscle_groups": Workout.MuscleGroup.choices,
 		},
 	)
+
+
+def _save_workout_sets(workout, sets_data_str):
+	if workout.exercise_category != 'Strength':
+		workout.sets_list.all().delete()
+		return
+
+	if not sets_data_str:
+		return
+	try:
+		sets_data = json.loads(sets_data_str)
+		if not isinstance(sets_data, list):
+			return
+		
+		valid_sets = [s for s in sets_data if isinstance(s, dict) and 'reps' in s and 'weight' in s]
+		
+		# Always clear existing sets first
+		workout.sets_list.all().delete()
+		
+		if not valid_sets:
+			return
+
+		# Update workout summary fields
+		workout.sets = len(valid_sets)
+		workout.reps = int(max(s.get('reps') or 0 for s in valid_sets))
+		workout.weight = float(max(s.get('weight') or 0.0 for s in valid_sets))
+		workout.save(update_fields=['sets', 'reps', 'weight'])
+
+		# --- PR Detection ---
+		# Compute the member's all-time best weight and 1RM for this exercise
+		# from WorkoutSets in other workouts (not the current one being saved).
+		from django.db.models import Max
+		prior_sets = WorkoutSet.objects.filter(
+			workout__member=workout.member,
+			workout__exercise_name__iexact=workout.exercise_name,
+			is_completed=True,
+		).exclude(workout_id=workout.id)
+
+		# Aggregate best weight from prior sets
+		prior_best_weight = prior_sets.aggregate(best=Max('weight'))['best'] or 0.0
+
+		# Compute best prior estimated 1RM in Python (weight * (1 + reps/30))
+		prior_best_1rm = 0.0
+		for ps in prior_sets.values('weight', 'reps'):
+			w, r = ps.get('weight') or 0.0, ps.get('reps') or 0
+			if r and w:
+				est = w * (1 + r / 30.0)
+				if est > prior_best_1rm:
+					prior_best_1rm = est
+
+		# Track the running best within *this* save session
+		session_best_weight = prior_best_weight
+		session_best_1rm = prior_best_1rm
+
+		for item in valid_sets:
+			weight = float(item.get('weight') or 0.0)
+			reps = int(item.get('reps') or 0)
+			is_completed = bool(item.get('is_completed') or item.get('done') or False)
+
+			is_pr = False
+			if is_completed and weight and reps:
+				est_1rm = weight * (1 + reps / 30.0)
+				if weight > session_best_weight or est_1rm > session_best_1rm:
+					is_pr = True
+					# Update running session bests so only the first new-record
+					# set is flagged per session (avoid tagging every subsequent set)
+					if weight > session_best_weight:
+						session_best_weight = weight
+					if est_1rm > session_best_1rm:
+						session_best_1rm = est_1rm
+
+			WorkoutSet.objects.create(
+				workout=workout,
+				set_number=int(item.get('set_number') or 1),
+				reps=reps,
+				weight=weight,
+				set_type=item.get('set_type') or 'working',
+				is_completed=is_completed,
+				is_pr=is_pr,
+			)
+	except Exception as e:
+		print("Error saving workout sets:", e)
 
 
 def member_workout_form(request: HttpRequest) -> HttpResponse:
@@ -625,6 +735,30 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 		messages.error(request, 'Access denied.')
 		return redirect('home')
 
+	guide_id_str = request.GET.get('guide_id')
+	tip_index_str = request.GET.get('tip_index', '0')
+	
+	guide = None
+	guide_assignment = None
+	tip_index = 0
+	tips = []
+	current_tip = None
+	
+	if guide_id_str:
+		try:
+			guide_id = int(guide_id_str)
+			tip_index = int(tip_index_str)
+			guide_assignment = GuideAssignment.objects.filter(
+				member=member, guide_id=guide_id, is_active=True, is_completed=False
+			).first()
+			if guide_assignment:
+				guide = guide_assignment.guide
+				tips = list(guide.tips.order_by('order', 'id'))
+				if 0 <= tip_index < len(tips):
+					current_tip = tips[tip_index]
+		except Exception as e:
+			print("Error reading guide assignment:", e)
+
 	if request.method == 'POST':
 		workout_date_str = (request.POST.get('workout_date') or '').strip()
 		exercise_name = (request.POST.get('exercise_name') or '').strip()
@@ -632,20 +766,74 @@ def member_workout_form(request: HttpRequest) -> HttpResponse:
 
 		if not workout_date_str or not exercise_name or not exercise_category:
 			messages.error(request, 'Please fill in all required fields.')
-			return redirect('member.create_workout')
+			return redirect(request.get_full_path())
 
 		form = WorkoutForm(request.POST)
 		if form.is_valid():
 			workout = form.save(commit=False)
 			workout.member = member
+			if guide:
+				workout.guide = guide
+				workout.guide_assignment = guide_assignment
 			workout.save()
-			messages.success(request, 'Workout logged.')
-			return redirect('member.list_workouts')
+			_save_workout_sets(workout, request.POST.get('sets_data'))
+			
+			if guide_assignment and tips:
+				next_index = tip_index + 1
+				if next_index < len(tips):
+					messages.success(
+						request, 
+						f'Exercise logged. Next up: "{tips[next_index].exercise_name}".'
+					)
+					return redirect(reverse('member.create_workout') + f"?guide_id={guide.id}&tip_index={next_index}")
+				else:
+					# Complete the guide
+					guide_assignment.is_completed = True
+					guide_assignment.completion_date = timezone.now()
+					guide_assignment.save(update_fields=['is_completed', 'completion_date', 'updated_at'])
+					messages.success(
+						request, 
+						f'Congratulations! You have completed all exercises in the "{guide.name}" routine!'
+					)
+					return redirect('member.member_programs')
+			else:
+				messages.success(request, 'Workout logged.')
+				return redirect('member.list_workouts')
 		else:
 			messages.error(request, 'Invalid data fields.')
-			return redirect('member.create_workout')
+			return redirect(request.get_full_path())
 
-	return render(request, "member_dashboard/workout_form.html", {"workout": None})
+	past_exercises = list(Workout.objects.filter(member=member).values_list('exercise_name', flat=True).distinct().order_by('exercise_name'))
+
+	prefilled_workout = None
+	if current_tip:
+		prefilled_workout = {
+			'exercise_name': current_tip.exercise_name,
+			'exercise_category': current_tip.tip_category,
+		}
+	else:
+		init_name = request.GET.get('exercise_name', '')
+		init_category = request.GET.get('exercise_category', '')
+		if init_name or init_category:
+			prefilled_workout = {
+				'exercise_name': init_name,
+				'exercise_category': init_category,
+			}
+
+	return render(
+		request, 
+		"member_dashboard/workout_form.html", 
+		{
+			"workout": prefilled_workout,
+			"past_exercises": past_exercises,
+			"muscle_groups": Workout.MuscleGroup.choices,
+			"sets_json": "[]",
+			"guide": guide,
+			"tip_index": tip_index,
+			"total_exercises": len(tips),
+			"current_exercise_num": tip_index + 1 if tips else 0,
+		}
+	)
 
 
 def member_edit_workout(request: HttpRequest, workout_id: int) -> HttpResponse:
@@ -677,14 +865,40 @@ def member_edit_workout(request: HttpRequest, workout_id: int) -> HttpResponse:
 
 		form = WorkoutForm(request.POST, instance=workout)
 		if form.is_valid():
-			form.save()
+			workout = form.save()
+			_save_workout_sets(workout, request.POST.get('sets_data'))
 			messages.success(request, 'Workout updated.')
 			return redirect('member.list_workouts')
 		else:
 			messages.error(request, 'Invalid workout fields.')
 			return redirect('member.edit_workout', workout_id=workout.id)
 
-	return render(request, "member_dashboard/workout_form.html", {"workout": workout})
+	past_exercises = list(Workout.objects.filter(member=member).values_list('exercise_name', flat=True).distinct().order_by('exercise_name'))
+
+	sets_list = list(workout.sets_list.all().order_by('set_number'))
+	sets_data = [
+		{
+			'set_number': s.set_number,
+			'weight': s.weight,
+			'reps': s.reps,
+			'is_completed': s.is_completed,
+			'is_pr': s.is_pr,
+			'trainer_notes': s.trainer_notes,
+		}
+		for s in sets_list
+	]
+	sets_json = json.dumps(sets_data)
+
+	return render(
+		request, 
+		"member_dashboard/workout_form.html", 
+		{
+			"workout": workout,
+			"past_exercises": past_exercises,
+			"muscle_groups": Workout.MuscleGroup.choices,
+			"sets_json": sets_json,
+		}
+	)
 
 
 def member_delete_workout(request: HttpRequest, workout_id: int) -> HttpResponse:
@@ -709,6 +923,159 @@ def member_delete_workout(request: HttpRequest, workout_id: int) -> HttpResponse
 
 	workout.delete()
 	messages.info(request, 'Workout deleted.')
+	return redirect('member.list_workouts')
+
+
+def member_exercise_history(request: HttpRequest) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	member = _require_member_access(request)
+	if member is None:
+		if getattr(request.user, 'role', None) == 'member':
+			return redirect('auth.pending_status')
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	exercise_name = (request.GET.get('exercise') or '').strip()
+	if not exercise_name:
+		messages.error(request, 'No exercise specified.')
+		return redirect('member.list_workouts')
+
+	# Fetch all workouts of the member for this exercise (ordered by date)
+	workouts = list(
+		Workout.objects.filter(member=member, exercise_name__iexact=exercise_name)
+		.order_by('workout_date', 'id')
+	)
+
+	if not workouts:
+		messages.error(request, f"No workout history found for '{exercise_name}'.")
+		return redirect('member.list_workouts')
+
+	category = workouts[0].exercise_category
+
+	max_weight_so_far = 0.0
+	max_1rm_so_far = 0.0
+	max_distance_so_far = 0.0
+	max_duration_so_far = 0
+
+	enhanced_workouts = []
+	for w in workouts:
+		estimated_1rm = 0.0
+		is_weight_pr = False
+		is_1rm_pr = False
+		is_distance_pr = False
+		is_duration_pr = False
+
+		if w.exercise_category == 'Strength' and w.reps and w.weight:
+			estimated_1rm = round(w.weight * (1 + w.reps / 30.0), 1)
+			
+			if w.weight > max_weight_so_far:
+				max_weight_so_far = w.weight
+				is_weight_pr = True
+			
+			if estimated_1rm > max_1rm_so_far:
+				max_1rm_so_far = estimated_1rm
+				is_1rm_pr = True
+		elif w.exercise_category == 'Cardio':
+			if w.distance_km and w.distance_km > max_distance_so_far:
+				max_distance_so_far = w.distance_km
+				is_distance_pr = True
+			if w.duration_minutes and w.duration_minutes > max_duration_so_far:
+				max_duration_so_far = w.duration_minutes
+				is_duration_pr = True
+
+		enhanced_workouts.append({
+			'id': w.id,
+			'workout_date': w.workout_date,
+			'sets': w.sets,
+			'reps': w.reps,
+			'weight': w.weight,
+			'duration_minutes': w.duration_minutes,
+			'distance_km': w.distance_km,
+			'intensity': w.intensity,
+			'notes': w.notes,
+			'trainer_id': w.trainer_id,
+			'estimated_1rm': estimated_1rm,
+			'is_weight_pr': is_weight_pr,
+			'is_1rm_pr': is_1rm_pr,
+			'is_distance_pr': is_distance_pr,
+			'is_duration_pr': is_duration_pr,
+		})
+
+	# Reverse for display (newest first)
+	display_workouts = list(reversed(enhanced_workouts))
+
+	# Data for progress charts (chronological order)
+	chart_dates = [w['workout_date'].strftime('%b %d, %Y') for w in enhanced_workouts]
+	chart_weights = [w['weight'] or 0.0 for w in enhanced_workouts]
+	chart_1rms = [w['estimated_1rm'] for w in enhanced_workouts]
+	chart_durations = [w['duration_minutes'] or 0 for w in enhanced_workouts]
+	chart_distances = [w['distance_km'] or 0.0 for w in enhanced_workouts]
+
+	return render(
+		request,
+		"member_dashboard/exercise_history.html",
+		{
+			"exercise_name": exercise_name,
+			"category": category,
+			"workouts": display_workouts,
+			"chart_dates": chart_dates,
+			"chart_weights": chart_weights,
+			"chart_1rms": chart_1rms,
+			"chart_durations": chart_durations,
+			"chart_distances": chart_distances,
+			"max_weight": max_weight_so_far,
+			"max_1rm": max_1rm_so_far,
+			"max_distance": max_distance_so_far,
+			"max_duration": max_duration_so_far,
+		},
+	)
+
+
+def member_clone_workout(request: HttpRequest, workout_id: int) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	member = _require_member_access(request)
+	if member is None:
+		if getattr(request.user, 'role', None) == 'member':
+			return redirect('auth.pending_status')
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	workout = Workout.objects.filter(id=workout_id, member=member).first()
+	if workout is None:
+		messages.error(request, 'Workout not found.')
+		return redirect('member.list_workouts')
+
+	if request.method == 'POST':
+		# Create a new workout by cloning details and setting date to today
+		new_workout = Workout.objects.create(
+			member=member,
+			workout_date=timezone.localdate(),
+			exercise_name=workout.exercise_name,
+			exercise_category=workout.exercise_category,
+			muscle_group=workout.muscle_group,
+			sets=workout.sets,
+			reps=workout.reps,
+			weight=workout.weight,
+			duration_minutes=workout.duration_minutes,
+			distance_km=workout.distance_km,
+			intensity=workout.intensity,
+			notes=workout.notes,
+		)
+		# Copy all sets associated with the workout
+		for s in workout.sets_list.all():
+			WorkoutSet.objects.create(
+				workout=new_workout,
+				set_number=s.set_number,
+				reps=s.reps,
+				weight=s.weight,
+				set_type=s.set_type,
+				is_completed=s.is_completed,
+			)
+		messages.success(request, f"Duplicated {new_workout.exercise_name} workout for today.")
+		return redirect('member.list_workouts')
+
 	return redirect('member.list_workouts')
 
 
@@ -1094,3 +1461,20 @@ def member_change_password(request: HttpRequest, member_id: int) -> HttpResponse
 		return redirect('member.view_member', member_id=member.id)
 
 	return redirect('member.view_member', member_id=member.id)
+
+
+@login_required
+def start_assigned_guide_session(request: HttpRequest, assignment_id: int) -> HttpResponse:
+	member = _require_member_access(request)
+	if member is None:
+		if getattr(request.user, 'role', None) == 'member':
+			return redirect('auth.pending_status')
+		messages.error(request, 'Access denied.')
+		return redirect('home')
+
+	assignment = GuideAssignment.objects.filter(id=assignment_id, member=member, is_active=True).first()
+	if assignment is None:
+		messages.error(request, 'Guide assignment not found.')
+		return redirect('member.member_programs')
+
+	return redirect(reverse('member.create_workout') + f"?guide_id={assignment.guide_id}&tip_index=0")

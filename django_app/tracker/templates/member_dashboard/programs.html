@@ -7,7 +7,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <div>
-            <h1>📚 My Active Programs</h1>
+            <h1><i class="fas fa-book me-2" style="color: var(--color-teal);"></i>My Active Programs</h1>
             <p class="text-muted" style="margin-bottom: 0;">Track your assigned fitness guides, daily nutrition plans, and progress</p>
         </div>
     </div>
@@ -100,9 +100,12 @@
                         </div>
 
                         <!-- Actions -->
-                        <div style="margin-top: auto;">
-                            <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-primary w-100" style="padding: 10px;">
-                                <i class="fas fa-eye"></i> View Program
+                        <div style="margin-top: auto; display: flex; gap: var(--spacing-sm);">
+                            <a href="{{ url_for('member.view_assigned_guide', guide_id=assignment.guide_id) }}" class="btn btn-secondary w-50" style="padding: 10px;">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a href="{{ url_for('member.start_assigned_guide_session', assignment_id=assignment.id) }}" class="btn btn-primary w-50" style="padding: 10px;">
+                                <i class="fas fa-play"></i> Start
                             </a>
                         </div>
                     </div>

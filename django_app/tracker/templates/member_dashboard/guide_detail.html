@@ -7,7 +7,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <div>
-            <h1>📖 {{ guide.name }}</h1>
+            <h1><i class="fas fa-book me-2" style="color: var(--color-teal);"></i>{{ guide.name }}</h1>
             <p class="text-muted" style="margin-bottom: 0;">{{ guide.description or "Complete workout program guidelines and trainer insights" }}</p>
         </div>
     </div>
@@ -219,7 +219,7 @@
                 {% for exercise, exercise_tips in grouped_tips.items() %}
                 <div style="margin-bottom: var(--spacing-lg); {% if not loop.last %}border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md);{% endif %}">
                     <h4 style="color: var(--color-teal); font-size: 15px; margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 8px;">
-                        💪 {{ exercise }}
+                        <i class="fas fa-dumbbell me-2"></i>{{ exercise }}
                     </h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-md);">
                         {% for tip in exercise_tips %}

@@ -7,7 +7,7 @@
     <div class="col-md-8">
         <div class="card shadow">
             <div class="card-header bg-warning text-dark">
-                <h3>✏️ Edit Fitness Metric</h3>
+                <h3><i class="fas fa-edit me-1"></i> Edit Fitness Metric</h3>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('fitness.edit_metric', metric_id=metric.id) }}" novalidate>
@@ -89,7 +89,7 @@
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('fitness.member_progress', member_id=metric.member_id) }}" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-warning btn-lg">
-                            💾 Update Metric
+                            <i class="fas fa-save me-1"></i> Update Metric
                         </button>
                     </div>
                 </form>
