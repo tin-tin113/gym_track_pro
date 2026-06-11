@@ -58,15 +58,15 @@
                 </div>
                 <div style="text-align: center;">
                     <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Protein Ratio</div>
-                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_protein|round }}%</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ (diet_assignment.diet_plan.macro_ratio_protein * 100)|int }}%</div>
                 </div>
                 <div style="text-align: center;">
                     <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Carbs Ratio</div>
-                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_carbs|round }}%</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ (diet_assignment.diet_plan.macro_ratio_carbs * 100)|int }}%</div>
                 </div>
                 <div style="text-align: center;">
                     <div class="text-muted" style="font-size: 11px; text-transform: uppercase; font-family: var(--font-family-headers); font-weight: 700; margin-bottom: 4px;">Fats Ratio</div>
-                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ diet_assignment.diet_plan.macro_ratio_fats|round }}%</div>
+                    <div style="color: var(--text-primary); font-family: var(--font-family-headers); font-size: 22px; font-weight: 800;">{{ (diet_assignment.diet_plan.macro_ratio_fats * 100)|int }}%</div>
                 </div>
             </div>
 

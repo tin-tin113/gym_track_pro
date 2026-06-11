@@ -235,11 +235,11 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="id_full_name" class="form-label text-teal font-bold" style="font-size: 12px; text-transform: uppercase;">Guest Full Name *</label>
-                                            <input type="text" class="form-control terminal-input" id="id_full_name" name="full_name" required placeholder="e.g. John Doe" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                            <input type="text" class="form-control terminal-input" id="id_full_name" name="full_name" required placeholder="e.g. John Doe" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="id_guest_type" class="form-label text-teal font-bold" style="font-size: 12px; text-transform: uppercase;">Guest Type *</label>
-                                            <select class="form-control terminal-select" id="id_guest_type" name="guest_type" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white; height: 38px;">
+                                            <select class="form-control terminal-select" id="id_guest_type" name="guest_type" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary); height: 38px;">
                                                 <option value="regular">Regular (₱100.00)</option>
                                                 <option value="student">Student (₱50.00)</option>
                                             </select>
@@ -248,26 +248,26 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="id_email" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Email Address</label>
-                                            <input type="email" class="form-control terminal-input" id="id_email" name="email" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                            <input type="email" class="form-control terminal-input" id="id_email" name="email" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="id_phone_number" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Phone Number</label>
-                                            <input type="text" class="form-control terminal-input" id="id_phone_number" name="phone_number" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                            <input type="text" class="form-control terminal-input" id="id_phone_number" name="phone_number" placeholder="Optional" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="id_amount_paid" class="form-label text-warning font-bold" style="font-size: 11px; text-transform: uppercase;">Amount Paid (₱) *</label>
-                                            <input type="number" step="0.01" class="form-control terminal-input" id="id_amount_paid" name="amount_paid" value="100.00" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                            <input type="number" step="0.01" class="form-control terminal-input" id="id_amount_paid" name="amount_paid" value="100.00" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="id_emergency_contact" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Emergency Contact</label>
-                                            <input type="text" class="form-control terminal-input" id="id_emergency_contact" name="emergency_contact" placeholder="Name/Phone" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;">
+                                            <input type="text" class="form-control terminal-input" id="id_emergency_contact" name="emergency_contact" placeholder="Name/Phone" style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);">
                                         </div>
                                     </div>
                                     <div class="form-group mb-4">
                                         <label for="id_notes" class="form-label text-muted font-bold" style="font-size: 11px; text-transform: uppercase;">Optional Notes</label>
-                                        <textarea class="form-control terminal-input" id="id_notes" name="notes" rows="1" placeholder="Any visitor notes..." style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white;"></textarea>
+                                        <textarea class="form-control terminal-input" id="id_notes" name="notes" rows="1" placeholder="Any visitor notes..." style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary);"></textarea>
                                     </div>
                                     <button type="submit" class="btn btn-lg btn-success w-100" style="background-color: var(--color-success); border-color: var(--color-success); color: var(--bg-primary); font-weight: 700;">
                                         <i class="fas fa-ticket-alt"></i> Purchase Guest Pass & Log Entry
@@ -320,7 +320,7 @@
                 <input type="hidden" name="member_id" id="modal_member_id">
                 <div class="modal-body py-4">
                     <p class="mb-0" style="font-size: 15px; color: var(--text-secondary);">
-                        Are you sure you want to manually record a check-in for <strong id="modal_member_name" class="text-white">selected member</strong>?
+                        Are you sure you want to manually record a check-in for <strong id="modal_member_name" class="text-primary">selected member</strong>?
                     </p>
                 </div>
                 <div class="modal-footer bg-secondary-dark border-top border-secondary">
@@ -347,7 +347,7 @@
                 <input type="hidden" name="member_id" id="undo_modal_member_id">
                 <div class="modal-body py-4">
                     <p class="mb-0" style="font-size: 15px; color: var(--text-secondary);">
-                        Are you sure you want to remove today's check-in for <strong id="undo_modal_member_name" class="text-white">selected member</strong>? This attendance slot will be deleted.
+                        Are you sure you want to remove today's check-in for <strong id="undo_modal_member_name" class="text-primary">selected member</strong>? This attendance slot will be deleted.
                     </p>
                 </div>
                 <div class="modal-footer bg-secondary-dark border-top border-secondary">
@@ -686,8 +686,8 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 .control-btn:hover:not(.active) {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-primary);
+    background: var(--bg-secondary);
 }
 
 .tab-pane {

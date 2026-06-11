@@ -141,6 +141,132 @@
         </div>
     </div>
 
+    <!-- Assigned Meal Schedule -->
+    <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
+        <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-calendar-alt" style="color: var(--color-teal); margin-right: 8px;"></i> Assigned Meal Schedule</h3>
+        </div>
+        <div class="card-body" style="padding: var(--spacing-lg);">
+            {% if meals %}
+                <!-- Day Tabs navigation -->
+                <div class="card mb-4" style="background-color: var(--bg-secondary); border-left: none;">
+                    <div class="card-body p-2">
+                        <ul class="nav nav-pills d-flex justify-content-between text-center" id="dayTabs" role="tablist" style="border: none;">
+                            {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            <li class="nav-item flex-fill" role="presentation">
+                                <button class="nav-link w-100 {% if loop.first %}active{% endif %}" 
+                                        id="{{ day|lower }}-tab" 
+                                        data-bs-toggle="tab" 
+                                        data-bs-target="#{{ day|lower }}" 
+                                        type="button" 
+                                        role="tab" 
+                                        aria-controls="{{ day|lower }}" 
+                                        aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+                                        style="border-radius: var(--radius-sm); font-weight: 600; padding: 8px; font-size: 13px;">
+                                    {{ day[:3] }}
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Day Tab Contents -->
+                <div class="tab-content" id="dayTabsContent">
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                         id="{{ day|lower }}" 
+                         role="tabpanel" 
+                         aria-labelledby="{{ day|lower }}-tab">
+                        
+                        <!-- Filter meals for current day -->
+                        {% set day_meals = [] %}
+                        {% for m in meals %}
+                            {% if m.day_name == day %}
+                                {% set _ = day_meals.append(m) %}
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if day_meals %}
+                            <div class="row cols-2">
+                                {% for meal in day_meals %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card" style="background: var(--bg-secondary); border-left: 3px solid var(--color-warning); padding: var(--spacing-md); margin-bottom: 0;">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h5 class="mb-0" style="color: var(--color-teal); font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">
+                                                {{ meal.meal_name }}
+                                            </h5>
+                                            <span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); font-size: 10px;">
+                                                {{ meal.meal_type }}
+                                            </span>
+                                        </div>
+                                        
+                                        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+                                            {{ meal.calories if meal.calories else '—' }} kcal
+                                        </div>
+
+                                        <div class="row text-center" style="font-size: 11px; background: rgba(0,0,0,0.1); padding: 4px 0; border-radius: var(--radius-sm); margin: 0;">
+                                            <div class="col-4" style="border-right: 1px solid var(--border-color); padding: 2px;">
+                                                <span class="text-muted d-block" style="font-size: 9px;">Protein</span>
+                                                <strong style="color: var(--color-success);">{{ meal.protein_g if meal.protein_g else '0' }}g</strong>
+                                            </div>
+                                            <div class="col-4" style="border-right: 1px solid var(--border-color); padding: 2px;">
+                                                <span class="text-muted d-block" style="font-size: 9px;">Carbs</span>
+                                                <strong style="color: var(--color-warning);">{{ meal.carbs_g if meal.carbs_g else '0' }}g</strong>
+                                            </div>
+                                            <div class="col-4" style="padding: 2px;">
+                                                <span class="text-muted d-block" style="font-size: 9px;">Fats</span>
+                                                <strong style="color: var(--color-teal);">{{ meal.fats_g if meal.fats_g else '0' }}g</strong>
+                                            </div>
+                                        </div>
+
+                                        {% if meal.notes %}
+                                        <p class="text-muted mt-2 mb-0" style="font-size: 11px; font-style: italic; line-height: 1.3;">
+                                            <i class="fas fa-info-circle"></i> {{ meal.notes }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div style="text-align: center; padding: var(--spacing-lg);">
+                                <i class="fas fa-utensils" style="font-size: 24px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-sm);"></i>
+                                <p class="text-muted mb-0">No meals scheduled for {{ day }}.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: var(--spacing-lg);">
+                    <i class="fas fa-utensils" style="font-size: 24px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-sm);"></i>
+                    <p class="text-muted mb-0">No scheduled meals exist for this diet plan yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <style>
+    #dayTabs .nav-link {
+        color: var(--text-secondary);
+        background-color: transparent;
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent;
+    }
+
+    #dayTabs .nav-link:hover {
+        color: var(--text-primary);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    #dayTabs .nav-link.active {
+        color: var(--bg-primary) !important;
+        background-color: var(--color-warning) !important;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
+    </style>
+
     <!-- macros Summary -->
     {% if daily_totals %}
     <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">

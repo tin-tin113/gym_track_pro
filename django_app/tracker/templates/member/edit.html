@@ -59,14 +59,14 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="member_tier" class="form-label">Member Tier *</label>
-                            <select class="form-select" id="member_tier" name="member_tier" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white; height: 38px;">
+                            <select class="form-select" id="member_tier" name="member_tier" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary); height: 38px;">
                                 <option value="regular" {% if not member or member.member_tier == 'regular' %}selected{% endif %}>Regular</option>
                                 <option value="student" {% if member and member.member_tier == 'student' %}selected{% endif %}>Student</option>
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label for="membership_type" class="form-label">Membership Type *</label>
-                            <select class="form-select" id="membership_type" name="membership_type" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: white; height: 38px;">
+                            <select class="form-select" id="membership_type" name="membership_type" required style="background-color: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary); height: 38px;">
                                 <option value="monthly" {% if not member or member.membership_type == 'monthly' %}selected{% endif %}>Monthly</option>
                                 <option value="quarterly" {% if member and member.membership_type == 'quarterly' %}selected{% endif %}>Quarterly</option>
                                 <option value="annual" {% if member and member.membership_type == 'annual' %}selected{% endif %}>Annual</option>

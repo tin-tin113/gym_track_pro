@@ -12,7 +12,7 @@
                 <span class="badge" style="background-color: rgba(255, 107, 53, 0.15); color: var(--neon-orange); margin-right: 8px;">
                     {{ plan.diet_type|replace('_', ' ')|title }}
                 </span>
-                Daily Target: <strong class="text-white">{{ plan.daily_calories }} kcal</strong>
+                Daily Target: <strong class="text-primary">{{ plan.daily_calories }} kcal</strong>
             </p>
         </div>
         <div class="page-header-actions d-flex gap-2">
@@ -36,7 +36,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title mb-3" style="color: var(--neon-orange);">Plan Description & Instructions</h5>
-                    <p class="text-light" style="font-size: 1rem; line-height: 1.6;">
+                    <p class="text-secondary" style="font-size: 1rem; line-height: 1.6;">
                         {{ plan.description if plan.description else 'No description provided.' }}
                     </p>
                     
@@ -157,15 +157,15 @@
                                     <div class="row text-center mt-2" style="font-size: 0.8rem; background: rgba(0,0,0,0.1); padding: 8px 0; border-radius: var(--radius-sm); margin: 8px 0;">
                                         <div class="col-4" style="border-right: 1px solid var(--border-color);">
                                             <span class="text-muted d-block">Protein</span>
-                                            <strong class="text-white">{{ meal.protein_g if meal.protein_g else '0' }}g</strong>
+                                            <strong class="text-primary">{{ meal.protein_g if meal.protein_g else '0' }}g</strong>
                                         </div>
                                         <div class="col-4" style="border-right: 1px solid var(--border-color);">
                                             <span class="text-muted d-block">Carbs</span>
-                                            <strong class="text-white">{{ meal.carbs_g if meal.carbs_g else '0' }}g</strong>
+                                            <strong class="text-primary">{{ meal.carbs_g if meal.carbs_g else '0' }}g</strong>
                                         </div>
                                         <div class="col-4">
                                             <span class="text-muted d-block">Fats</span>
-                                            <strong class="text-white">{{ meal.fats_g if meal.fats_g else '0' }}g</strong>
+                                            <strong class="text-primary">{{ meal.fats_g if meal.fats_g else '0' }}g</strong>
                                         </div>
                                     </div>
 
@@ -206,7 +206,7 @@
         <div class="card p-5 text-center">
             <div class="card-body">
                 <i class="fas fa-utensils mb-4" style="font-size: 4rem; color: var(--border-color);"></i>
-                <h4 class="text-white mb-2">No Meals in this Plan Yet</h4>
+                <h4 class="text-primary mb-2">No Meals in this Plan Yet</h4>
                 <p class="text-muted mb-4">Start by adding meals for different days of the week to complete this nutrition program.</p>
                 <button type="button" class="btn btn-gym-action btn-lg" data-bs-toggle="modal" data-bs-target="#addMealModal">
                     <i class="fas fa-plus"></i> Add Your First Meal

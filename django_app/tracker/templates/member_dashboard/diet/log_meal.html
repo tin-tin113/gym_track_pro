@@ -88,7 +88,7 @@
                     <p class="text-muted mb-3" style="font-size: 0.9rem;">Click a meal to pre-fill the form</p>
                     {% for meal in suggested_meals[:5] %}
                     <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="fillMeal('{{ meal.meal_name }}', {{ meal.calories }}, {{ meal.protein_g or 0 }}, {{ meal.carbs_g or 0 }}, {{ meal.fats_g or 0 }})">
-                        {% if meal.meal_type == 'breakfast' %}<i class="fas fa-coffee"></i>{% elif meal.meal_type == 'lunch' %}<i class="fas fa-utensils"></i>{% elif meal.meal_type == 'dinner' %}<i class="fas fa-bowl-food"></i>{% else %}<i class="fas fa-cookie"></i>{% endif %}
+                        {% if meal.meal_type|lower == 'breakfast' %}<i class="fas fa-coffee"></i>{% elif meal.meal_type|lower == 'lunch' %}<i class="fas fa-utensils"></i>{% elif meal.meal_type|lower == 'dinner' %}<i class="fas fa-bowl-food"></i>{% else %}<i class="fas fa-cookie"></i>{% endif %}
                         {{ meal.meal_name }}
                     </button>
                     {% endfor %}

@@ -1137,6 +1137,7 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 		.first()
 	)
 	diet_plan = diet_assignment.diet_plan if diet_assignment else None
+	meals = list(MealPlan.objects.filter(diet_plan=diet_plan).order_by('day_name', 'meal_type', 'id')) if diet_plan else []
 
 	meal_logs_today = list(
 		MealLog.objects.filter(member=member, meal_date=today).order_by('-created_at', '-id')
@@ -1160,6 +1161,7 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 		{
 			"diet_assignment": diet_assignment,
 			"diet_plan": diet_plan,
+			"meals": meals,
 			"daily_totals": daily_totals,
 			"meal_logs_today": meal_logs_today,
 			"estimated_burn": None,

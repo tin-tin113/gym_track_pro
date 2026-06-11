@@ -10,7 +10,7 @@
 
 <!-- Trainer Info -->
 <div class="card mb-4">
-    <div class="card-header bg-primary text-white">
+    <div class="card-header bg-primary">
         <h5 class="mb-0">{{ trainer.user.full_name or trainer.user.username }}</h5>
     </div>
     <div class="card-body">
@@ -33,7 +33,7 @@
     <!-- Assigned Members -->
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-success text-white">
+            <div class="card-header bg-success">
                 <h5 class="mb-0"><i class="fas fa-check me-2" style="color: var(--color-success);"></i>Assigned Members ({{ assignments|length }})</h5>
             </div>
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
@@ -69,7 +69,7 @@
     <!-- Unassigned Members -->
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header bg-info">
                 <h5 class="mb-0"><i class="fas fa-plus me-2" style="color: var(--color-teal);"></i>Unassigned Members ({{ unassigned_members|length }})</h5>
             </div>
             <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">

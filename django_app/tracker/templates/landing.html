@@ -19,7 +19,7 @@
                     radial-gradient(circle at 10% 80%, rgba(0, 229, 229, 0.06) 0%, transparent 60%),
                     linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         border-bottom: 1px solid var(--border-color);
-        color: #ffffff;
+        color: var(--text-primary);
         padding: 100px 24px;
         text-align: center;
         position: relative;
@@ -77,7 +77,7 @@
         margin-bottom: 20px;
         letter-spacing: -1px;
         text-transform: uppercase;
-        color: #ffffff;
+        color: var(--text-primary);
         text-shadow: 0 0 30px rgba(0, 229, 229, 0.15);
     }
 
@@ -138,7 +138,7 @@
         padding: 3px 8px;
         border-radius: var(--radius-sm);
         font-family: 'Courier New', monospace;
-        color: #ffffff;
+        color: var(--text-primary);
         font-weight: 600;
     }
 
@@ -160,7 +160,7 @@
     .section-header h2 {
         font-size: 40px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--text-primary);
         margin-bottom: 12px;
         font-family: var(--font-family-headers);
     }
@@ -221,7 +221,7 @@
     .feature-card h3 {
         font-size: 18px;
         font-weight: 700;
-        color: #ffffff;
+        color: var(--text-primary);
         margin-bottom: 10px;
         font-family: var(--font-family-headers);
         text-transform: uppercase;
@@ -286,7 +286,7 @@
     .role-card h3 {
         font-size: 18px;
         font-weight: 700;
-        color: #ffffff;
+        color: var(--text-primary);
         margin-bottom: 8px;
         font-family: var(--font-family-headers);
         text-transform: uppercase;
@@ -320,7 +320,7 @@
     .cta-section h2 {
         font-size: 38px;
         font-weight: 800;
-        color: #ffffff;
+        color: var(--text-primary);
         margin-bottom: 12px;
         font-family: var(--font-family-headers);
     }
@@ -530,7 +530,7 @@
     }
 
     [data-theme="light"] .pricing-card.featured::before {
-        color: #ffffff; /* High-contrast white on dark teal in light mode */
+        color: #0B0F19; /* Dark text for the teal badge in light mode */
     }
 
     .pricing-card:hover {
@@ -627,11 +627,11 @@
     }
 
     [data-theme="light"] .pricing-btn-primary {
-        color: #ffffff; /* High-contrast white on dark teal in light mode */
+        color: #0B0F19; /* Dark text on the teal CTA in light mode */
     }
 
     [data-theme="light"] .pricing-btn-primary:hover {
-        color: #ffffff;
+        color: #0B0F19;
     }
 
     .pricing-btn-secondary {
