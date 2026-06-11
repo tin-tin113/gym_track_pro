@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: gym-track-pro
+    env: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn --chdir django_app gymtrack_django.wsgi:application
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_USE_SQLITE
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "*"
+      - key: DATABASE_URL
+        sync: false

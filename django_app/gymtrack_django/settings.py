@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -163,6 +164,23 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'tracker' / 'static',
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use WhiteNoise optimized storage only in production (when DEBUG is False)
+if DEBUG:
+    _staticfiles_backend = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    _staticfiles_backend = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": _staticfiles_backend,
+    },
+}
 
 # Media files (user-uploaded content)
 MEDIA_URL = '/media/'
