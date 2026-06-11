@@ -4,7 +4,7 @@ Jinja2
 dj-database-url
 
 # Database
-psycopg[binary]==3.2.9
+psycopg[binary]>=3.2.9
 
 # QR Code & Image Processing
 qrcode[pil]==7.4.2
