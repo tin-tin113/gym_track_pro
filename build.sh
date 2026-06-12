@@ -7,7 +7,9 @@ pip install -r requirements.txt
 
 # Ensure media directory exists and copy guide images from tracked static files
 mkdir -p django_app/media/guide_images
+cp django_app/tracker/static/images/*.jpg django_app/media/
 cp django_app/tracker/static/images/*.jpg django_app/media/guide_images/
+
 
 
 # Run migrations
