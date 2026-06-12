@@ -1858,3 +1858,24 @@ body, nav, .sidebar, .card, .btn, input, select, textarea, table, td, th, footer
 [data-theme="light"] .instruction-card-list li {
   color: var(--text-secondary) !important;
 }
+
+/* Responsive adjustments for filter bars */
+@media (max-width: 576px) {
+  .list-filter-section form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .list-filter-section form > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+  .list-filter-section form > div:last-child {
+    margin-top: var(--spacing-sm);
+  }
+  .list-filter-section form > div:last-child button,
+  .list-filter-section form > div:last-child a {
+    flex: 1;
+    text-align: center;
+  }
+}
