@@ -15,16 +15,16 @@
 
     /* HERO SECTION - SLEEK CYBER METRICS LOOK */
     .hero-section {
-        background: radial-gradient(circle at 80% 20%, rgba(0, 229, 229, 0.12) 0%, transparent 60%),
-                    radial-gradient(circle at 10% 80%, rgba(0, 229, 229, 0.06) 0%, transparent 60%),
+        background: radial-gradient(circle at 80% 20%, rgba(0, 229, 229, 0.15) 0%, transparent 60%),
+                    radial-gradient(circle at 10% 80%, rgba(0, 229, 229, 0.08) 0%, transparent 60%),
                     linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
         border-bottom: 1px solid var(--border-color);
         color: var(--text-primary);
-        padding: 100px 24px;
+        padding: 120px 24px;
         text-align: center;
         position: relative;
         overflow: hidden;
-        min-height: 580px;
+        min-height: 620px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -36,10 +36,10 @@
         position: absolute;
         inset: 0;
         background-image: 
-            linear-gradient(to right, rgba(0, 229, 229, 0.02) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 229, 229, 0.02) 1px, transparent 1px);
-        background-size: 40px 40px;
-        opacity: 0.8;
+            linear-gradient(to right, rgba(0, 229, 229, 0.03) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 229, 229, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        opacity: 0.9;
         pointer-events: none;
     }
 
@@ -48,127 +48,100 @@
         margin: 0 auto;
         position: relative;
         z-index: 2;
-        animation: slideUp 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: var(--spacing-sm);
-        background: rgba(0, 229, 229, 0.08);
-        border: 1px solid var(--border-color-dark);
+        background: rgba(0, 229, 229, 0.1);
+        border: 1px solid rgba(0, 229, 229, 0.25);
         color: var(--color-teal);
-        padding: 8px 16px;
+        padding: 8px 18px;
         border-radius: 99px;
         font-family: var(--font-family-headers);
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 1.2px;
         margin-bottom: 24px;
-        box-shadow: var(--shadow-teal);
+        box-shadow: 0 0 15px rgba(0, 229, 229, 0.15);
     }
 
     .hero-content h1 {
         font-family: var(--font-family-headers);
-        font-size: 60px;
+        font-size: 65px;
         font-weight: 800;
-        line-height: 1.1;
-        margin-bottom: 20px;
+        line-height: 1.05;
+        margin-bottom: 24px;
         letter-spacing: -1px;
         text-transform: uppercase;
-        color: var(--text-primary);
-        text-shadow: 0 0 30px rgba(0, 229, 229, 0.15);
+        background: linear-gradient(to right, #ffffff 40%, var(--color-teal-light) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 40px rgba(0, 229, 229, 0.1);
     }
 
     .hero-content h1 span {
         color: var(--color-teal);
-        text-shadow: 0 0 15px rgba(0, 229, 229, 0.35);
+        -webkit-text-fill-color: initial;
+        text-shadow: 0 0 20px rgba(0, 229, 229, 0.4);
     }
 
     .hero-content p {
-        font-size: 18px;
-        line-height: 1.6;
-        margin-bottom: 40px;
+        font-size: 19px;
+        line-height: 1.65;
+        margin-bottom: 44px;
         color: var(--text-secondary) !important;
-        max-width: 680px;
+        max-width: 700px;
         margin-left: auto;
         margin-right: auto;
     }
 
     .hero-buttons {
         display: flex;
-        gap: 16px;
+        gap: 18px;
         justify-content: center;
         flex-wrap: wrap;
         margin-bottom: 40px;
     }
 
     .hero-buttons .btn {
-        min-width: 180px;
-        padding: 14px 28px;
+        min-width: 190px;
+        padding: 15px 30px;
         font-size: 14px;
-    }
-
-    .hero-demo {
-        margin-top: 40px;
-        padding: 16px 24px;
-        background: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-        font-size: 13px;
-        color: var(--text-secondary);
-        box-shadow: var(--shadow-md);
-    }
-
-    .hero-demo strong {
-        color: var(--color-teal);
-        font-family: var(--font-family-headers);
-        text-transform: uppercase;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
-
-    .hero-demo code {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        padding: 3px 8px;
-        border-radius: var(--radius-sm);
-        font-family: 'Courier New', monospace;
-        color: var(--text-primary);
-        font-weight: 600;
     }
 
     /* FEATURES SECTION - GLASSMORPHIC SPORTS CELLS */
     .features-section {
-        padding: 80px 24px;
+        padding: 90px 24px;
         background-color: var(--bg-secondary);
         border-bottom: 1px solid var(--border-color);
+        position: relative;
     }
 
     .section-header {
         text-align: center;
-        margin-bottom: 60px;
+        margin-bottom: 64px;
         max-width: 700px;
         margin-left: auto;
         margin-right: auto;
     }
 
     .section-header h2 {
-        font-size: 40px;
+        font-size: 42px;
         font-weight: 800;
         color: var(--text-primary);
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         font-family: var(--font-family-headers);
+        letter-spacing: 0.5px;
     }
 
     .section-header p {
-        font-size: 16px;
+        font-size: 17px;
         color: var(--text-secondary) !important;
-        line-height: 1.5;
+        line-height: 1.55;
     }
 
     .features-grid {
@@ -180,31 +153,32 @@
     }
 
     .feature-card {
-        padding: 32px;
-        border-radius: var(--radius-md);
-        background: var(--surface);
-        border: 1px solid var(--border-color);
+        padding: 36px 32px;
+        border-radius: var(--radius-lg);
+        background: rgba(22, 31, 48, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 229, 229, 0.12);
         border-left: 3px solid var(--color-teal);
         transition: all var(--duration-normal) var(--easing-smooth);
         position: relative;
-        overflow: hidden;
     }
 
     .feature-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-lg), var(--shadow-teal);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), var(--shadow-teal);
         border-left-color: var(--color-teal-light);
-        border-color: var(--border-color-dark);
+        border-color: rgba(0, 229, 229, 0.35);
     }
 
     .feature-card-icon {
-        font-size: 32px;
+        font-size: 34px;
         color: var(--color-teal);
-        margin-bottom: 16px;
-        width: 54px;
-        height: 54px;
+        margin-bottom: 20px;
+        width: 58px;
+        height: 58px;
         background: rgba(0, 229, 229, 0.08);
-        border: 1px solid var(--border-color-dark);
+        border: 1px solid rgba(0, 229, 229, 0.2);
         border-radius: var(--radius-md);
         display: flex;
         align-items: center;
@@ -213,16 +187,17 @@
     }
 
     .feature-card:hover .feature-card-icon {
-        background: rgba(0, 229, 229, 0.16);
-        transform: scale(1.1) rotate(3deg);
+        background: rgba(0, 229, 229, 0.18);
+        transform: scale(1.1) rotate(5deg);
         color: var(--color-teal-light);
+        box-shadow: 0 0 10px rgba(0, 229, 229, 0.2);
     }
 
     .feature-card h3 {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 700;
         color: var(--text-primary);
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         font-family: var(--font-family-headers);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -231,13 +206,13 @@
     .feature-card p {
         font-size: 14px;
         color: var(--text-secondary) !important;
-        line-height: 1.6;
+        line-height: 1.65;
         margin: 0;
     }
 
     /* ROLES SECTION */
     .roles-section {
-        padding: 80px 24px;
+        padding: 90px 24px;
         background-color: var(--bg-primary);
         border-bottom: 1px solid var(--border-color);
     }
@@ -251,43 +226,46 @@
     }
 
     .role-card {
-        padding: 28px var(--spacing-lg);
-        background: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
+        padding: 32px var(--spacing-lg);
+        background: rgba(22, 31, 48, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 229, 229, 0.08);
+        border-radius: var(--radius-lg);
         transition: all var(--duration-normal) var(--easing-smooth);
-        position: relative;
     }
 
     .role-card:hover {
-        box-shadow: var(--shadow-md), var(--shadow-teal);
-        transform: translateY(-2px);
-        border-color: var(--color-teal);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), var(--shadow-teal);
+        transform: translateY(-4px) scale(1.02);
+        border-color: rgba(0, 229, 229, 0.3);
     }
 
     .role-card-icon {
-        font-size: 28px;
+        font-size: 30px;
         color: var(--color-teal);
-        margin-bottom: 16px;
-        width: 48px;
-        height: 48px;
+        margin-bottom: 18px;
+        width: 52px;
+        height: 52px;
         background: rgba(0, 229, 229, 0.06);
-        border-radius: var(--radius-sm);
+        border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all var(--duration-fast) var(--easing-smooth);
     }
 
     .role-card:hover .role-card-icon {
-        background: rgba(0, 229, 229, 0.12);
+        background: rgba(0, 229, 229, 0.15);
         color: var(--color-teal-light);
+        transform: scale(1.05);
     }
 
     .role-card h3 {
-        font-size: 18px;
+        font-size: 19px;
         font-weight: 700;
         color: var(--text-primary);
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         font-family: var(--font-family-headers);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -296,14 +274,14 @@
     .role-card p {
         font-size: 14px;
         color: var(--text-secondary) !important;
-        line-height: 1.5;
+        line-height: 1.55;
         margin: 0;
     }
 
     /* CTA SECTION - CYBER GLOW PANEL */
     .cta-section {
-        padding: 80px 24px;
-        background: radial-gradient(circle at center, rgba(0, 229, 229, 0.08) 0%, transparent 80%),
+        padding: 95px 24px;
+        background: radial-gradient(circle at center, rgba(0, 229, 229, 0.12) 0%, transparent 80%),
                     linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
         text-align: center;
         border-bottom: 1px solid var(--border-color);
@@ -318,44 +296,44 @@
     }
 
     .cta-section h2 {
-        font-size: 38px;
+        font-size: 42px;
         font-weight: 800;
         color: var(--text-primary);
-        margin-bottom: 12px;
+        margin-bottom: 14px;
         font-family: var(--font-family-headers);
     }
 
     .cta-section p {
-        font-size: 16px;
-        margin-bottom: 32px;
+        font-size: 17px;
+        margin-bottom: 36px;
         color: var(--text-secondary) !important;
-        line-height: 1.6;
+        line-height: 1.65;
     }
 
     .cta-buttons {
         display: flex;
-        gap: 16px;
+        gap: 18px;
         justify-content: center;
         flex-wrap: wrap;
     }
 
     .cta-buttons .btn {
-        min-width: 180px;
-        padding: 14px 28px;
+        min-width: 190px;
+        padding: 15px 30px;
     }
 
     /* FOOTER INFO */
     .footer-info {
-        padding: 40px 24px;
+        padding: 44px 24px;
         background-color: var(--bg-secondary);
         text-align: center;
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--text-muted);
     }
 
     .footer-info p {
         margin: 0 auto;
-        line-height: 1.6;
+        line-height: 1.65;
         color: var(--text-muted) !important;
         max-width: 800px;
     }
@@ -363,12 +341,12 @@
     /* RESPONSIVE MEDIA QUERIES */
     @media (max-width: 768px) {
         .hero-section {
-            padding: 60px 16px;
+            padding: 70px 16px;
             min-height: auto;
         }
 
         .hero-content h1 {
-            font-size: 42px;
+            font-size: 46px;
         }
 
         .hero-content p {
@@ -392,7 +370,7 @@
         }
 
         .section-header h2 {
-            font-size: 32px;
+            font-size: 34px;
         }
 
         .features-grid,
@@ -403,11 +381,11 @@
 
         .feature-card,
         .role-card {
-            padding: 24px;
+            padding: 26px;
         }
 
         .cta-section h2 {
-            font-size: 32px;
+            font-size: 34px;
         }
 
         .cta-buttons {
@@ -428,7 +406,7 @@
 
     /* PRICING SECTION - GLASSMORPHIC CARDS & NEON ACCENTS */
     .pricing-section {
-        padding: 80px 24px;
+        padding: 90px 24px;
         background-color: var(--bg-primary);
         border-bottom: 1px solid var(--border-color);
         position: relative;
@@ -437,7 +415,7 @@
     .pricing-toggle-container {
         display: flex;
         justify-content: center;
-        margin-bottom: 40px;
+        margin-bottom: 44px;
     }
 
     .pricing-toggle {
@@ -458,7 +436,7 @@
         font-size: 13px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        padding: 10px 20px;
+        padding: 10px 22px;
         border-radius: var(--radius-sm);
         cursor: pointer;
         transition: all var(--duration-fast) var(--easing-smooth);
@@ -496,17 +474,19 @@
     }
 
     .pricing-card {
-        padding: 40px 32px;
-        border-radius: var(--radius-md);
-        background: var(--surface);
-        border: 1px solid var(--border-color);
+        padding: 44px 34px;
+        border-radius: var(--radius-lg);
+        background: rgba(22, 31, 48, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0, 229, 229, 0.08);
         transition: all var(--duration-normal) var(--easing-smooth);
         position: relative;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
-        text-align: center; /* Center-align text in pricing cards */
+        text-align: center;
     }
 
     .pricing-card.featured {
@@ -520,7 +500,7 @@
         top: 20px;
         right: -35px;
         background: var(--color-teal);
-        color: #0B0F19; /* High-contrast dark navy text in dark mode */
+        color: #0B0F19;
         font-family: var(--font-family-headers);
         font-size: 10px;
         font-weight: 800;
@@ -530,36 +510,36 @@
     }
 
     [data-theme="light"] .pricing-card.featured::before {
-        color: #0B0F19; /* Dark text for the teal badge in light mode */
+        color: #0B0F19;
     }
 
     .pricing-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.4);
+        transform: translateY(-8px) scale(1.01);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), var(--shadow-teal);
         border-color: var(--color-teal);
     }
 
     .pricing-card-header {
-        margin-bottom: 24px;
-        text-align: center; /* Center-align header area */
+        margin-bottom: 26px;
+        text-align: center;
     }
 
     .pricing-card-title {
         font-size: 14px;
         font-weight: 700;
-        color: var(--color-teal); /* Beautiful accent teal instead of muted gray */
+        color: var(--color-teal);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 8px;
+        letter-spacing: 1.2px;
+        margin-bottom: 10px;
     }
 
     .pricing-card-price {
         font-family: var(--font-family-headers);
-        font-size: 48px;
+        font-size: 50px;
         font-weight: 800;
-        color: var(--text-primary); /* Adapt perfectly to light and dark theme backgrounds */
+        color: var(--text-primary);
         line-height: 1;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         text-align: center;
     }
 
@@ -571,26 +551,26 @@
     }
 
     .pricing-card-desc {
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--text-secondary);
-        line-height: 1.5;
-        margin-bottom: 24px;
+        line-height: 1.55;
+        margin-bottom: 26px;
         text-align: center;
     }
 
     .pricing-features-list {
         list-style: none;
         padding: 0;
-        margin: 0 auto 32px auto; /* Center the list block within the card */
+        margin: 0 auto 36px auto;
         display: flex;
         flex-direction: column;
         gap: 12px;
         width: fit-content;
-        text-align: left; /* Keep checkmarks neatly left-aligned */
+        text-align: left;
     }
 
     .pricing-features-list li {
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--text-secondary);
         display: flex;
         align-items: center;
@@ -604,7 +584,7 @@
 
     .pricing-btn {
         width: 100%;
-        padding: 12px 24px;
+        padding: 13px 26px;
         font-size: 14px;
         font-weight: 700;
         text-align: center;
@@ -615,7 +595,7 @@
 
     .pricing-btn-primary {
         background: var(--color-teal);
-        color: #0B0F19; /* High-contrast dark color on teal background in dark mode */
+        color: #0B0F19;
         border: 1px solid var(--color-teal);
     }
 
@@ -627,7 +607,7 @@
     }
 
     [data-theme="light"] .pricing-btn-primary {
-        color: #0B0F19; /* Dark text on the teal CTA in light mode */
+        color: #0B0F19;
     }
 
     [data-theme="light"] .pricing-btn-primary:hover {
@@ -636,7 +616,7 @@
 
     .pricing-btn-secondary {
         background: transparent;
-        color: var(--text-primary); /* Adapt perfectly to light and dark themes */
+        color: var(--text-primary);
         border: 1px solid var(--border-color-dark);
     }
 
@@ -649,14 +629,14 @@
     /* DAILY WALK-IN SPECIAL CARD STYLE */
     .daily-card {
         grid-column: 1 / -1;
-        margin-bottom: 20px;
-        background: linear-gradient(135deg, rgba(0, 229, 229, 0.04) 0%, transparent 100%), var(--surface);
+        margin-bottom: 24px;
+        background: linear-gradient(135deg, rgba(0, 229, 229, 0.06) 0%, transparent 100%), var(--surface);
         border: 1px dashed var(--border-color);
         display: flex;
         flex-direction: row !important;
         align-items: center;
         justify-content: space-between;
-        padding: 30px 40px !important;
+        padding: 34px 44px !important;
         gap: 30px;
         text-align: left;
     }
@@ -683,15 +663,15 @@
 
     .daily-head {
         font-family: var(--font-family-headers);
-        font-size: 24px;
+        font-size: 26px;
         font-weight: 800;
-        color: var(--text-primary); /* Adapt perfectly to dark and light theme backgrounds */
+        color: var(--text-primary);
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .daily-text {
-        font-size: 13px;
+        font-size: 13.5px;
         color: var(--text-secondary);
         margin: 0;
         max-width: 600px;
@@ -699,11 +679,11 @@
 
     .daily-price-box {
         display: flex;
-        gap: 24px;
+        gap: 26px;
         align-items: center;
         background: var(--bg-secondary);
         border: 1px solid var(--border-color);
-        padding: 16px 24px;
+        padding: 18px 26px;
         border-radius: var(--radius-sm);
     }
 
@@ -722,7 +702,7 @@
 
     .daily-price-value {
         font-family: var(--font-family-headers);
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 800;
         color: var(--color-teal);
     }
