@@ -11,9 +11,24 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
+from django.urls import reverse
 from tracker.models import Member, Attendance, GuestVisit
 from tracker.forms import GuestVisitForm
 from .base import _require_roles, _safe_next_redirect, _PaginationAdapter, _qr_data_uri
+
+
+def _auto_checkout_old_sessions() -> None:
+	from datetime import timedelta
+	from django.utils import timezone
+	from tracker.models import Attendance
+
+	now_dt = timezone.now()
+	four_hours_ago = now_dt - timedelta(hours=4)
+	open_sessions = Attendance.objects.filter(check_out_time__isnull=True, check_in_time__lt=four_hours_ago)
+	for session in open_sessions:
+		session.check_out_time = session.check_in_time + timedelta(hours=2) # default 2 hour stay
+		session.duration_minutes = 120
+		session.save(update_fields=['check_out_time', 'duration_minutes'])
 
 
 def attendance_dashboard(request: HttpRequest) -> HttpResponse:
@@ -22,6 +37,8 @@ def attendance_dashboard(request: HttpRequest) -> HttpResponse:
 	if not _require_roles(request, {'admin', 'staff'}):
 		messages.error(request, 'Access denied.')
 		return redirect('home')
+
+	_auto_checkout_old_sessions()
 
 	today = timezone.localdate()
 	start_of_day = timezone.make_aware(timezone.datetime.combine(today, timezone.datetime.min.time()))
@@ -76,6 +93,8 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 		messages.error(request, 'Access denied.')
 		return redirect('home')
 
+	_auto_checkout_old_sessions()
+
 	members = list(
 		Member.objects.select_related('user')
 		.filter(is_active=True, is_approved=True)
@@ -124,12 +143,15 @@ def attendance_check_in(request: HttpRequest) -> HttpResponse:
 		.order_by('user__full_name', 'id')
 	)
 
+	guests_today = list(GuestVisit.objects.filter(visit_date=today).order_by('-created_at', '-id'))
+
 	return render(request, "attendance/check_in.html", {
 		"qr_image": qr_image,
 		"countdown": countdown,
 		"members": members,
 		"undo_members": undo_members,
-		"guest_form": guest_form
+		"guest_form": guest_form,
+		"guests_today": guests_today,
 	})
 
 
@@ -367,8 +389,11 @@ def attendance_log_guest(request: HttpRequest) -> HttpResponse:
 			guest_visit.visit_date = timezone.localdate()
 			guest_visit.save()
 			messages.success(request, f"Guest pass confirmed! Walk-in guest logged: {guest_visit.full_name}.")
+			return redirect(reverse('attendance_routes.check_in') + '?tab=guest-pane')
 		else:
-			messages.error(request, 'Failed to log guest. Please check the form fields.')
+			errors = ", ".join([f"{k}: {v[0]}" for k, v in form.errors.items()])
+			messages.error(request, f'Failed to log guest: {errors}')
+			return redirect(reverse('attendance_routes.check_in') + '?tab=guest-pane')
 	return redirect('attendance_routes.check_in')
 
 

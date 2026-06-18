@@ -44,23 +44,38 @@
             </li>
             {% if current_user.is_authenticated and current_user.role in ['admin', 'staff'] %}
             <li style="display: flex; align-items: center; position: relative;">
-                <a href="#" class="nav-link" onclick="document.getElementById('notification-dropdown').hidden = !document.getElementById('notification-dropdown').hidden; return false;" style="position: relative; display: flex; align-items: center; justify-content: center; height: 32px; width: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: {% if expiring_soon_count > 0 %}var(--color-danger){% else %}var(--text-muted){% endif %};" title="Expiring Members Notifications">
+                <a href="#" class="nav-link" onclick="document.getElementById('notification-dropdown').hidden = !document.getElementById('notification-dropdown').hidden; return false;" style="position: relative; display: flex; align-items: center; justify-content: center; height: 32px; width: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: {% if total_notification_count > 0 %}var(--color-danger){% else %}var(--text-muted){% endif %};" title="Notifications">
                     <i class="fas fa-bell"></i>
-                    {% if expiring_soon_count > 0 %}
+                    {% if total_notification_count > 0 %}
                     <span style="position: absolute; top: -6px; right: -6px; background-color: var(--color-danger); color: white; border-radius: 50%; font-size: 9px; font-weight: 700; height: 16px; width: 16px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-primary);">
-                        {{ expiring_soon_count }}
+                        {{ total_notification_count }}
                     </span>
                     {% endif %}
                 </a>
-                <div id="notification-dropdown" hidden style="position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 280px; box-shadow: var(--shadow-lg); z-index: 2000; padding: var(--spacing-sm) 0;">
+                <div id="notification-dropdown" hidden style="position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-width: 290px; box-shadow: var(--shadow-lg); z-index: 2000; padding: var(--spacing-sm) 0;">
                     <div style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-family: var(--font-family-headers); font-size: 12px; text-transform: uppercase; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
                         <span>Notifications</span>
-                        {% if expiring_soon_count > 0 %}
-                        <span class="status-badge status-expired" style="font-size: 9px; padding: 2px 6px;">{{ expiring_soon_count }} Expiring</span>
+                        {% if total_notification_count > 0 %}
+                        <span class="status-badge status-expired" style="font-size: 9px; padding: 2px 6px;">{{ total_notification_count }} Alert(s)</span>
                         {% endif %}
                     </div>
-                    <div style="max-height: 240px; overflow-y: auto;">
+                    <div style="max-height: 280px; overflow-y: auto;">
+                        <!-- Renewal Requests Section -->
+                        {% if pending_renewal_members %}
+                            <div style="padding: 6px 16px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--color-teal); background: rgba(0, 229, 229, 0.05);">Renewal Requests</div>
+                            {% for m in pending_renewal_members %}
+                            <a href="{{ url_for('member.view_member', member_id=m.id) }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(0, 229, 229, 0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+                                <div style="display: flex; flex-direction: column; gap: 2px;">
+                                    <span style="font-weight: 600;">{{ m.user.full_name or m.user.username }}</span>
+                                    <span style="font-size: 11px; color: var(--color-warning);">Requested: {{ m.pending_renewal_plan|title }} Plan</span>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Expiring Soon Section -->
                         {% if expiring_soon_members %}
+                            <div style="padding: 6px 16px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: var(--color-danger); background: rgba(255, 75, 75, 0.05); {% if pending_renewal_members %}margin-top: 8px;{% endif %}">Expiring Soon</div>
                             {% for m in expiring_soon_members %}
                             <a href="{{ url_for('member.view_member', member_id=m.id) }}" style="display: block; padding: 12px 16px; color: var(--text-primary); text-decoration: none; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(0, 229, 229, 0.05)'" onmouseout="this.style.backgroundColor='transparent'">
                                 <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -69,16 +84,20 @@
                                 </div>
                             </a>
                             {% endfor %}
-                        {% else %}
+                        {% endif %}
+
+                        {% if not pending_renewal_members and not expiring_soon_members %}
                             <div style="padding: 24px 16px; text-align: center; color: var(--text-muted); font-size: 13px;">
                                 <i class="fas fa-check-circle" style="color: var(--color-success); font-size: 20px; display: block; margin-bottom: 8px;"></i>
-                                No memberships expiring soon!
+                                No notifications!
                             </div>
                         {% endif %}
                     </div>
+                    {% if expiring_soon_members %}
                     <a href="{{ url_for('member.list_members') }}?status=expiring_soon" style="display: block; padding: 10px 16px; text-align: center; font-size: 12px; font-weight: 700; color: var(--color-teal); text-decoration: none; border-top: 1px solid var(--border-color); text-transform: uppercase; font-family: var(--font-family-headers);" onmouseover="this.style.backgroundColor='rgba(0, 229, 229, 0.05)'" onmouseout="this.style.backgroundColor='transparent'">
                         View All Expiring
                     </a>
+                    {% endif %}
                 </div>
             </li>
             {% endif %}

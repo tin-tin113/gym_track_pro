@@ -72,6 +72,9 @@ def template_compat(request):
 
     expiring_soon_count = 0
     expiring_soon_members = []
+    pending_renewal_count = 0
+    pending_renewal_members = []
+    total_notification_count = 0
     user = getattr(request, "user", None)
     if user and user.is_authenticated and getattr(user, 'role', None) in {'admin', 'staff'}:
         today = timezone.localdate()
@@ -83,6 +86,13 @@ def template_compat(request):
         ).select_related('user'))
         expiring_soon_count = len(expiring_soon_members)
 
+        pending_renewal_members = list(Member.objects.filter(
+            pending_renewal_plan__isnull=False
+        ).exclude(pending_renewal_plan='').select_related('user'))
+        pending_renewal_count = len(pending_renewal_members)
+
+        total_notification_count = expiring_soon_count + pending_renewal_count
+
     return {
         "current_user": user,
         "csrf_token": get_token(request),
@@ -91,4 +101,7 @@ def template_compat(request):
         "sidebar_current_page_title": sidebar_current_page_title,
         "expiring_soon_count": expiring_soon_count,
         "expiring_soon_members": expiring_soon_members,
+        "pending_renewal_count": pending_renewal_count,
+        "pending_renewal_members": pending_renewal_members,
+        "total_notification_count": total_notification_count,
     }

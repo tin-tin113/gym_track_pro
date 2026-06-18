@@ -6,6 +6,9 @@
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.min.css" rel="stylesheet">
 <style>
 /* ── Tom Select Dark Theme Override ── */
+.ts-wrapper {
+    width: 100% !important;
+}
 .ts-wrapper.single .ts-control,
 .ts-wrapper .ts-control {
     background-color: var(--bg-secondary) !important;
@@ -90,7 +93,10 @@
             </h1>
             <p class="text-muted mb-0">Record manual member check-ins or display the self-check-in kiosk scanner.</p>
         </div>
-        <div>
+        <div class="d-flex gap-2 align-items-center">
+            <button id="toggle-kiosk-btn" class="btn btn-secondary btn-sm" type="button">
+                <i class="fas fa-qrcode"></i> Show QR Kiosk
+            </button>
             <a href="{{ url_for('attendance_routes.dashboard') }}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-arrow-left"></i> Operations Dashboard
             </a>
@@ -98,9 +104,9 @@
     </div>
 
     <!-- Main Columns -->
-    <div class="row cols-2 attendance-check-in">
+    <div id="attendance-row" class="row attendance-check-in">
         <!-- QR Code Column (Left) -->
-        <div class="col-md-6">
+        <div class="col-md-6" id="qr-kiosk-col" style="display: none;">
             <div class="card terminal-card h-100">
                 <div class="card-header bg-navy text-white">
                     <h5 class="mb-0 d-flex align-items-center gap-2">
@@ -149,7 +155,7 @@
         </div>
 
         <!-- Reception Desk Column (Right) -->
-        <div class="col-md-6">
+        <div class="col-md-6" id="reception-col">
             <div class="card terminal-card h-100">
                 <div class="card-header bg-navy text-white">
                     <h5 class="mb-0 d-flex align-items-center gap-2">
@@ -194,7 +200,7 @@
                                         </select>
                                         <small class="text-muted mt-1 d-block" style="font-size: 11px;">
                                             <i class="fas fa-keyboard" style="color: var(--color-teal);"></i>
-                                            Type at least 2 letters to filter members
+                                            Select a member directly or type to search
                                         </small>
                                     </div>
                                     <button type="button" id="open-checkin-modal" class="btn btn-lg btn-primary w-100">
@@ -221,7 +227,7 @@
                                         </select>
                                         <small class="text-muted mt-1 d-block" style="font-size: 11px;">
                                             <i class="fas fa-keyboard" style="color: var(--color-danger);"></i>
-                                            Type at least 2 letters to filter members
+                                            Select a member directly or type to search
                                         </small>
                                     </div>
                                     <button type="button" id="open-undo-modal" class="btn btn-lg btn-danger w-100">
@@ -273,6 +279,42 @@
                                         <i class="fas fa-ticket-alt"></i> Purchase Guest Pass & Log Entry
                                     </button>
                                 </form>
+
+                                <!-- Today's Walk-In Guests List -->
+                                <div class="mt-4 pt-4 border-top border-secondary">
+                                    <h6 class="mb-3 d-flex align-items-center gap-2" style="font-family: var(--font-family-headers); color: var(--color-success); text-transform: uppercase;">
+                                        <i class="fas fa-users"></i>
+                                        Today's Walk-In Guests
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm" style="font-size: 12px; background: transparent;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Type</th>
+                                                    <th>Paid</th>
+                                                    <th>Contact</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% if guests_today %}
+                                                    {% for guest in guests_today %}
+                                                    <tr>
+                                                        <td style="font-weight: 600;">{{ guest.full_name }}</td>
+                                                        <td><span class="badge bg-secondary" style="font-size: 10px; text-transform: uppercase; color: var(--text-muted);">{{ guest.guest_type }}</span></td>
+                                                        <td style="color: var(--color-warning); font-weight: 600;">₱{{ "%.2f"|format(guest.amount_paid) }}</td>
+                                                        <td class="text-muted">{{ guest.phone_number|default("-") }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr>
+                                                        <td colspan="4" class="text-muted text-center py-3">No walk-in guests logged today.</td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -506,6 +548,40 @@ document.addEventListener('DOMContentLoaded', function () {
             toast.show();
         }
     }
+
+    // QR Kiosk toggle logic
+    const toggleKioskBtn = document.getElementById('toggle-kiosk-btn');
+    const qrKioskCol = document.getElementById('qr-kiosk-col');
+    const attendanceRow = document.getElementById('attendance-row');
+
+    if (toggleKioskBtn && qrKioskCol && attendanceRow) {
+        toggleKioskBtn.addEventListener('click', function () {
+            const isHidden = qrKioskCol.style.display === 'none';
+            if (isHidden) {
+                qrKioskCol.style.display = 'block';
+                attendanceRow.classList.add('cols-2');
+                toggleKioskBtn.innerHTML = '<i class="fas fa-desktop"></i> Hide QR Kiosk';
+                toggleKioskBtn.classList.add('btn-primary');
+                toggleKioskBtn.classList.remove('btn-secondary');
+            } else {
+                qrKioskCol.style.display = 'none';
+                attendanceRow.classList.remove('cols-2');
+                toggleKioskBtn.innerHTML = '<i class="fas fa-qrcode"></i> Show QR Kiosk';
+                toggleKioskBtn.classList.add('btn-secondary');
+                toggleKioskBtn.classList.remove('btn-primary');
+            }
+        });
+    }
+
+    // Automatically switch to the tab specified in the URL query parameter (if any)
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    if (activeTab) {
+        const targetBtn = document.querySelector(`.control-btn[data-tab="${activeTab}"]`);
+        if (targetBtn) {
+            targetBtn.click();
+        }
+    }
 });
 </script>
 
@@ -524,6 +600,8 @@ document.addEventListener('DOMContentLoaded', function () {
         allowEmptyOption: false,
         selectOnTab: true,
         highlight: true,
+        openOnFocus: true,
+        dropdownParent: 'body',
         render: {
             option: function (data, escape) {
                 const parts = escape(data.text).split(' — ');
@@ -541,6 +619,16 @@ document.addEventListener('DOMContentLoaded', function () {
             no_results: function () {
                 return `<div class="no-results"><i class="fas fa-search-minus" style="margin-right:6px;"></i>No members found. Try a different name.</div>`;
             },
+        },
+        onBlur: function() {
+            const query = (this.query || (this.control_input ? this.control_input.value : '') || '').trim();
+            if (!this.getValue() && query.length > 0) {
+                const activeOption = this.dropdown_content.querySelector('.active') || this.dropdown_content.querySelector('.option');
+                if (activeOption) {
+                    const value = activeOption.getAttribute('data-value');
+                    this.addItem(value);
+                }
+            }
         },
     };
 
