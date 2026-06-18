@@ -112,7 +112,7 @@
                                 {{ log.meal_name }}
                             </div>
                             <small class="text-muted" style="font-size: 12px;">
-                                {{ log.meal_type|title }} • {{ log.created_at.strftime('%l:%M %p') }}
+                                {{ log.meal_type|title }} • {{ log.created_at.strftime('%I:%M %p') }}
                             </small>
                             {% if log.notes %}
                             <div style="margin-top: 4px;"><small class="text-muted"><em>Note: {{ log.notes }}</em></small></div>

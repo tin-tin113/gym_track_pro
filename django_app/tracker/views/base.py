@@ -4,14 +4,13 @@ import base64
 from functools import wraps
 from io import BytesIO
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timezone
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
-from django.utils import timezone
 import qrcode
 
 from tracker.models import Member
@@ -59,6 +58,28 @@ def _validate_date_range(start_str: str, end_str: str) -> tuple[datetime | None,
 		error_msg = 'Invalid date format. Please use YYYY-MM-DD format.'
 
 	return start_date, end_date, error_msg
+
+
+def _sort_meals(meals: list[Any]) -> list[Any]:
+	"""Sort a list of meals chronologically by weekday, then by meal type order, then by ID."""
+	meal_order = {
+		'Breakfast': 0,
+		'Morning Snack': 1,
+		'Lunch': 2,
+		'Afternoon Snack': 3,
+		'Pre-Workout': 4,
+		'Post-Workout': 5,
+		'Dinner': 6,
+		'Evening Snack': 7,
+		'Other': 8
+	}
+	days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+	meals.sort(key=lambda m: (
+		days.index(m.day_name) if m.day_name in days else 9,
+		meal_order.get(m.meal_type, 9),
+		m.id
+	))
+	return meals
 
 
 def _safe_next_redirect(request: HttpRequest, default_route_name: str) -> HttpResponse:

@@ -106,6 +106,140 @@
             </a>
         </div>
     </div>
+
+    <!-- Logged Meals & Diet Activity -->
+    <div class="row mt-4">
+        <!-- Today's Intake -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100" style="padding: var(--spacing-lg);">
+                <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+                    <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-line" style="color: var(--color-success); margin-right: 8px;"></i> Today's Nutrition Intake</h3>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <!-- Calorie progress bar -->
+                    {% set target = diet_assignment.diet_plan.daily_calories or 0 %}
+                    {% set consumed = daily_totals.calories or 0 %}
+                    {% set pct = (consumed / target * 100)|int if target > 0 else 0 %}
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                            <span class="text-muted">Calorie Goal: <strong>{{ target }} kcal</strong></span>
+                            <span class="text-success">Consumed: <strong>{{ consumed }} kcal</strong> ({{ pct }}%)</span>
+                        </div>
+                        <div class="progress" style="height: 8px; background-color: var(--border-color); border-radius: var(--radius-sm); overflow: hidden;">
+                            <div class="progress-bar {% if pct > 100 %}bg-danger{% else %}bg-success{% endif %}" style="width: {{ pct if pct <= 100 else 100 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Macro totals consumed today -->
+                    <div class="row text-center mb-4" style="font-size: 0.85rem; background: rgba(0,0,0,0.1); padding: 10px 0; border-radius: var(--radius-sm); margin: 0 0 var(--spacing-lg) 0;">
+                        <div class="col-4" style="border-right: 1px solid var(--border-color);">
+                            <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Protein</small>
+                            <strong class="text-success">{{ daily_totals.protein_g|int }}g</strong>
+                        </div>
+                        <div class="col-4" style="border-right: 1px solid var(--border-color);">
+                            <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Carbs</small>
+                            <strong class="text-warning">{{ daily_totals.carbs_g|int }}g</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Fats</small>
+                            <strong class="text-primary">{{ daily_totals.fats_g|int }}g</strong>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size: 13px; color: var(--text-primary); margin-bottom: var(--spacing-sm); text-transform: uppercase; font-family: var(--font-family-headers);">Today's Logged Meals</h4>
+                    {% if meal_logs_today %}
+                        <div style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                            {% for log in meal_logs_today %}
+                            <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px 12px; display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="color: var(--color-teal); font-weight: 700; text-transform: uppercase; font-family: var(--font-family-headers); font-size: 13px;">
+                                        {{ log.meal_name }}
+                                    </div>
+                                    <small class="text-muted" style="font-size: 11px;">
+                                        {{ log.meal_type|title }} • {{ log.created_at.strftime('%I:%M %p') }}
+                                    </small>
+                                    {% if log.notes %}
+                                    <div style="margin-top: 2px;"><small class="text-muted" style="font-size: 10px;"><em>{{ log.notes }}</em></small></div>
+                                    {% endif %}
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="color: var(--color-success); font-weight: 700; font-size: 14px; font-family: var(--font-family-headers);">
+                                        {{ log.calories_actual }} cal
+                                    </div>
+                                    <small class="text-muted" style="font-size: 10px; display: block;">
+                                        P:{{ log.protein_g|int }}g C:{{ log.carbs_g|int }}g F:{{ log.fats_g|int }}g
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
+                            <i class="fas fa-utensils mb-2" style="font-size: 24px; opacity: 0.3;"></i>
+                            <p class="mb-0" style="font-size: 0.9rem;">No meals logged yet today.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Log History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100" style="padding: var(--spacing-lg);">
+                <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: calc(-1 * var(--spacing-lg)) calc(-1 * var(--spacing-lg)) var(--spacing-md) calc(-1 * var(--spacing-lg));">
+                    <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-history" style="color: var(--color-teal); margin-right: 8px;"></i> Recent Diet Activity (7 Days)</h3>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    {% if recent_logs %}
+                        {% set grouped_recent = {} %}
+                        {% for log in recent_logs %}
+                            {% set date_str = log.meal_date.strftime('%A, %b %d') %}
+                            {% if date_str not in grouped_recent %}
+                                {% set _ = grouped_recent.update({date_str: []}) %}
+                            {% endif %}
+                            {% set _ = grouped_recent[date_str].append(log) %}
+                        {% endfor %}
+
+                        <div class="accordion" id="recentDietAccordion" style="max-height: 400px; overflow-y: auto;">
+                            {% for date_label, day_logs in grouped_recent.items() %}
+                                {% set outer_loop = loop %}
+                                {% set day_calories = day_logs|map(attribute='calories_actual')|sum %}
+                                <div class="accordion-item" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: var(--spacing-xs); overflow: hidden;">
+                                    <h2 class="accordion-header" id="heading{{ outer_loop.index }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ outer_loop.index }}" aria-expanded="false" aria-controls="collapse{{ outer_loop.index }}" style="background: transparent; color: var(--text-primary); font-size: 13px; font-weight: 700; padding: 10px 14px; border: none; display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; box-shadow: none;">
+                                            <span><i class="far fa-calendar-alt me-2 text-muted"></i>{{ date_label }}</span>
+                                            <span style="margin-left: auto; margin-right: var(--spacing-md); color: var(--color-success); font-family: var(--font-family-headers);">{{ day_calories }} cal</span>
+                                        </button>
+                                    </h2>
+                                    <div id="collapse{{ outer_loop.index }}" class="accordion-collapse collapse" aria-labelledby="heading{{ outer_loop.index }}" data-bs-parent="#recentDietAccordion">
+                                        <div class="accordion-body" style="padding: 12px; background: rgba(0,0,0,0.15); border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: var(--spacing-xs);">
+                                            {% for log in day_logs %}
+                                            <div style="font-size: 12px; display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+                                                <div>
+                                                    <span style="color: var(--color-teal); font-weight: 600;">{{ log.meal_name }}</span>
+                                                    <small class="text-muted" style="font-size: 10px; display: block;">{{ log.meal_type|title }}</small>
+                                                </div>
+                                                <div style="text-align: right;">
+                                                    <strong class="text-success">{{ log.calories_actual }} cal</strong>
+                                                    <small class="text-muted" style="font-size: 10px; display: block;">P:{{ log.protein_g|int }}g C:{{ log.carbs_g|int }}g F:{{ log.fats_g|int }}g</small>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
+                            <i class="fas fa-history mb-2" style="font-size: 24px; opacity: 0.3;"></i>
+                            <p class="mb-0" style="font-size: 0.9rem;">No meal history for the past 7 days.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
     {% else %}
         <div class="card text-center" style="padding: var(--spacing-3xl) var(--spacing-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);">
             <div style="height: 64px; width: 64px; border-radius: 50%; background: rgba(0, 229, 229, 0.06); display: flex; align-items: center; justify-content: center; margin-bottom: var(--spacing-md); border: 1.5px solid rgba(0, 229, 229, 0.2); box-shadow: var(--shadow-teal);">

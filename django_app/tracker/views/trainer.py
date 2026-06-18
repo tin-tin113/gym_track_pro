@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, Q, Sum, Prefetch
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -29,8 +29,9 @@ from tracker.models import (
 	DietAssignment,
 	GuestVisit,
 	WorkoutSet,
+	MealLog,
 )
-from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range
+from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range, _sort_meals
 
 
 # --- Helpers ---
@@ -1102,7 +1103,28 @@ def trainer_diets(request: HttpRequest) -> HttpResponse:
 	page_obj = paginator.get_page(page_number)
 	plans = _PaginationItemsAdapter(paginator, page_obj, list(page_obj.object_list))
 
-	return render(request, "trainer/diet/list.html", {"plans": plans, "plan_type": plan_type})
+	current_user_is_trainer = role == 'trainer'
+	active_diet_prefetch = Prefetch(
+		'diet_assignments',
+		queryset=DietAssignment.objects.filter(is_active=True).select_related('diet_plan'),
+		to_attr='active_diet'
+	)
+	members_qs = Member.objects.select_related('user').filter(is_active=True, is_approved=True).prefetch_related(active_diet_prefetch)
+	if current_user_is_trainer:
+		members_qs = members_qs.filter(assigned_trainer=request.user)
+	else:
+		members_qs = members_qs.order_by('user__full_name', 'id')[:10]
+	members = list(members_qs)
+
+	return render(
+		request,
+		"trainer/diet/list.html",
+		{
+			"plans": plans,
+			"plan_type": plan_type,
+			"members": members,
+		},
+	)
 
 
 def trainer_create_diet_plan(request: HttpRequest) -> HttpResponse:
@@ -1295,8 +1317,31 @@ def trainer_view_diet_plan(request: HttpRequest, plan_id: int) -> HttpResponse:
 	if plan is None:
 		messages.error(request, 'Diet plan not found.')
 		return redirect('trainer.list_diet_plans')
-	meals = list(MealPlan.objects.filter(diet_plan=plan).order_by('day_name', 'meal_type', 'id'))
-	return render(request, 'trainer/diet/detail.html', {'plan': plan, 'meals': meals})
+	meals = _sort_meals(list(MealPlan.objects.filter(diet_plan=plan)))
+
+	role = getattr(request.user, 'role', None)
+	current_user_is_trainer = role == 'trainer'
+	active_diet_prefetch = Prefetch(
+		'diet_assignments',
+		queryset=DietAssignment.objects.filter(is_active=True).select_related('diet_plan'),
+		to_attr='active_diet'
+	)
+	members_qs = Member.objects.select_related('user').filter(is_active=True, is_approved=True).prefetch_related(active_diet_prefetch)
+	if current_user_is_trainer:
+		members_qs = members_qs.filter(assigned_trainer=request.user)
+	else:
+		members_qs = members_qs.order_by('user__full_name', 'id')[:10]
+	members = list(members_qs)
+
+	return render(
+		request,
+		'trainer/diet/detail.html',
+		{
+			'plan': plan,
+			'meals': meals,
+			'members': members,
+		},
+	)
 
 
 def trainer_member_diet(request: HttpRequest, member_id: int) -> HttpResponse:
@@ -1311,7 +1356,41 @@ def trainer_member_diet(request: HttpRequest, member_id: int) -> HttpResponse:
 		return redirect('trainer.members')
 
 	diet_assignment = DietAssignment.objects.select_related('diet_plan').filter(member=member, is_active=True).order_by('-assignment_date', '-id').first()
-	return render(request, 'trainer/diet/member_diet.html', {'member': member, 'diet_assignment': diet_assignment})
+	
+	today = timezone.localdate()
+	meal_logs_today = list(
+		MealLog.objects.filter(member=member, meal_date=today).order_by('-created_at', '-id')
+	)
+	agg = MealLog.objects.filter(member=member, meal_date=today).aggregate(
+		calories=Sum('calories_actual'),
+		protein_g=Sum('protein_g'),
+		carbs_g=Sum('carbs_g'),
+		fats_g=Sum('fats_g'),
+	)
+	daily_totals = SimpleNamespace(
+		calories=agg.get('calories') or 0,
+		protein_g=agg.get('protein_g') or 0,
+		carbs_g=agg.get('carbs_g') or 0,
+		fats_g=agg.get('fats_g') or 0,
+	)
+
+	start_7 = today - timedelta(days=7)
+	recent_logs = list(
+		MealLog.objects.filter(member=member, meal_date__gte=start_7, meal_date__lte=today)
+		.order_by('-meal_date', '-created_at', '-id')
+	)
+
+	return render(
+		request,
+		'trainer/diet/member_diet.html',
+		{
+			'member': member,
+			'diet_assignment': diet_assignment,
+			'meal_logs_today': meal_logs_today,
+			'daily_totals': daily_totals,
+			'recent_logs': recent_logs,
+		}
+	)
 
 
 def trainer_assign_diet_to_member(request: HttpRequest, member_id: int) -> HttpResponse:

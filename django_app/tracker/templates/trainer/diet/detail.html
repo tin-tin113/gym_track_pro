@@ -16,6 +16,9 @@
             </p>
         </div>
         <div class="page-header-actions d-flex gap-2">
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignDietModal">
+                <i class="fas fa-user-plus"></i> Assign to Member
+            </button>
             <button type="button" class="btn btn-gym-action" data-bs-toggle="modal" data-bs-target="#addMealModal">
                 <i class="fas fa-plus"></i> Add Meal
             </button>
@@ -134,7 +137,7 @@
                 {% endfor %}
 
                 {% if day_meals %}
-                    <div class="row">
+                    <div class="row cols-3">
                         {% for meal in day_meals %}
                         <div class="col-md-6 col-lg-4 mb-4">
                             <div class="program-card h-100 d-flex flex-column justify-content-between">
@@ -214,6 +217,83 @@
             </div>
         </div>
     {% endif %}
+
+    <!-- Assign Diet Modal -->
+    <div class="modal fade" id="assignDietModal" tabindex="-1" aria-labelledby="assignDietModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+                <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+                    <h5 class="modal-title" id="assignDietModalLabel" style="color: var(--neon-orange); font-family: var(--font-family-headers); font-weight: 700;">
+                        <i class="fas fa-bowl-food me-2"></i>Assign "{{ plan.name }}"
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+                </div>
+                {% if not members %}
+                <div class="modal-body" style="color: var(--text-primary); text-align: center; padding: var(--spacing-lg);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; color: var(--color-warning); margin-bottom: var(--spacing-md); display: block;"></i>
+                    <p class="mb-3">You do not have any active, approved members assigned to you to assign this diet to.</p>
+                    <a href="{{ url_for('trainer.members') }}" class="btn btn-warning btn-sm w-100">
+                        Go to My Members
+                    </a>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                {% else %}
+                <form method="POST" onsubmit="this.action = '/trainer/members/' + this.member_id.value + '/diet/assign';">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    <input type="hidden" name="diet_plan_id" value="{{ plan.id }}">
+                    
+                    <div class="modal-body" style="color: var(--text-primary); text-align: left;">
+                        <div class="form-group mb-3">
+                            <label class="form-label" style="font-weight: 600;">Select Member *</label>
+                            <select class="form-control" name="member_id" required style="background-color: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <option value="" style="background: var(--surface);">-- Choose a Member --</option>
+                                {% for member in members %}
+                                {% set active_assignment = member.active_diet[0] if member.active_diet else None %}
+                                <option value="{{ member.id }}" style="background: var(--surface);">
+                                    {{ member.user.full_name or member.user.username }}
+                                    {% if active_assignment %}
+                                        {% if active_assignment.diet_plan_id == plan.id %}
+                                            (Current Plan - Active)
+                                        {% else %}
+                                            (Current: {{ active_assignment.diet_plan.name }})
+                                        {% endif %}
+                                    {% else %}
+                                        (No active diet)
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" style="font-weight: 600;">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" value="{{ now()|strftime('%Y-%m-%d') }}" style="background-color: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <small class="text-muted">When diet plan starts</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" style="font-weight: 600;">Target End Date</label>
+                                <input type="date" class="form-control" name="target_end_date" style="background-color: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border-color);">
+                                <small class="text-muted">When diet plan ends</small>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label" style="font-weight: 600;">Notes</label>
+                            <textarea class="form-control" name="notes" rows="3" placeholder="Optional notes for the member..." style="background-color: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid var(--border-color);"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i> Assign Diet
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
     <!-- Add Meal Modal -->
     <div class="modal fade" id="addMealModal" tabindex="-1" aria-labelledby="addMealModalLabel" aria-hidden="true">
@@ -348,4 +428,24 @@
     filter: invert(1) grayscale(1) brightness(2);
 }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addMealModal = document.getElementById('addMealModal');
+    if (addMealModal) {
+        addMealModal.addEventListener('show.bs.modal', function () {
+            const activeTabButton = document.querySelector('#dayTabs .nav-link.active');
+            if (activeTabButton) {
+                const day = activeTabButton.textContent.trim();
+                const select = document.getElementById('meal-day-select');
+                if (select) {
+                    select.value = day;
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

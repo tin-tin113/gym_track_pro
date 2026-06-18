@@ -18,7 +18,7 @@ from django.urls import reverse
 import json
 from tracker.models import Member, Trainer, TrainerAssignment, Attendance, FitnessMetric, Workout, GuideAssignment, DietAssignment, MealLog, MealPlan, WorkoutGuide, WorkoutTip, Subscription, WorkoutSet
 from tracker.forms import MemberForm, WorkoutForm, MemberProfileForm
-from .base import _require_roles, _require_member_access, _PaginationAdapter
+from .base import _require_roles, _require_member_access, _PaginationAdapter, _sort_meals
 
 
 def member_list_members(request: HttpRequest) -> HttpResponse:
@@ -1137,7 +1137,7 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 		.first()
 	)
 	diet_plan = diet_assignment.diet_plan if diet_assignment else None
-	meals = list(MealPlan.objects.filter(diet_plan=diet_plan).order_by('day_name', 'meal_type', 'id')) if diet_plan else []
+	meals = _sort_meals(list(MealPlan.objects.filter(diet_plan=diet_plan))) if diet_plan else []
 
 	meal_logs_today = list(
 		MealLog.objects.filter(member=member, meal_date=today).order_by('-created_at', '-id')
@@ -1186,7 +1186,7 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 		.first()
 	)
 	diet_plan = diet_assignment.diet_plan if diet_assignment else None
-	suggested_meals = list(MealPlan.objects.filter(diet_plan=diet_plan).order_by('day_name', 'meal_type', 'id')[:25]) if diet_plan else []
+	suggested_meals = _sort_meals(list(MealPlan.objects.filter(diet_plan=diet_plan)[:25])) if diet_plan else []
 
 	if request.method == 'POST':
 		meal_date_str = (request.POST.get('meal_date') or '').strip()
