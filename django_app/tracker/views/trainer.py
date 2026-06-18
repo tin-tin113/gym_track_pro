@@ -205,6 +205,10 @@ def admin_approve_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 		messages.error(request, 'Guide not found.')
 		return redirect('admin.pending_guides')
 
+	if guide.status != WorkoutGuide.Status.PENDING:
+		messages.error(request, f'Cannot approve a guide that is not pending. (Current status: {guide.get_status_display()})')
+		return redirect('admin.review_guide', guide_id=guide_id)
+
 	guide.status = WorkoutGuide.Status.APPROVED
 	guide.rejection_reason = ''
 	guide.save(update_fields=['status', 'rejection_reason', 'updated_at'])
@@ -230,6 +234,10 @@ def admin_reject_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 	if guide is None:
 		messages.error(request, 'Guide not found.')
 		return redirect('admin.pending_guides')
+
+	if guide.status != WorkoutGuide.Status.PENDING:
+		messages.error(request, f'Cannot reject a guide that is not pending. (Current status: {guide.get_status_display()})')
+		return redirect('admin.review_guide', guide_id=guide_id)
 
 	guide.status = WorkoutGuide.Status.REJECTED
 	guide.rejection_reason = reason
