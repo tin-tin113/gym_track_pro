@@ -5,10 +5,34 @@
 {% block content %}
 <div class="container-fluid">
     <!-- Page Header -->
-    <div class="page-header">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
         <div>
             <h1><i class="fas fa-bowl-food me-2" style="color: var(--color-teal);"></i>My Nutrition Plan</h1>
             <p class="text-muted" style="margin-bottom: 0;">Your active daily dietary plan and nutritional targets</p>
+        </div>
+        
+        <!-- Premium Date Navigation Control -->
+        <div class="date-navigator" style="display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); gap: var(--spacing-sm);">
+            <a href="{{ url_for('member.current_diet', date=prev_date|strftime) }}" class="btn btn-secondary btn-small" style="padding: var(--spacing-xs) var(--spacing-sm); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;" title="Previous Day">
+                <i class="fas fa-chevron-left" style="font-size: 12px;"></i>
+            </a>
+            
+            <div style="text-align: center; min-width: 170px;">
+                <div style="font-family: var(--font-family-headers); font-weight: 700; font-size: 14px; color: var(--color-teal); text-transform: uppercase; letter-spacing: 0.5px;">
+                    {{ selected_date|strftime('%A, %b %d') }}
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 1px;">
+                    {% if is_today %}
+                        <span class="status-badge status-success" style="font-size: 9px; padding: 1px 6px;">Today</span>
+                    {% else %}
+                        <a href="{{ url_for('member.current_diet') }}" style="color: var(--color-warning); text-decoration: none; font-weight: 600;">Jump to Today</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <a href="{{ url_for('member.current_diet', date=next_date|strftime) }}" class="btn btn-secondary btn-small" style="padding: var(--spacing-xs) var(--spacing-sm); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;" title="Next Day">
+                <i class="fas fa-chevron-right" style="font-size: 12px;"></i>
+            </a>
         </div>
     </div>
 
@@ -67,9 +91,9 @@
             <div class="stat-card-subtitle">Recommended daily allowance</div>
         </div>
         <div class="stat-card stat-success">
-            <div class="stat-card-title">Logged Today</div>
+            <div class="stat-card-title">{% if is_today %}Logged Today{% else %}Logged on Date{% endif %}</div>
             <div class="stat-card-value" style="color: var(--color-success);">{{ daily_totals.calories or 0 }}</div>
-            <div class="stat-card-subtitle">Calories consumed today</div>
+            <div class="stat-card-subtitle">{% if is_today %}Calories consumed today{% else %}Calories consumed on this date{% endif %}</div>
         </div>
     </div>
 
@@ -78,11 +102,11 @@
     <div class="card mb-4" style="border-left-color: var(--color-teal);">
         <div class="card-body" style="padding: 0;">
             <div style="text-align: center;">
-                <h6 class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); letter-spacing: 0.5px;">Remaining for Today</h6>
+                <h6 class="text-muted" style="font-size: 12px; text-transform: uppercase; font-family: var(--font-family-headers); letter-spacing: 0.5px;">{% if is_today %}Remaining for Today{% else %}Remaining Calorie Target{% endif %}</h6>
                 <div style="font-size: 40px; color: var(--color-success); font-weight: 800; font-family: var(--font-family-headers); line-height: 1.1; margin-top: 4px;">
                     {{ remaining if remaining > 0 else 0 }}
                 </div>
-                <small class="text-muted">calories left to consume</small>
+                <small class="text-muted">{% if is_today %}calories left to consume{% else %}calories remaining{% endif %}</small>
 
                 {% if estimated_burn %}
                 <div style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--border-color);">
@@ -97,8 +121,8 @@
     <!-- Today's Meals -->
     <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
         <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-utensils" style="color: var(--color-teal); margin-right: 8px;"></i> Today's Logged Meals</h3>
-            <a href="{{ url_for('member.log_meal') }}" class="btn btn-small btn-primary">
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-utensils" style="color: var(--color-teal); margin-right: 8px;"></i> Logged Meals ({{ selected_date|strftime('%b %d') }})</h3>
+            <a href="{{ url_for('member.log_meal', date=selected_date|strftime) }}" class="btn btn-small btn-primary">
                 <i class="fas fa-plus"></i> Log Meal
             </a>
         </div>
@@ -132,8 +156,8 @@
             {% else %}
                 <div style="text-align: center; padding: var(--spacing-lg);">
                     <i class="fas fa-inbox" style="font-size: 32px; color: var(--text-muted); opacity: 0.3; margin-bottom: var(--spacing-sm);"></i>
-                    <p class="text-muted">No meals logged yet today</p>
-                    <a href="{{ url_for('member.log_meal') }}" class="btn btn-primary btn-small mt-2" style="display: inline-flex;">
+                    <p class="text-muted">No meals logged yet for this date</p>
+                    <a href="{{ url_for('member.log_meal', date=selected_date|strftime) }}" class="btn btn-primary btn-small mt-2" style="display: inline-flex;">
                         <i class="fas fa-plus"></i> Log Your First Meal
                     </a>
                 </div>
@@ -271,7 +295,7 @@
     {% if daily_totals %}
     <div class="card mb-4" style="border-left: none; padding: 0; overflow: hidden;">
         <div class="card-header" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 12px 16px; margin: 0;">
-            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-pie" style="color: var(--color-teal); margin-right: 8px;"></i> Today's Macro Totals</h3>
+            <h3 style="margin: 0; font-size: 15px;"><i class="fas fa-chart-pie" style="color: var(--color-teal); margin-right: 8px;"></i> Macro Totals ({{ selected_date|strftime('%b %d') }})</h3>
         </div>
         <div class="card-body" style="padding: var(--spacing-lg);">
             <div class="row cols-3 text-center">
@@ -309,7 +333,7 @@
 
     <!-- Action Buttons -->
     <div class="row cols-2">
-        <a href="{{ url_for('member.log_meal') }}" class="btn btn-primary" style="padding: 12px 16px;">
+        <a href="{{ url_for('member.log_meal', date=selected_date|strftime) }}" class="btn btn-primary" style="padding: 12px 16px;">
             <i class="fas fa-plus"></i> Log New Meal Entry
         </a>
         <a href="{{ url_for('member.diet_progress') }}" class="btn btn-secondary" style="padding: 12px 16px;">

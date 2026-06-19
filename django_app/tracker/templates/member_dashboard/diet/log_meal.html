@@ -16,7 +16,7 @@
                         <!-- Meal Date -->
                         <div class="form-group mb-3">
                             <label class="form-label">Meal Date *</label>
-                            <input type="date" class="form-control" name="meal_date" value="{{ now().date().isoformat() }}" required>
+                            <input type="date" class="form-control" name="meal_date" value="{{ selected_date|strftime('%Y-%m-%d') }}" required>
                         </div>
 
                         <!-- Meal Type -->

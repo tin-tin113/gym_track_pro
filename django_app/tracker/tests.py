@@ -18,6 +18,7 @@ from .models import (
 	WorkoutTip,
 	WorkoutSet,
 	GuideAssignment,
+	MealLog,
 )
 
 
@@ -1033,6 +1034,99 @@ class AdvancedFitnessLoggingTests(TestCase):
 		assignment.refresh_from_db()
 		self.assertTrue(assignment.is_completed)
 		self.assertIsNotNone(assignment.completion_date)
+
+
+class MemberDietDiaryNavigationTests(TestCase):
+	def setUp(self):
+		self.today = timezone.localdate()
+		self.member_user = User.objects.create_user(username='member_diet_test', email='diettest@gym.local', password='pw')
+		self.member_user.role = User.Role.MEMBER
+		self.member_user.full_name = 'Diet Member'
+		self.member_user.save(update_fields=['role', 'full_name'])
+		
+		# Create trainer
+		self.trainer_user = User.objects.create_user(username='trainer_diet_test', email='trainer_diet_test@gym.local', password='pw')
+		self.trainer_user.role = User.Role.TRAINER
+		self.trainer_user.full_name = 'Trainer Diet'
+		self.trainer_user.save(update_fields=['role', 'full_name'])
+		self.trainer_profile = Trainer.objects.create(user=self.trainer_user, max_clients=10)
+
+		self.member = Member.objects.create(
+			user=self.member_user,
+			membership_start_date=self.today - timedelta(days=5),
+			membership_expiry_date=self.today + timedelta(days=25),
+			is_active=True,
+			is_approved=True,
+			assigned_trainer=self.trainer_user,
+		)
+		self.client.force_login(self.member_user)
+
+		# Create diet plan
+		self.plan = DietPlan.objects.create(name='Bulking', diet_type='bulk', description='Test Bulk', daily_calories=3000, is_active=True)
+		self.diet_assignment = DietAssignment.objects.create(
+			member=self.member,
+			diet_plan=self.plan,
+			trainer=self.trainer_user,
+			assignment_date=self.today - timedelta(days=2),
+			is_active=True,
+		)
+
+	def test_view_diet_today_and_past_date(self):
+		# Create meal logs for today and yesterday
+		MealLog.objects.create(
+			member=self.member,
+			diet_assignment=self.diet_assignment,
+			meal_date=self.today,
+			meal_type='breakfast',
+			meal_name='Oatmeal',
+			calories_actual=400,
+		)
+		MealLog.objects.create(
+			member=self.member,
+			diet_assignment=self.diet_assignment,
+			meal_date=self.today - timedelta(days=1),
+			meal_type='lunch',
+			meal_name='Chicken Rice',
+			calories_actual=700,
+		)
+
+		# 1. Access current diet page (defaults to today)
+		resp = self.client.get(reverse('member.current_diet'))
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, 'Oatmeal')
+		self.assertNotContains(resp, 'Chicken Rice')
+
+		# 2. Access current diet page for yesterday
+		yesterday = (self.today - timedelta(days=1)).isoformat()
+		resp_yest = self.client.get(reverse('member.current_diet') + f"?date={yesterday}")
+		self.assertEqual(resp_yest.status_code, 200)
+		self.assertContains(resp_yest, 'Chicken Rice')
+		self.assertNotContains(resp_yest, 'Oatmeal')
+
+	def test_log_meal_redirect_preserves_date(self):
+		yesterday = (self.today - timedelta(days=1)).isoformat()
+		
+		# 1. Access log meal page with a prefilled date
+		resp = self.client.get(reverse('member.log_meal') + f"?date={yesterday}")
+		self.assertEqual(resp.status_code, 200)
+		self.assertContains(resp, yesterday)
+
+		# 2. Submit log meal form for yesterday
+		post_data = {
+			'meal_date': yesterday,
+			'meal_type': 'dinner',
+			'meal_name': 'Steak',
+			'calories_actual': 800,
+		}
+		resp_post = self.client.post(reverse('member.log_meal') + f"?date={yesterday}", post_data)
+		# Should redirect back to current diet page with the date parameter
+		self.assertRedirects(resp_post, reverse('member.current_diet') + f"?date={yesterday}")
+
+		# Verify database record
+		meal = MealLog.objects.filter(meal_name='Steak').first()
+		self.assertIsNotNone(meal)
+		self.assertEqual(meal.meal_date.isoformat(), yesterday)
+
 
 
 

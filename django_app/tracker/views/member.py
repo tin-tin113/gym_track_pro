@@ -1130,6 +1130,14 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 		return redirect('home')
 
 	today = timezone.localdate()
+	date_str = (request.GET.get('date') or '').strip()
+	selected_date = today
+	if date_str:
+		try:
+			selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+		except ValueError:
+			pass
+
 	diet_assignment = (
 		DietAssignment.objects.select_related('diet_plan')
 		.filter(member=member, is_active=True)
@@ -1140,9 +1148,9 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 	meals = _sort_meals(list(MealPlan.objects.filter(diet_plan=diet_plan))) if diet_plan else []
 
 	meal_logs_today = list(
-		MealLog.objects.filter(member=member, meal_date=today).order_by('-created_at', '-id')
+		MealLog.objects.filter(member=member, meal_date=selected_date).order_by('-created_at', '-id')
 	)
-	agg = MealLog.objects.filter(member=member, meal_date=today).aggregate(
+	agg = MealLog.objects.filter(member=member, meal_date=selected_date).aggregate(
 		calories=Sum('calories_actual'),
 		protein_g=Sum('protein_g'),
 		carbs_g=Sum('carbs_g'),
@@ -1155,6 +1163,10 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 		fats_g=agg.get('fats_g'),
 	)
 
+	prev_date = selected_date - timedelta(days=1)
+	next_date = selected_date + timedelta(days=1)
+	is_today = (selected_date == today)
+
 	return render(
 		request,
 		"member_dashboard/diet/current.html",
@@ -1165,6 +1177,11 @@ def member_current_diet(request: HttpRequest) -> HttpResponse:
 			"daily_totals": daily_totals,
 			"meal_logs_today": meal_logs_today,
 			"estimated_burn": None,
+			"selected_date": selected_date,
+			"prev_date": prev_date,
+			"next_date": next_date,
+			"is_today": is_today,
+			"today": today,
 		},
 	)
 
@@ -1178,6 +1195,14 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 			return redirect('auth.pending_status')
 		messages.error(request, 'Access denied.')
 		return redirect('home')
+
+	selected_date_str = (request.GET.get('date') or '').strip()
+	selected_date = timezone.localdate()
+	if selected_date_str:
+		try:
+			selected_date = timezone.datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+		except ValueError:
+			pass
 
 	diet_assignment = (
 		DietAssignment.objects.select_related('diet_plan')
@@ -1200,17 +1225,17 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 
 		if not meal_date_str or not meal_type or not meal_name or not calories_str:
 			messages.error(request, 'Please fill in all required fields.')
-			return redirect('member.log_meal')
+			return redirect(reverse('member.log_meal') + f"?date={meal_date_str or selected_date.isoformat()}")
 		try:
 			meal_date = timezone.datetime.fromisoformat(meal_date_str).date()
 		except ValueError:
 			messages.error(request, 'Invalid meal date.')
-			return redirect('member.log_meal')
+			return redirect(reverse('member.log_meal') + f"?date={meal_date_str or selected_date.isoformat()}")
 		try:
 			calories_actual = int(calories_str)
 		except ValueError:
 			messages.error(request, 'Invalid calories value.')
-			return redirect('member.log_meal')
+			return redirect(reverse('member.log_meal') + f"?date={meal_date_str or selected_date.isoformat()}")
 
 		def _to_float(val: str):
 			return float(val) if val else None
@@ -1228,7 +1253,7 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 			notes=notes,
 		)
 		messages.success(request, 'Meal logged.')
-		return redirect('member.current_diet')
+		return redirect(reverse('member.current_diet') + f"?date={meal_date.isoformat()}")
 
 	return render(
 		request,
@@ -1237,7 +1262,7 @@ def member_log_meal(request: HttpRequest) -> HttpResponse:
 			"diet_assignment": diet_assignment,
 			"diet_plan": diet_plan,
 			"suggested_meals": suggested_meals,
-			"today": timezone.localdate().isoformat(),
+			"selected_date": selected_date,
 		},
 	)
 
