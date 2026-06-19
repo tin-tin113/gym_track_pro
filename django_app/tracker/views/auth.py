@@ -180,7 +180,9 @@ def auth_register(request: HttpRequest) -> HttpResponse:
 			new_user.full_name = full_name
 			new_user.role = role
 			new_user.is_active = True
-			new_user.save(update_fields=['full_name', 'role', 'is_active'])
+			if role in {User.Role.STAFF, User.Role.ADMIN}:
+				new_user.is_staff = True
+			new_user.save(update_fields=['full_name', 'role', 'is_active', 'is_staff'])
 
 			if role == User.Role.TRAINER:
 				Trainer.objects.create(user=new_user)

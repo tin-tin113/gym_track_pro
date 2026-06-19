@@ -120,6 +120,7 @@ urlpatterns = [
     path('staff/<int:staff_id>/edit', views.staff_edit_staff, name='staff.edit_staff'),
     path('staff/<int:staff_id>/delete', views.staff_delete_staff, name='staff.delete_staff'),
     path('staff/<int:staff_id>/reactivate', views.staff_reactivate_staff, name='staff.reactivate_staff'),
+    path('staff/<int:staff_id>/resend-setup', views.staff_resend_setup_link, name='staff.resend_setup_link'),
 
     # Admin (custom dashboard pages, separate from Django admin site)
     path('admin/dashboard', views.admin_dashboard, name='admin.dashboard'),
@@ -131,6 +132,7 @@ urlpatterns = [
     path('admin/guides/<int:guide_id>/review', views.admin_review_guide, name='admin.review_guide'),
     path('admin/guides/<int:guide_id>/approve', views.admin_approve_guide, name='admin.approve_guide'),
     path('admin/guides/<int:guide_id>/reject', views.admin_reject_guide, name='admin.reject_guide'),
+    path('admin/guides/<int:guide_id>/delete', views.admin_delete_guide, name='admin.delete_guide'),
 
     # Reports
     path('reports/', views.reports_dashboard, name='reports.dashboard'),

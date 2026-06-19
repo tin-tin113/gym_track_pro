@@ -52,15 +52,15 @@
             <!-- Member Management -->
             {{ sidebar_link(url_for('member.list_members'), 'users', 'Members', 'admin.members') }}
 
+            <!-- Pending Approvals -->
+            {{ sidebar_link(url_for('admin.pending_approvals'), 'hourglass-half', 'Pending Approvals', 'admin.pending_approvals') }}
+
             <!-- Trainer Management (Admin only) -->
             {% if current_user.is_admin %}
             {{ sidebar_link(url_for('trainer.list_trainers'), 'heart-pulse', 'Trainers', 'admin.trainers') }}
 
             <!-- Staff Management (Admin only) -->
             {{ sidebar_link(url_for('staff.list_staff'), 'users-cog', 'Staff', 'admin.staff') }}
-
-            <!-- Pending Approvals (Admin only) -->
-            {{ sidebar_link(url_for('admin.pending_approvals'), 'hourglass-half', 'Pending Approvals', 'admin.pending_approvals') }}
 
             <!-- Guide Approvals (Admin only) -->
             {{ sidebar_link(url_for('admin.pending_guides'), 'check-circle', 'Guide Approvals', 'admin.pending_guides') }}

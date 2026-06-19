@@ -23,6 +23,52 @@
                             value="{{ staff_user.email if staff_user else '' }}"
                             {% if staff_user %}disabled{% else %}required{% endif %}>
                     </div>
+                    
+                    <!-- Account Setup Status (only show for existing staff members) -->
+                    {% if staff_user %}
+                    <hr class="my-4">
+                    <div class="mb-4">
+                        <h5 class="text-muted"><i class="fas fa-lock me-2" style="color: var(--color-teal);"></i>Account Setup Status</h5>
+
+                        {% if has_setup_token %}
+                            {% if is_setup_valid %}
+                            <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); border-radius: var(--radius-md); padding: 15px; color: var(--text-primary); margin-bottom: 20px;">
+                                <strong style="color: var(--color-warning);"><i class="fas fa-hourglass-end me-1"></i> Pending Setup</strong>
+                                <p class="mb-2 text-muted" style="font-size: 13px; margin-top: 5px;">This staff member has not yet set their password. Share the setup link below:</p>
+                                <div class="input-group mb-2" style="display: flex; gap: 8px;">
+                                    <input type="text" class="form-control" id="setup_link_input"
+                                        value="{{ setup_link }}" readonly style="flex: 1; padding: 8px 12px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); color: var(--text-primary); border-radius: var(--radius-sm);">
+                                    <button class="btn btn-outline-primary" type="button"
+                                        onclick="copyToClipboard('{{ setup_link }}', this)" style="padding: 8px 16px; border-radius: var(--radius-sm); font-weight: 600;">
+                                        <i class="fas fa-copy me-1"></i> Copy
+                                    </button>
+                                </div>
+                                <small class="text-muted" style="display: block; margin-bottom: 10px;">Link expires: {{ setup_token_expiry.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                <form method="POST" action="{{ url_for('staff.resend_setup_link', staff_id=staff_user.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-secondary mt-2" style="font-size: 12px; padding: 6px 12px;">
+                                        <i class="fas fa-redo me-1"></i> Regenerate Link
+                                    </button>
+                                </form>
+                            </div>
+                            {% elif is_setup_expired %}
+                            <div class="alert alert-danger" style="background: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.2); border-radius: var(--radius-md); padding: 15px; color: var(--text-primary); margin-bottom: 20px;">
+                                <strong style="color: var(--color-danger);"><i class="fas fa-exclamation-circle me-1"></i> Setup Link Expired</strong>
+                                <p class="mb-2 text-muted" style="font-size: 13px; margin-top: 5px;">The previous setup link has expired. Generate a new one:</p>
+                                <form method="POST" action="{{ url_for('staff.resend_setup_link', staff_id=staff_user.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;">
+                                        <i class="fas fa-redo me-1"></i> Generate New Link
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                        <div class="alert alert-success" style="background: rgba(40, 167, 69, 0.05); border: 1px solid rgba(40, 167, 69, 0.2); border-radius: var(--radius-md); padding: 15px; color: var(--text-primary); margin-bottom: 20px;">
+                            <strong style="color: var(--color-success);"><i class="fas fa-check-circle me-1"></i> Account Active</strong>
+                            <p class="mb-0 text-muted" style="font-size: 13px; margin-top: 5px;">This staff member has completed setup and can log in.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('staff.list_staff') }}" class="btn btn-secondary">Cancel</a>

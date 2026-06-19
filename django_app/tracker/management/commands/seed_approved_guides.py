@@ -210,17 +210,17 @@ class Command(BaseCommand):
 			try:
 				cat_lower = guide_data['category'].lower()
 				if 'strength' in cat_lower:
-					img_name = 'strength.jpg'
+					img_name = 'guide_images/strength.jpg'
 				elif 'cardio' in cat_lower:
-					img_name = 'cardio.jpg'
+					img_name = 'guide_images/cardio.jpg'
 				elif 'flexibility' in cat_lower or 'yoga' in cat_lower or 'pilates' in cat_lower or 'wellness' in cat_lower:
-					img_name = 'yoga.jpg'
+					img_name = 'guide_images/yoga.jpg'
 				elif 'hybrid' in cat_lower or 'crossfit' in cat_lower or 'functional' in cat_lower:
-					img_name = 'hybrid.jpg'
+					img_name = 'guide_images/hybrid.jpg'
 				elif 'core' in cat_lower:
-					img_name = 'core.jpg'
+					img_name = 'guide_images/core.jpg'
 				else:
-					img_name = 'strength.jpg'
+					img_name = 'guide_images/strength.jpg'
 
 				# Create guide
 				guide = WorkoutGuide.objects.create(

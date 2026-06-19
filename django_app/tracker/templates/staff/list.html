@@ -64,7 +64,17 @@
                         <code style="background-color: rgba(0,229,229,0.08); border: 1px solid rgba(0,229,229,0.2); padding: 3px 8px; border-radius: var(--radius-sm); color: var(--color-teal); font-family: 'Courier New', monospace; font-size: 12px;">{{ staff_member.username }}</code>
                     </td>
                     <td>
-                        {% if staff_member.is_active %}
+                        {% if staff_member.setup_token %}
+                            {% if staff_member.setup_token_expiry and staff_member.setup_token_expiry < now() %}
+                                <span class="status-badge status-expired" style="background: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.2); color: var(--color-danger);">
+                                    <i class="fas fa-exclamation-circle"></i> Setup Expired
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-pending" style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); color: var(--color-warning);">
+                                    <i class="fas fa-hourglass-end"></i> Setup Pending
+                                </span>
+                            {% endif %}
+                        {% elif staff_member.is_active %}
                             <span class="status-badge status-active">
                                 <i class="fas fa-check-circle"></i> Active
                             </span>
@@ -78,20 +88,31 @@
                     <td>
                         <div class="row-actions">
                             {% if staff_member.is_active %}
-                            <a href="{{ url_for('staff.edit_staff', staff_id=staff_member.id) }}" class="btn btn-small btn-primary">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <form method="POST" action="{{ url_for('staff.delete_staff', staff_id=staff_member.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this staff member?\n\nStaff cannot log in. Historical records remain accessible.');">
-                                    <i class="fas fa-ban"></i> Deactivate
-                                </button>
-                            </form>
+                                {% if staff_member.setup_token %}
+                                    {% set setup_url = request.build_absolute_uri(url_for('auth.setup_password', token=staff_member.setup_token)) %}
+                                    <button class="btn btn-small btn-secondary" onclick="copyToClipboard('{{ setup_url }}', this)" title="Copy password setup link">
+                                        <i class="fas fa-copy"></i> Link
+                                    </button>
+                                    <form method="POST" action="{{ url_for('staff.resend_setup_link', staff_id=staff_member.id) }}" style="display: inline;">
+                                        <button type="submit" class="btn btn-small btn-secondary" title="Regenerate password setup link">
+                                            <i class="fas fa-redo"></i> Setup
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <a href="{{ url_for('staff.edit_staff', staff_id=staff_member.id) }}" class="btn btn-small btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form method="POST" action="{{ url_for('staff.delete_staff', staff_id=staff_member.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-small btn-danger" onclick="return confirm('Deactivate this staff member?\n\nStaff cannot log in. Historical records remain accessible.');">
+                                        <i class="fas fa-ban"></i> Deactivate
+                                    </button>
+                                </form>
                             {% else %}
-                            <form method="POST" action="{{ url_for('staff.reactivate_staff', staff_id=staff_member.id) }}" style="display: inline;">
-                                <button type="submit" class="btn btn-small btn-success">
-                                    <i class="fas fa-redo"></i> Reactivate
-                                </button>
-                            </form>
+                                <form method="POST" action="{{ url_for('staff.reactivate_staff', staff_id=staff_member.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn btn-small btn-success">
+                                        <i class="fas fa-redo"></i> Reactivate
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </td>

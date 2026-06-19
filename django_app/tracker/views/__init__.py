@@ -115,6 +115,7 @@ from .trainer import (
     admin_review_guide,
     admin_approve_guide,
     admin_reject_guide,
+    admin_delete_guide,
     admin_approve_member,
     admin_reject_member,
     staff_list,
@@ -123,4 +124,5 @@ from .trainer import (
     staff_edit_staff,
     staff_delete_staff,
     staff_reactivate_staff,
+    staff_resend_setup_link,
 )

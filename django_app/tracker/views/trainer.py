@@ -85,8 +85,8 @@ def admin_dashboard(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def admin_pending_approvals(request: HttpRequest) -> HttpResponse:
-	if getattr(request.user, 'role', None) != 'admin':
-		messages.error(request, 'Admin access required.')
+	if not _require_roles(request, {'admin', 'staff'}):
+		messages.error(request, 'Access denied.')
 		return redirect('home')
 
 	search = (request.GET.get('search') or '').strip()
@@ -244,6 +244,28 @@ def admin_reject_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 	guide.save(update_fields=['status', 'rejection_reason', 'updated_at'])
 	messages.info(request, 'Guide rejected.')
 	return redirect('admin.pending_guides')
+
+
+def admin_delete_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if getattr(request.user, 'role', None) != 'admin':
+		messages.error(request, 'Admin access required.')
+		return redirect('home')
+	if request.method != 'POST':
+		return redirect('admin.all_guides')
+
+	guide = WorkoutGuide.objects.filter(id=guide_id).first()
+	if guide is None:
+		messages.error(request, 'Guide not found.')
+		return redirect('admin.all_guides')
+
+	guide_name = guide.name
+	guide.delete()
+	messages.success(request, f'Workout guide "{guide_name}" deleted.')
+	return redirect('admin.all_guides')
+
+
 
 
 @login_required
@@ -482,7 +504,25 @@ def staff_edit_staff(request: HttpRequest, staff_id: int) -> HttpResponse:
 		messages.success(request, 'Staff member updated.')
 		return redirect('staff.edit_staff', staff_id=staff_user.id)
 
-	return render(request, 'staff/edit.html', {'staff_user': staff_user})
+	now = timezone.now()
+	has_setup_token = bool(staff_user.setup_token)
+	setup_token_expiry = staff_user.setup_token_expiry
+	is_setup_valid = bool(has_setup_token and setup_token_expiry and setup_token_expiry >= now)
+	is_setup_expired = bool(has_setup_token and setup_token_expiry and setup_token_expiry < now)
+	setup_link = request.build_absolute_uri(reverse('auth.setup_password') + f"?token={staff_user.setup_token}") if has_setup_token else ''
+
+	return render(
+		request,
+		'staff/edit.html',
+		{
+			'staff_user': staff_user,
+			'has_setup_token': has_setup_token,
+			'is_setup_valid': is_setup_valid,
+			'is_setup_expired': is_setup_expired,
+			'setup_link': setup_link,
+			'setup_token_expiry': setup_token_expiry,
+		},
+	)
 
 
 def staff_delete_staff(request: HttpRequest, staff_id: int) -> HttpResponse:
@@ -534,6 +574,35 @@ def staff_reactivate_staff(request: HttpRequest, staff_id: int) -> HttpResponse:
 	staff_user.save(update_fields=['is_active'])
 	messages.success(request, f'Staff member "{staff_user.full_name}" reactivated.')
 	return redirect('staff.list_staff')
+
+
+def staff_resend_setup_link(request: HttpRequest, staff_id: int) -> HttpResponse:
+	"""Resend password setup link for staff."""
+	if not request.user.is_authenticated:
+		return redirect('auth.login')
+	if getattr(request.user, 'role', None) != 'admin':
+		messages.error(request, 'Admin access required.')
+		return redirect('home')
+	if request.method != 'POST':
+		return redirect('staff.list_staff')
+
+	User = get_user_model()
+	staff_user = User.objects.filter(id=staff_id, role=User.Role.STAFF).first()
+	if staff_user is None:
+		messages.error(request, 'Staff member not found.')
+		return redirect('staff.list_staff')
+
+	setup_token = secrets.token_urlsafe(32)
+	setup_expiry = timezone.now() + timedelta(hours=24)
+
+	with transaction.atomic():
+		staff_user.setup_token = setup_token
+		staff_user.setup_token_expiry = setup_expiry
+		staff_user.save(update_fields=['setup_token', 'setup_token_expiry'])
+
+	setup_link = request.build_absolute_uri(reverse('auth.setup_password') + f"?token={setup_token}")
+	messages.success(request, f"New setup link for {staff_user.full_name} (expires in 24h): {setup_link}")
+	return redirect('staff.edit_staff', staff_id=staff_user.id)
 
 
 # --- Trainer Dashboard ---
