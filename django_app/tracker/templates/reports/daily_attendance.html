@@ -57,18 +57,25 @@
                         {% for record in records %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('member.view_member', member_id=record.member.id) }}" class="text-decoration-none">
-                                    {{ record.member.user.full_name }}
-                                </a>
+                                {% if record.is_guest %}
+                                    <span style="color: var(--color-teal); font-weight: 700; font-size: 11px; text-transform: uppercase; border: 1px solid var(--color-teal); padding: 2px 6px; border-radius: 4px; margin-right: 4px;">Guest</span>
+                                    <strong>{{ record.name }}</strong>
+                                {% else %}
+                                    <a href="{{ url_for('member.view_member', member_id=record.member_id) }}" class="text-decoration-none">
+                                        {{ record.name }}
+                                    </a>
+                                {% endif %}
                             </td>
-                            <td>{{ record.member.user.email }}</td>
+                            <td>{{ record.email }}</td>
                             <td>
                                 <small class="text-muted">
                                     {{ record.check_in_time.strftime('%H:%M:%S') if record.check_in_time else '-' }}
                                 </small>
                             </td>
                             <td>
-                                {% if record.check_out_time and record.check_in_time %}
+                                {% if record.is_guest %}
+                                    <span class="text-muted">-</span>
+                                {% elif record.check_out_time and record.check_in_time %}
                                     {% set duration_mins = ((record.check_out_time - record.check_in_time).total_seconds() / 60)|int %}
                                     <span class="badge badge-info">{{ duration_mins }} min</span>
                                 {% elif record.check_in_time and not record.check_out_time %}
@@ -79,7 +86,9 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if record.check_out_time %}
+                                {% if record.is_guest %}
+                                    <span class="badge badge-success"><i class="fas fa-ticket-alt"></i> Guest Pass</span>
+                                {% elif record.check_out_time %}
                                     <span class="badge badge-success"><i class="fas fa-check-circle"></i> Completed</span>
                                 {% else %}
                                     <span class="badge badge-warning"><i class="fas fa-user"></i> In Gym</span>

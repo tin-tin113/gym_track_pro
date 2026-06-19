@@ -319,28 +319,7 @@
                         </div>
                     </div>
 
-                    <!-- Quick Check-In Panel -->
-                    <div class="mt-4 pt-4 border-top border-secondary">
-                        <h6 class="mb-3 d-flex align-items-center gap-2" style="font-family: var(--font-family-headers); color: var(--color-teal); text-transform: uppercase;">
-                            <i class="fas fa-bolt"></i>
-                            Quick Check-In Panel
-                        </h6>
-                        <div class="quick-checkin-grid">
-                            {% if members %}
-                                {% for member in members[:8] %}
-                                                                <div class="quick-member-card quick-checkin-btn" data-member-id="{{ member.id }}" data-member-name="{% if member.user.full_name %}{{ member.user.full_name }}{% else %}{{ member.user.email }}{% endif %}">
-                                                                    <div class="quick-member-avatar">
-                                                                        <i class="fas fa-dumbbell"></i>
-                                                                    </div>
-                                                                    <div class="quick-member-name">{% if member.user.full_name %}{{ member.user.full_name }}{% else %}{{ member.user.email|truncate(15) }}{% endif %}</div>
-                                                                    <small class="text-muted" style="font-size: 9px; text-transform: uppercase; font-weight: 700;">Tap Card</small>
-                                                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted small mb-0">No active members found</p>
-                            {% endif %}
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -457,14 +436,7 @@ document.addEventListener('DOMContentLoaded', function () {
         openCheckinModal(memberId, memberName);
     });
 
-    // Quick check-in grid click handler
-    document.querySelectorAll('.quick-member-card').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            const memberId = this.dataset.memberId;
-            const memberName = this.dataset.memberName;
-            openCheckinModal(memberId, memberName);
-        });
-    });
+
 
     // Undo button opens undo modal — reads from Tom Select instance
     document.getElementById('open-undo-modal').addEventListener('click', function () {
@@ -831,79 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
     color: var(--color-teal);
 }
 
-/* Quick Check-in Grid */
-.quick-checkin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-    max-height: 230px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
 
-.quick-member-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 12px 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--duration-fast) var(--easing-smooth);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.quick-member-card:hover {
-    border-color: var(--color-teal);
-    background: rgba(0, 229, 229, 0.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 0 0 5px rgba(0, 229, 229, 0.2);
-    transform: translateY(-1px);
-}
-
-.quick-member-avatar {
-    width: 32px;
-    height: 32px;
-    background: var(--bg-tertiary);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
-    font-size: 12px;
-    transition: all var(--duration-fast) var(--easing-smooth);
-}
-
-.quick-member-card:hover .quick-member-avatar {
-    background: var(--color-teal);
-    color: var(--bg-primary);
-    border-color: var(--color-teal-light);
-}
-
-.quick-member-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-}
-
-/* Scrollbar styling for quick checkin */
-.quick-checkin-grid::-webkit-scrollbar {
-    width: 4px;
-}
-.quick-checkin-grid::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-.quick-checkin-grid::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 2px;
-}
 
 /* Modals Override styling */
 .modal-content {

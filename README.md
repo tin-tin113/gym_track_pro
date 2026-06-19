@@ -1,10 +1,13 @@
 # GymTrack Pro (Django)
 
+> ***Web-Based Gym Operations System with Member Enrollment, Attendance Logging, Workout Tracking, and Trainer Assignment***
+
 GymTrack Pro is a Django-based gym management system. Django owns the database schema via migrations, and the default configuration is designed to work with Supabase Postgres using `DATABASE_URL`.
 
 ## Quick Start
 
 ### Requirements
+
 - Python 3.11+
 - pip
 
@@ -34,27 +37,31 @@ python django_app/manage.py runserver
 ```
 
 Open:
+
 - App: http://127.0.0.1:8000/
 - Admin: http://127.0.0.1:8000/admin/
 
 ## 👥 Demo / Test Credentials
+
 For local development and testing, you can use these seeded credentials. To reset or reseed these accounts at any time, run:
+
 ```bash
 python django_app/manage.py seed_demo
 ```
 
 * **Default Password**: `P@ssw0rd`
 
-| Role | Username | Email |
-| :--- | :--- | :--- |
-| **Admin** | `admin` | `admin@gym.local` |
-| **Staff** | `staff` | `staff@gym.local` |
+| Role              | Username    | Email                 |
+| :---------------- | :---------- | :-------------------- |
+| **Admin**   | `admin`   | `admin@gym.local`   |
+| **Staff**   | `staff`   | `staff@gym.local`   |
 | **Trainer** | `trainer` | `trainer@gym.local` |
-| **Member** | `member` | `member@gym.local` |
+| **Member**  | `member`  | `member@gym.local`  |
 
 ## Features
 
 ### ✅ Member Management
+
 - Complete member profiles with membership tracking
 - Membership status monitoring (active, expiring, expired)
 - 7-day expiry warnings
@@ -62,6 +69,7 @@ python django_app/manage.py seed_demo
 - Trainer assignment
 
 ### ✅ Attendance Tracking
+
 - QR code generation (24-hour expiry)
 - Dual check-in methods (QR + manual)
 - Duration calculation
@@ -70,6 +78,7 @@ python django_app/manage.py seed_demo
 - Inactive member detection
 
 ### ✅ Fitness Tracking
+
 - Comprehensive measurements (weight, height, BMI)
 - Body measurements (chest, waist, hips, etc.)
 - Auto-calculated BMI with WHO classification
@@ -78,6 +87,7 @@ python django_app/manage.py seed_demo
 - Weight trend calculations
 
 ### ✅ Trainer Management
+
 - Trainer profiles with specializations
 - Member assignment workflow
 - Capacity tracking (max clients)
@@ -85,6 +95,7 @@ python django_app/manage.py seed_demo
 - Assignment history
 
 ### ✅ Reports & Analytics
+
 - System-wide analytics dashboard
 - Attendance report builder
 - Fitness progress reports
@@ -93,6 +104,7 @@ python django_app/manage.py seed_demo
 - Statistics API
 
 ### ✅ Security
+
 - User authentication with bcrypt hashing
 - Role-based access control (4 roles)
 - Session management
@@ -124,11 +136,13 @@ python django_app/manage.py test
 Endpoints are being reintroduced on Django as views/URLs are implemented.
 
 ### Authentication
+
 - `POST /auth/login` - Login
 - `POST /auth/logout` - Logout
 - `POST /auth/register` - Register (admin only)
 
 ### Members
+
 - `GET /members/` - List members
 - `POST /members/new` - Create member
 - `GET /members/<id>` - View member
@@ -136,22 +150,26 @@ Endpoints are being reintroduced on Django as views/URLs are implemented.
 - `POST /members/import` - CSV import
 
 ### Attendance
+
 - `GET/POST /attendance/check-in` - Check-in
 - `POST /attendance/<id>/check-out` - Check-out
 - `GET /attendance/history` - History
 
 ### Fitness
+
 - `GET/POST /fitness/metrics` - Add metrics
 - `GET /fitness/progress/<member_id>` - Progress
 - `GET /fitness/report/<member_id>` - Report
 
 ### Trainers
+
 - `GET /trainer/dashboard` - Dashboard
 - `GET /trainer/members` - Assigned members
 - `GET/POST /trainer/new` - Create trainer
 - `GET /trainer/list` - All trainers (admin)
 
 ### Reports
+
 - `GET /reports/dashboard` - Analytics
 - `GET/POST /reports/attendance` - Attendance report
 - `GET /reports/fitness/<member_id>` - Fitness report
@@ -169,27 +187,30 @@ If Supabase returns `(ECIRCUITBREAKER) too many authentication failures`, fix/ro
 ## Technology Stack
 
 ### Backend
+
 - Django
 - psycopg
 - PostgreSQL (Supabase)
 
 ### Frontend
+
 - Bootstrap 5
 - Chart.js
 - Vanilla JavaScript
 - Font Awesome
 
 ### Testing
+
 - Django test runner
 
 ## User Roles
 
-| Role | Description | Access |
-|------|-------------|--------|
-| **Admin** | System administrator | Full system access |
-| **Staff** | Gym staff | Check-in, reports, member management |
-| **Trainer** | Fitness trainer | View assigned members, fitness tracking |
-| **Member** | Gym member | Personal profile, fitness data |
+| Role              | Description          | Access                                  |
+| ----------------- | -------------------- | --------------------------------------- |
+| **Admin**   | System administrator | Full system access                      |
+| **Staff**   | Gym staff            | Check-in, reports, member management    |
+| **Trainer** | Fitness trainer      | View assigned members, fitness tracking |
+| **Member**  | Gym member           | Personal profile, fitness data          |
 
 ## Security Features
 
@@ -205,6 +226,7 @@ If Supabase returns `(ECIRCUITBREAKER) too many authentication failures`, fix/ro
 Use a standard Django deployment (gunicorn/uvicorn behind a reverse proxy) after migrations are applied.
 
 ### Database Backup
+
 If using SQLite locally, the database file is: `django_app/db.sqlite3`.
 
 If using Supabase/Postgres, use your database provider’s backup tooling.
@@ -234,6 +256,7 @@ This project is provided as-is for educational and commercial use.
 ## 🎉 Status
 
 ✅ **COMPLETE & PRODUCTION READY**
+
 - All 6 phases implemented
 - 23/23 tests passing
 - 41 API endpoints

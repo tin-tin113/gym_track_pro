@@ -10,7 +10,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from tracker.models import Member, Attendance, FitnessMetric
+from tracker.models import Member, Attendance, FitnessMetric, GuestVisit
 from .base import _require_roles
 
 
@@ -112,9 +112,36 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 		qs = qs.filter(member__assigned_trainer=request.user)
 	qs = qs.order_by('-check_in_time', '-id')
 
-	records = list(qs)
+	records = []
+	for r in qs:
+		records.append(
+			SimpleNamespace(
+				is_guest=False,
+				member_id=r.member.id,
+				name=r.member.user.full_name or r.member.user.username,
+				email=r.member.user.email,
+				check_in_time=r.check_in_time,
+				check_out_time=r.check_out_time,
+			)
+		)
+
+	if not is_trainer:
+		guest_qs = GuestVisit.objects.filter(visit_date=today).order_by('-created_at', '-id')
+		for g in guest_qs:
+			records.append(
+				SimpleNamespace(
+					is_guest=True,
+					member_id=None,
+					name=g.full_name,
+					email=g.email or '-',
+					check_in_time=g.created_at,
+					check_out_time=None,
+				)
+			)
+
+	records.sort(key=lambda r: r.check_in_time, reverse=True)
 	total_visits = len(records)
-	still_checked_in = sum(1 for r in records if r.check_out_time is None)
+	still_checked_in = sum(1 for r in records if not r.is_guest and r.check_out_time is None)
 	now_dt = timezone.now()
 
 	if (request.GET.get('format') or '').lower() == 'csv':
@@ -124,7 +151,10 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 		for r in records:
 			check_in = r.check_in_time
 			check_out = r.check_out_time
-			if check_in and check_out:
+			if r.is_guest:
+				duration = ''
+				status = 'Guest Pass'
+			elif check_in and check_out:
 				duration = int((check_out - check_in).total_seconds() // 60)
 				status = 'Completed'
 			elif check_in and not check_out:
@@ -135,8 +165,8 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 				status = ''
 			writer.writerow(
 				[
-					r.member.user.full_name,
-					r.member.user.email,
+					r.name,
+					r.email,
 					check_in.isoformat() if check_in else '',
 					check_out.isoformat() if check_out else '',
 					max(duration, 0) if duration != '' else '',
@@ -151,7 +181,7 @@ def reports_daily_attendance(request: HttpRequest) -> HttpResponse:
 	completed_durations = [
 		int((r.check_out_time - r.check_in_time).total_seconds() // 60)
 		for r in records
-		if r.check_in_time and r.check_out_time
+		if not r.is_guest and r.check_in_time and r.check_out_time
 	]
 	avg_duration = int(sum(completed_durations) // len(completed_durations)) if completed_durations else None
 
