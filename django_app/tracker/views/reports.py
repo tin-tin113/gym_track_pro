@@ -51,8 +51,18 @@ def reports_dashboard(request: HttpRequest) -> HttpResponse:
 	if is_trainer:
 		attendance_filter = attendance_filter.filter(member__assigned_trainer=request.user)
 
-	active_today = attendance_filter.filter(check_in_time__date=today).count()
-	total_visits = attendance_filter.filter(check_in_time__gte=window_start).count()
+	active_today_members = attendance_filter.filter(check_in_time__date=today).count()
+	total_visits_members = attendance_filter.filter(check_in_time__gte=window_start).count()
+
+	if not is_trainer:
+		active_today_guests = GuestVisit.objects.filter(visit_date=today).count()
+		total_visits_guests = GuestVisit.objects.filter(created_at__gte=window_start).count()
+	else:
+		active_today_guests = 0
+		total_visits_guests = 0
+
+	active_today = active_today_members + active_today_guests
+	total_visits = total_visits_members + total_visits_guests
 	avg_daily_visits = round((total_visits / float(days)) if days else 0.0, 1)
 
 	fitness_filter = FitnessMetric.objects.all()

@@ -385,8 +385,26 @@ def attendance_log_guest(request: HttpRequest) -> HttpResponse:
 	if request.method == 'POST':
 		form = GuestVisitForm(request.POST)
 		if form.is_valid():
+			full_name = form.cleaned_data.get('full_name')
+			email = form.cleaned_data.get('email')
+			phone_number = form.cleaned_data.get('phone_number')
+			today = timezone.localdate()
+
+			duplicate_query = Q(full_name=full_name, visit_date=today)
+			if email or phone_number:
+				sub_cond = Q()
+				if email:
+					sub_cond |= Q(email=email)
+				if phone_number:
+					sub_cond |= Q(phone_number=phone_number)
+				duplicate_query &= sub_cond
+
+			if GuestVisit.objects.filter(duplicate_query).exists():
+				messages.info(request, f"Guest {full_name} has already been logged today.")
+				return redirect(reverse('attendance_routes.check_in') + '?tab=guest-pane')
+
 			guest_visit = form.save(commit=False)
-			guest_visit.visit_date = timezone.localdate()
+			guest_visit.visit_date = today
 			guest_visit.save()
 			messages.success(request, f"Guest pass confirmed! Walk-in guest logged: {guest_visit.full_name}.")
 			return redirect(reverse('attendance_routes.check_in') + '?tab=guest-pane')
