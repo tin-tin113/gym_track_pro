@@ -96,6 +96,13 @@
                                     </button>
                                 </form>
                                 {% endif %}
+                                {% if guide.status in ['approved', 'pending'] %}
+                                <form action="{{ url_for('trainer.revert_guide_to_draft', guide_id=guide.id) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-warning" title="Revert to Draft" onclick="return confirm('Revert this guide to draft? It will be removed from the public library.')">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
                                 {% if guide.status == 'draft' %}
                                 <form action="{{ url_for('trainer.submit_guide', guide_id=guide.id) }}" method="POST" style="display: inline;">
                                     <button type="submit" class="btn btn-success" title="Submit for Approval">

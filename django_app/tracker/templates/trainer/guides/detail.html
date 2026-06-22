@@ -22,8 +22,18 @@
             <p>{{ guide.description }}</p>
         </div>
     </div>
-    {% if guide.status == 'approved' %}
-    <a href="{{ url_for('trainer.assign_guide_to_member', member_id=0) }}" class="btn btn-gym-action">Assign to Member</a>
-    {% endif %}
+    <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+        {% if guide.status == 'approved' %}
+        <a href="{{ url_for('trainer.assign_guide_to_member', member_id=0) }}" class="btn btn-gym-action">Assign to Member</a>
+        {% endif %}
+        
+        {% if guide.trainer == request.user and guide.status in ['approved', 'pending'] and request.user.role == 'trainer' %}
+        <form action="{{ url_for('trainer.revert_guide_to_draft', guide_id=guide.id) }}" method="POST" style="margin: 0; display: inline;">
+            <button type="submit" class="btn btn-secondary" onclick="return confirm('Revert this guide to draft? It will be removed from the public library.')">
+                <i class="fas fa-undo me-1"></i> Revert to Draft
+            </button>
+        </form>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

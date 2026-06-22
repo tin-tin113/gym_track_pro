@@ -97,6 +97,7 @@ from .trainer import (
     trainer_view_guide,
     trainer_delete_guide,
     trainer_submit_guide,
+    trainer_revert_guide_to_draft,
     trainer_add_guide_tip,
     trainer_delete_guide_tip,
     trainer_member_guides,

@@ -93,6 +93,7 @@ urlpatterns = [
     path('trainer/guides/<int:guide_id>/edit', views.trainer_edit_guide, name='trainer.edit_guide'),
     path('trainer/guides/<int:guide_id>/delete', views.trainer_delete_guide, name='trainer.delete_guide'),
     path('trainer/guides/<int:guide_id>/submit', views.trainer_submit_guide, name='trainer.submit_guide'),
+    path('trainer/guides/<int:guide_id>/revert-to-draft', views.trainer_revert_guide_to_draft, name='trainer.revert_guide_to_draft'),
     path('trainer/guides/<int:guide_id>/tips', views.trainer_add_guide_tip, name='trainer.add_guide_tip'),
     path('trainer/guides/<int:guide_id>/tips/<int:tip_id>/delete', views.trainer_delete_guide_tip, name='trainer.delete_guide_tip'),
 

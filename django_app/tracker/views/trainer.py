@@ -989,6 +989,30 @@ def trainer_submit_guide(request: HttpRequest, guide_id: int) -> HttpResponse:
 	return redirect('trainer.list_guides')
 
 
+def trainer_revert_guide_to_draft(request: HttpRequest, guide_id: int) -> HttpResponse:
+	if not _require_trainer_or_admin(request):
+		return redirect('auth.login')
+	if request.method != 'POST':
+		return redirect('trainer.list_guides')
+	if getattr(request.user, 'role', None) != 'trainer':
+		messages.error(request, 'Trainer access required.')
+		return redirect('trainer.list_guides')
+
+	guide = WorkoutGuide.objects.filter(id=guide_id, trainer=request.user).first()
+	if guide is None:
+		messages.error(request, 'Guide not found.')
+		return redirect('trainer.list_guides')
+	if guide.status not in {WorkoutGuide.Status.APPROVED, WorkoutGuide.Status.PENDING}:
+		messages.info(request, 'Guide is already a draft or rejected.')
+		return redirect('trainer.list_guides')
+
+	guide.status = WorkoutGuide.Status.DRAFT
+	guide.save(update_fields=['status'])
+	messages.success(request, 'Guide reverted to draft successfully.')
+	return redirect('trainer.edit_guide', guide_id=guide.id)
+
+
+
 def trainer_add_guide_tip(request: HttpRequest, guide_id: int) -> HttpResponse:
 	if not _require_trainer_or_admin(request):
 		return redirect('auth.login')

@@ -246,6 +246,43 @@ class TrainerModuleSmokeTests(TestCase):
 		self.assertEqual(resp.status_code, 200)
 		self.assertEqual(resp['Content-Type'], 'text/csv')
 
+	def test_trainer_revert_guide_to_draft(self):
+		# Create an approved guide owned by the trainer
+		guide = WorkoutGuide.objects.create(
+			name='Approved Guide',
+			description='Approved description',
+			category='Strength',
+			difficulty_level='Beginner',
+			duration_weeks=4,
+			trainer=self.trainer_user,
+			status=WorkoutGuide.Status.APPROVED,
+		)
+
+		# 1. Non-owner trainer should not be able to revert it
+		other_trainer = User.objects.create_user(username='other_trainer', email='othertrainer@gym.local', password='pw')
+		other_trainer.role = User.Role.TRAINER
+		other_trainer.save(update_fields=['role'])
+		self.client.force_login(other_trainer)
+		resp = self.client.post(reverse('trainer.revert_guide_to_draft', kwargs={'guide_id': guide.id}))
+		self.assertEqual(resp.status_code, 302)
+		guide.refresh_from_db()
+		self.assertEqual(guide.status, WorkoutGuide.Status.APPROVED)
+
+		# 2. Owner trainer can successfully revert approved guide to draft
+		self.client.force_login(self.trainer_user)
+		resp = self.client.post(reverse('trainer.revert_guide_to_draft', kwargs={'guide_id': guide.id}))
+		self.assertEqual(resp.status_code, 302)
+		guide.refresh_from_db()
+		self.assertEqual(guide.status, WorkoutGuide.Status.DRAFT)
+
+		# 3. Owner trainer can successfully revert pending guide to draft
+		guide.status = WorkoutGuide.Status.PENDING
+		guide.save(update_fields=['status'])
+		resp = self.client.post(reverse('trainer.revert_guide_to_draft', kwargs={'guide_id': guide.id}))
+		self.assertEqual(resp.status_code, 302)
+		guide.refresh_from_db()
+		self.assertEqual(guide.status, WorkoutGuide.Status.DRAFT)
+
 
 class MemberModuleSubscriptionTests(TestCase):
 	def setUp(self):
