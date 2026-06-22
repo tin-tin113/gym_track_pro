@@ -466,15 +466,14 @@ def member_approve_renewal(request: HttpRequest, member_id: int) -> HttpResponse
 			days_to_add = 365
 
 		today = timezone.localdate()
-		same_active_sub = Subscription.objects.filter(
+		latest_active_sub = Subscription.objects.filter(
 			member=member,
-			subscription_type=plan,
 			is_active=True,
 			expiry_date__gte=today
 		).order_by('-expiry_date').first()
 
-		if same_active_sub:
-			start_ref = same_active_sub.expiry_date
+		if latest_active_sub:
+			start_ref = latest_active_sub.expiry_date
 		else:
 			start_ref = today
 

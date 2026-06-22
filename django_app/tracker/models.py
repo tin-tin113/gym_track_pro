@@ -70,7 +70,8 @@ class Trainer(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 
 	def save(self, *args, **kwargs):
-		if self.phone_number:
+		update_fields = kwargs.get('update_fields')
+		if self.phone_number and (update_fields is None or 'phone_number' in update_fields):
 			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
 		super().save(*args, **kwargs)
 
@@ -196,7 +197,8 @@ class Member(models.Model):
 				self.membership_start_date = latest_sub.start_date
 
 	def save(self, *args, **kwargs):
-		if self.phone_number:
+		update_fields = kwargs.get('update_fields')
+		if self.phone_number and (update_fields is None or 'phone_number' in update_fields):
 			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
 		super().save(*args, **kwargs)
 		if self.membership_start_date and self.membership_expiry_date:
@@ -683,7 +685,8 @@ class GuestVisit(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	def save(self, *args, **kwargs):
-		if self.phone_number:
+		update_fields = kwargs.get('update_fields')
+		if self.phone_number and (update_fields is None or 'phone_number' in update_fields):
 			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
 		super().save(*args, **kwargs)
 

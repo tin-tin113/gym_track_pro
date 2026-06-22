@@ -533,6 +533,12 @@ class MemberModuleSubscriptionTests(TestCase):
 		active_subs = self.member.active_subscriptions
 		self.assertEqual(active_subs.count(), 2)
 
+		# Verify they chain sequentially rather than overlapping
+		monthly_sub = active_subs.filter(subscription_type=Member.MembershipType.MONTHLY).first()
+		quarterly_sub = active_subs.filter(subscription_type=Member.MembershipType.QUARTERLY).first()
+		self.assertEqual(quarterly_sub.start_date, monthly_sub.expiry_date)
+		self.assertEqual(quarterly_sub.expiry_date, monthly_sub.expiry_date + timedelta(days=90))
+
 		# Verify member list displays both active subscriptions
 		resp = self.client.get(reverse('member.list_members'))
 		self.assertEqual(resp.status_code, 200)
