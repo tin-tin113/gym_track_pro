@@ -77,6 +77,19 @@ class WorkoutForm(forms.ModelForm):
             'workout_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        category = cleaned_data.get('exercise_category')
+        if category != 'Strength':
+            cleaned_data['sets'] = None
+            cleaned_data['reps'] = None
+            cleaned_data['weight'] = None
+        if category != 'Cardio':
+            cleaned_data['duration_minutes'] = None
+            cleaned_data['distance_km'] = None
+        return cleaned_data
+
+
 
 class DietPlanForm(forms.ModelForm):
     class Meta:

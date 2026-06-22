@@ -26,6 +26,8 @@ def clean_and_validate_ph_phone(value: str) -> str:
 	raise ValidationError("Invalid Philippine mobile number format. Use 09XXXXXXXXX or +639XXXXXXXXX.")
 
 
+# INHERITANCE
+# The User class inherits username, password, email, and authentication logic from AbstractUser.
 class User(AbstractUser):
 	class Role(models.TextChoices):
 		ADMIN = 'admin', 'Administrator'
@@ -69,6 +71,9 @@ class Trainer(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
+	# ENCAPSULATION
+	# The save() method restricts access and validates the phone number automatically
+	# before saving, maintaining data integrity within the Trainer object.
 	def save(self, *args, **kwargs):
 		update_fields = kwargs.get('update_fields')
 		if self.phone_number and (update_fields is None or 'phone_number' in update_fields):
@@ -141,9 +146,13 @@ class Member(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
+	# POLYMORPHISM
+	# Overriding the base class __str__ method so that printing a Member returns their name.
 	def __str__(self) -> str:
 		return self.user.full_name or self.user.username
 
+	# ENCAPSULATION
+	# Bundling membership expiry data and active-checking logic inside the Member class.
 	def is_membership_active(self) -> bool:
 		from django.utils import timezone
 
@@ -308,6 +317,8 @@ class FitnessMetric(models.Model):
 	def __str__(self) -> str:
 		return f"{self.member_id} on {self.metric_date}"
 
+	# ABSTRACTION
+	# Hiding the BMI calculation formulas and range checks, exposing only a simple category.
 	def get_bmi_classification(self) -> str:
 		bmi = self.bmi
 		if bmi is None and self.weight and self.height:

@@ -1,4 +1,4 @@
-# GymTrack Pro (Django)
+# GymTrack Pro 
 
 > ***Web-Based Gym Operations System with Member Enrollment, Attendance Logging, Workout Tracking, and Trainer Assignment***
 
