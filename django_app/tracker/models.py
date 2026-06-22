@@ -1,6 +1,29 @@
+import re
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+def clean_and_validate_ph_phone(value: str) -> str:
+	if not value:
+		return ""
+	# Clean whitespace, dashes, parentheses, dots, etc.
+	# We only keep digits and a leading + if present.
+	cleaned = re.sub(r'(?<!^)\+|[^\d+]', '', value.strip())
+
+	# Validate PH mobile phone format
+	# +639XXXXXXXXX
+	if re.match(r'^\+639\d{9}$', cleaned):
+		return cleaned
+	# 639XXXXXXXXX -> +639XXXXXXXXX
+	if re.match(r'^639\d{9}$', cleaned):
+		return '+' + cleaned
+	# 09XXXXXXXXX -> +639XXXXXXXXX
+	if re.match(r'^09\d{9}$', cleaned):
+		return '+639' + cleaned[2:]
+
+	raise ValidationError("Invalid Philippine mobile number format. Use 09XXXXXXXXX or +639XXXXXXXXX.")
 
 
 class User(AbstractUser):
@@ -45,6 +68,11 @@ class Trainer(models.Model):
 	max_clients = models.IntegerField(default=10)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
+	def save(self, *args, **kwargs):
+		if self.phone_number:
+			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
+		super().save(*args, **kwargs)
 
 	@property
 	def certification(self) -> str:
@@ -168,6 +196,8 @@ class Member(models.Model):
 				self.membership_start_date = latest_sub.start_date
 
 	def save(self, *args, **kwargs):
+		if self.phone_number:
+			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
 		super().save(*args, **kwargs)
 		if self.membership_start_date and self.membership_expiry_date:
 			sub = Subscription.objects.filter(
@@ -651,6 +681,11 @@ class GuestVisit(models.Model):
 	emergency_contact = models.CharField(max_length=120, blank=True)
 	notes = models.TextField(blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
+
+	def save(self, *args, **kwargs):
+		if self.phone_number:
+			self.phone_number = clean_and_validate_ph_phone(self.phone_number)
+		super().save(*args, **kwargs)
 
 	def __str__(self) -> str:
 		return f"{self.full_name} on {self.visit_date}"

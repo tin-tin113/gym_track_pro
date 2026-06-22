@@ -30,7 +30,9 @@ from tracker.models import (
 	GuestVisit,
 	WorkoutSet,
 	MealLog,
+	clean_and_validate_ph_phone,
 )
+from django.core.exceptions import ValidationError
 from .base import _require_roles, _PaginationAdapter, _PaginationItemsAdapter, _validate_date_range, _sort_meals
 
 
@@ -1824,6 +1826,12 @@ def trainer_create_trainer(request: HttpRequest) -> HttpResponse:
 		if not full_name or not email:
 			messages.error(request, 'Please fill in all required fields.')
 			return redirect('trainer.create_trainer')
+		if phone_number:
+			try:
+				phone_number = clean_and_validate_ph_phone(phone_number)
+			except ValidationError as e:
+				messages.error(request, e.message)
+				return redirect('trainer.create_trainer')
 		try:
 			max_clients = int(max_clients_str or '10')
 		except ValueError:
@@ -1893,6 +1901,12 @@ def trainer_edit_trainer(request: HttpRequest, trainer_id: int) -> HttpResponse:
 		if not full_name:
 			messages.error(request, 'Full name is required.')
 			return redirect('trainer.edit_trainer', trainer_id=trainer.id)
+		if phone_number:
+			try:
+				phone_number = clean_and_validate_ph_phone(phone_number)
+			except ValidationError as e:
+				messages.error(request, e.message)
+				return redirect('trainer.edit_trainer', trainer_id=trainer.id)
 		try:
 			max_clients = int(max_clients_str or str(trainer.max_clients or 10))
 		except ValueError:

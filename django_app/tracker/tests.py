@@ -306,7 +306,7 @@ class MemberModuleSubscriptionTests(TestCase):
 			data={
 				'full_name': 'New Full Name',
 				'email': 'newemail@gym.local',
-				'phone_number': '1234567890',
+				'phone_number': '09171234567',
 				'gender': 'M',
 				'date_of_birth': '1995-01-01',
 			},
@@ -314,11 +314,32 @@ class MemberModuleSubscriptionTests(TestCase):
 		self.assertEqual(resp.status_code, 302)
 		self.member.refresh_from_db()
 		self.member_user.refresh_from_db()
+		self.member_user.refresh_from_db()
 		self.assertEqual(self.member_user.full_name, 'New Full Name')
 		self.assertEqual(self.member_user.email, 'newemail@gym.local')
-		self.assertEqual(self.member.phone_number, '1234567890')
+		self.assertEqual(self.member.phone_number, '+639171234567')
 		self.assertEqual(self.member.gender, 'M')
 		self.assertEqual(str(self.member.date_of_birth), '1995-01-01')
+
+	def test_phone_number_cleaning_and_validation(self):
+		from django.core.exceptions import ValidationError
+		from .models import clean_and_validate_ph_phone
+
+		# Valid mobile formats
+		self.assertEqual(clean_and_validate_ph_phone('0917 123 4567'), '+639171234567')
+		self.assertEqual(clean_and_validate_ph_phone('+63917-123-4567'), '+639171234567')
+		self.assertEqual(clean_and_validate_ph_phone('63917.123.4567'), '+639171234567')
+		self.assertEqual(clean_and_validate_ph_phone('(0917) 123 4567'), '+639171234567')
+
+		# Invalid formats should raise ValidationError
+		with self.assertRaises(ValidationError):
+			clean_and_validate_ph_phone('1234567890')
+		with self.assertRaises(ValidationError):
+			clean_and_validate_ph_phone('091712345') # too short
+		with self.assertRaises(ValidationError):
+			clean_and_validate_ph_phone('091712345678') # too long
+		with self.assertRaises(ValidationError):
+			clean_and_validate_ph_phone('0281234567') # landline not allowed (only mobile)
 
 	def test_member_renew_pending_request(self):
 		self.client.force_login(self.member_user)
@@ -536,9 +557,9 @@ class GuestVisitTests(TestCase):
 				'full_name': 'Guest Walkin',
 				'guest_type': 'regular',
 				'email': 'guestwalkin@gym.local',
-				'phone_number': '0987654321',
+				'phone_number': '09171234567',
 				'amount_paid': '100.00',
-				'emergency_contact': 'Jane Doe (0987654321)',
+				'emergency_contact': 'Jane Doe (09171234567)',
 				'notes': 'First time guest pass visitor',
 			},
 		)
@@ -550,6 +571,7 @@ class GuestVisitTests(TestCase):
 		self.assertIsNotNone(guest)
 		self.assertEqual(guest.email, 'guestwalkin@gym.local')
 		self.assertEqual(guest.amount_paid, 100.00)
+		self.assertEqual(guest.phone_number, '+639171234567')
 		self.assertEqual(guest.notes, 'First time guest pass visitor')
 
 

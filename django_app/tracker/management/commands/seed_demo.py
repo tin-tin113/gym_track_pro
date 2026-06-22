@@ -355,30 +355,30 @@ class Command(BaseCommand):
                 full_name="Alice Green",
                 guest_type=GuestVisit.GuestType.REGULAR,
                 email="alice@gmail.local",
-                phone_number="555-0199",
+                phone_number="09170000001",
                 visit_date=today,
                 amount_paid=100.0,
-                emergency_contact="Bob Green (555-0198)",
+                emergency_contact="Bob Green (09170000006)",
                 notes="First time trying the gym."
             )
             GuestVisit.objects.create(
                 full_name="Charlie Brown",
                 guest_type=GuestVisit.GuestType.STUDENT,
                 email="charlie@school.local",
-                phone_number="555-0200",
+                phone_number="09170000002",
                 visit_date=today,
                 amount_paid=50.0,
-                emergency_contact="Sally Brown (555-0201)",
+                emergency_contact="Sally Brown (09170000007)",
                 notes="Student single entry."
             )
             GuestVisit.objects.create(
                 full_name="David Wright",
                 guest_type=GuestVisit.GuestType.REGULAR,
                 email="david@gmail.local",
-                phone_number="555-0202",
+                phone_number="09170000003",
                 visit_date=today,
                 amount_paid=100.0,
-                emergency_contact="Eve Wright (555-0203)",
+                emergency_contact="Eve Wright (09170000008)",
                 notes="One-off visitor."
             )
             # 2 guests yesterday
@@ -386,20 +386,20 @@ class Command(BaseCommand):
                 full_name="Fiona Miller",
                 guest_type=GuestVisit.GuestType.REGULAR,
                 email="fiona@gmail.local",
-                phone_number="555-0204",
+                phone_number="09170000004",
                 visit_date=today - timedelta(days=1),
                 amount_paid=100.0,
-                emergency_contact="George Miller (555-0205)",
+                emergency_contact="George Miller (09170000009)",
                 notes="Single entry."
             )
             GuestVisit.objects.create(
                 full_name="Harry Davis",
                 guest_type=GuestVisit.GuestType.STUDENT,
                 email="harry@school.local",
-                phone_number="555-0206",
+                phone_number="09170000005",
                 visit_date=today - timedelta(days=1),
                 amount_paid=50.0,
-                emergency_contact="Ian Davis (555-0207)",
+                emergency_contact="Ian Davis (09170000010)",
                 notes="Student entry."
             )
 

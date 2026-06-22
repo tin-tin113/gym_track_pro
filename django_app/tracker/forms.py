@@ -1,5 +1,6 @@
 from django import forms
-from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric, GuideAssignment, DietAssignment, GuestVisit
+from django.core.exceptions import ValidationError
+from .models import Member, Workout, DietPlan, MealPlan, WorkoutGuide, WorkoutTip, FitnessMetric, GuideAssignment, DietAssignment, GuestVisit, clean_and_validate_ph_phone
 
 class MemberForm(forms.ModelForm):
     class Meta:
@@ -23,6 +24,15 @@ class MemberForm(forms.ModelForm):
             'membership_expiry_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            try:
+                phone_number = clean_and_validate_ph_phone(phone_number)
+            except ValidationError as e:
+                raise forms.ValidationError(e.message)
+        return phone_number
+
 
 class MemberProfileForm(forms.ModelForm):
     class Meta:
@@ -35,6 +45,15 @@ class MemberProfileForm(forms.ModelForm):
         widgets = {
             'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            try:
+                phone_number = clean_and_validate_ph_phone(phone_number)
+            except ValidationError as e:
+                raise forms.ValidationError(e.message)
+        return phone_number
 
 
 
@@ -182,4 +201,13 @@ class GuestVisitForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Optional visitor notes...'}),
         }
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get('phone_number')
+        if phone_number:
+            try:
+                phone_number = clean_and_validate_ph_phone(phone_number)
+            except ValidationError as e:
+                raise forms.ValidationError(e.message)
+        return phone_number
 
